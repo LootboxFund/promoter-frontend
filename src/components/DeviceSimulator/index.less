@@ -1,0 +1,43 @@
+/* The device with borders */
+.smartphone {
+  height: 760px;
+  border: 16px black solid;
+  border-top-width: 60px;
+  border-bottom-width: 60px;
+  border-radius: 36px;
+}
+
+/* The horizontal line on the top of the device */
+.smartphone:before {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  display: block;
+  width: 60px;
+  height: 5px;
+  background: #333;
+  border-radius: 10px;
+  transform: translate(-50%, -50%);
+  content: '';
+}
+
+/* The circle on the bottom of the device */
+.smartphone:after {
+  position: absolute;
+  bottom: -65px;
+  left: 50%;
+  display: block;
+  width: 35px;
+  height: 35px;
+  background: #333;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  content: '';
+}
+
+/* The screen (or content) of the device */
+.smartphone .viewPort {
+  width: 360px;
+  height: 640px;
+  background: white;
+}
