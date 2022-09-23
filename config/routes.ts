@@ -66,7 +66,7 @@ export default [
         name: 'Offer',
         path: '/dashboard/offers/id/:offerID',
         hideInMenu: true,
-        component: './Welcome',
+        component: './Dashboard/OfferPage',
       },
       {
         name: 'Partners',
