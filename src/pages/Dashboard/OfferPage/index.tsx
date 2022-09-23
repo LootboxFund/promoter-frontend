@@ -3,26 +3,30 @@ import type {
   QueryViewOfferDetailsAsAffiliateArgs,
   OfferAffiliateView,
   ViewOfferDetailsAsEventAffiliatePayload,
+  AdSetPreview,
 } from '@/api/graphql/generated/types';
 import { useAdvertiserUser } from '@/components/AuthGuard/advertiserUserInfo';
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
-import { $ColumnGap, $Horizontal } from '@/components/generics';
+import { $ColumnGap, $Horizontal, placeholderImage } from '@/components/generics';
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Col, Image, Row } from 'antd';
+import { Button, Card, Col, Image, Row } from 'antd';
 import { useQuery } from '@apollo/client';
-import { useParams } from '@umijs/max';
-import { AdvertiserID, AffiliateID } from '@wormgraph/helpers';
+import { Link, useParams } from '@umijs/max';
+import { AdvertiserID, AffiliateID, OfferID } from '@wormgraph/helpers';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
 import { VIEW_OFFER_AS_AFFILIATE } from './api.gql';
 import styles from './index.less';
 import CreateOfferForm from '@/components/CreateOfferForm';
+import Meta from 'antd/lib/card/Meta';
+import AdSetToTournamentModal from '@/components/AdSetToTournamentModal';
 
-const affiliateID = 'ebv8vWQXpycAtKGvMnvG' as AffiliateID;
+const affiliateID = 'rMpu8oZN3EjEe5XL3s50' as AffiliateID;
 
 const OfferPage: React.FC = () => {
   const { offerID } = useParams();
   const [offer, setOffer] = useState<OfferAffiliateView>();
+  const [selectedAdSet, setSelectedAdSet] = useState<AdSetPreview | null>(null);
   const { data, loading, error } = useQuery<
     { viewOfferDetailsAsAffiliate: ViewOfferDetailsAsEventAffiliateResponse },
     {
@@ -122,6 +126,44 @@ const OfferPage: React.FC = () => {
               );
             })}
           </Card>
+          <br />
+          <br />
+          <h2>Ad Sets</h2>
+          <br />
+          <div className={styles.adSetGrid}>
+            {offer.adSetPreviews.map((adSet) => {
+              const imageToDisplay = adSet.thumbnail || placeholderImage;
+              return (
+                <Card
+                  key={adSet.id}
+                  hoverable
+                  className={styles.card}
+                  cover={<img alt="example" src={imageToDisplay} className={styles.cardImage} />}
+                  actions={[
+                    <Button
+                      key={`${adSet.id}-add-to-event`}
+                      onClick={() => setSelectedAdSet(adSet)}
+                      type="primary"
+                      style={{ width: '90%' }}
+                    >
+                      Add To Event
+                    </Button>,
+                  ]}
+                >
+                  <Meta title={adSet.name} description={adSet.placement} />
+                </Card>
+              );
+            })}
+          </div>
+          <br />
+          <AdSetToTournamentModal
+            offerID={offer.id as OfferID}
+            adSet={selectedAdSet}
+            isOpen={!!selectedAdSet}
+            closeModal={() => {
+              setSelectedAdSet(null);
+            }}
+          />
         </div>
       )}
     </div>

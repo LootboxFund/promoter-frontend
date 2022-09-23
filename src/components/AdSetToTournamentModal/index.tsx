@@ -1,24 +1,38 @@
 import type {
+  AdSetPreview,
+  ListConquestPreviewsResponse,
+  QueryListConquestPreviewsArgs,
   QueryViewMyTournamentsAsOrganizerArgs,
   Tournament,
+  ViewMyTournamentsAsOrganizerResponse,
 } from '@/api/graphql/generated/types';
 import { useAdvertiserUser } from '@/components/AuthGuard/advertiserUserInfo';
-import { $Horizontal, $Vertical } from '@/components/generics';
+import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '@/pages/Dashboard/EventsPage/api.gql';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
-import { AffiliateID } from '@wormgraph/helpers';
-import { Button, Card, Input } from 'antd';
+import { AffiliateID, OfferID } from '@wormgraph/helpers';
+import { Button, Card, Input, Modal } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
-import { VIEW_TOURNAMENTS_AS_ORGANIZER } from './api.gql';
+import { $Horizontal, $Vertical } from '../generics';
 import styles from './index.less';
-import { ViewMyTournamentsAsOrganizerResponse } from '../../../api/graphql/generated/types';
 
 const affiliateID = 'rMpu8oZN3EjEe5XL3s50' as AffiliateID;
 
-const EventsPage: React.FC = () => {
+interface AdSetToTournamentModalProps {
+  offerID: OfferID;
+  adSet: AdSetPreview | null;
+  isOpen: boolean;
+  closeModal: () => void;
+}
+const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
+  offerID,
+  adSet,
+  isOpen,
+  closeModal,
+}) => {
   const [searchString, setSearchString] = useState('');
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const { data, loading, error } = useQuery<
@@ -49,11 +63,16 @@ const EventsPage: React.FC = () => {
       tournament.title.toLowerCase().indexOf(searchString.toLowerCase()) > -1
     );
   };
-
   console.log(`---- tournaments`);
   console.log(tournaments);
   return (
-    <PageContainer>
+    <Modal
+      title="Include Ad to Event"
+      open={isOpen}
+      onCancel={() => closeModal()}
+      footer={<Button onClick={() => closeModal()}>Cancel</Button>}
+      style={{ width: 'auto', maxWidth: '1000px' }}
+    >
       {loading ? (
         <div className={styles.loading_container}>
           <Spin />
@@ -68,9 +87,6 @@ const EventsPage: React.FC = () => {
               onSearch={setSearchString}
               style={{ width: 200 }}
             />
-            <Button>
-              <Link to="/dashboard/events/create">Create Event</Link>
-            </Button>
           </$Horizontal>
           <br />
           <div className={styles.content}>
@@ -86,6 +102,11 @@ const EventsPage: React.FC = () => {
                       className={styles.cardImage}
                     />
                   }
+                  actions={[
+                    <Button type="primary" key={`add-${tournament.id}`} style={{ width: '90%' }}>
+                      Add To Event
+                    </Button>,
+                  ]}
                 >
                   <Meta title={tournament.title} />
                 </Card>
@@ -94,8 +115,8 @@ const EventsPage: React.FC = () => {
           </div>
         </$Vertical>
       )}
-    </PageContainer>
+    </Modal>
   );
 };
 
-export default EventsPage;
+export default AdSetToTournamentModal;

@@ -15,7 +15,7 @@ import React, { useState } from 'react';
 import { LIST_OFFERS_FOR_AFFILIATE } from './api.gql';
 import styles from './index.less';
 
-const affiliateID = 'ebv8vWQXpycAtKGvMnvG' as AffiliateID;
+const affiliateID = 'rMpu8oZN3EjEe5XL3s50' as AffiliateID;
 
 const OffersPage: React.FC = () => {
   const [searchString, setSearchString] = useState('');
