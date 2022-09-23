@@ -1,22 +1,26 @@
 import type {
+  AddOfferAdSetToTournamentResponse,
   AdSetPreview,
   ListConquestPreviewsResponse,
+  MutationAddOfferAdSetToTournamentArgs,
   QueryListConquestPreviewsArgs,
   QueryViewMyTournamentsAsOrganizerArgs,
+  ResponseError,
   Tournament,
   ViewMyTournamentsAsOrganizerResponse,
 } from '@/api/graphql/generated/types';
 import { useAdvertiserUser } from '@/components/AuthGuard/advertiserUserInfo';
 import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '@/pages/Dashboard/EventsPage/api.gql';
 import { PageContainer } from '@ant-design/pro-components';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
-import { AffiliateID, OfferID } from '@wormgraph/helpers';
-import { Button, Card, Input, Modal } from 'antd';
+import { AffiliateID, OfferID, TournamentID } from '@wormgraph/helpers';
+import { Button, Card, Input, message, Modal } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
 import { $Horizontal, $Vertical } from '../generics';
+import { ADD_OFFER_ADSET_TO_TOURNAMENT } from './index.gql';
 import styles from './index.less';
 
 const affiliateID = 'rMpu8oZN3EjEe5XL3s50' as AffiliateID;
@@ -35,6 +39,7 @@ const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
 }) => {
   const [searchString, setSearchString] = useState('');
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [chosenTournament, setChosenTournament] = useState<TournamentID | null>(null);
   const { data, loading, error } = useQuery<
     { viewMyTournamentsAsOrganizer: ViewMyTournamentsAsOrganizerResponse },
     QueryViewMyTournamentsAsOrganizerArgs
@@ -50,6 +55,12 @@ const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
         setTournaments(tournaments);
       }
     },
+  });
+  const [addOfferAdSetToTournamentMutation] = useMutation<
+    { createConquest: ResponseError | AddOfferAdSetToTournamentResponse },
+    MutationAddOfferAdSetToTournamentArgs
+  >(ADD_OFFER_ADSET_TO_TOURNAMENT, {
+    refetchQueries: [],
   });
   if (error) {
     return <span>{error?.message || ''}</span>;
@@ -70,8 +81,9 @@ const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
       title="Include Ad to Event"
       open={isOpen}
       onCancel={() => closeModal()}
+      width="100%"
       footer={<Button onClick={() => closeModal()}>Cancel</Button>}
-      style={{ width: 'auto', maxWidth: '1000px' }}
+      style={{ width: '100%', maxWidth: '1000px' }}
     >
       {loading ? (
         <div className={styles.loading_container}>
@@ -103,7 +115,30 @@ const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
                     />
                   }
                   actions={[
-                    <Button type="primary" key={`add-${tournament.id}`} style={{ width: '90%' }}>
+                    <Button
+                      type="primary"
+                      key={`add-${tournament.id}`}
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        if (adSet?.id) {
+                          setChosenTournament(tournament.id as TournamentID);
+                          await addOfferAdSetToTournamentMutation({
+                            variables: {
+                              payload: {
+                                adSetID: adSet.id,
+                                offerID: offerID,
+                                organizerID: affiliateID,
+                                tournamentID: tournament.id,
+                              },
+                            },
+                          });
+                          setChosenTournament(null);
+                          message.success('Ad Set added to Event');
+                        }
+                      }}
+                      style={{ width: '90%' }}
+                      loading={chosenTournament === tournament.id}
+                    >
                       Add To Event
                     </Button>,
                   ]}

@@ -25,10 +25,7 @@ const EventPage: React.FC = () => {
     QueryViewTournamentAsOrganizerArgs
   >(VIEW_TOURNAMENT_AS_ORGANIZER, {
     variables: {
-      payload: {
-        affiliateID,
-        tournamentID: eventID || '',
-      },
+      tournamentID: eventID || '',
     },
     onCompleted: (data) => {
       if (

@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
-  query ViewTournamentAsOrganizer($payload: ViewTournamentAsOrganizerInput!) {
-    viewTournamentAsOrganizer(payload: $payload) {
+  query ViewTournamentAsOrganizer($tournamentID: ID!) {
+    viewTournamentAsOrganizer(tournamentID: $tournamentID) {
       ... on ViewTournamentAsOrganizerResponseSuccess {
         tournament {
           id
@@ -17,12 +17,36 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
           communityURL
           organizer
           promoters
-          offers {
+          dealConfigs {
+            tournamentID
+            offerID
+            offerName
+            advertiserID
+            advertiserName
+            advertiserAvatar
+            adSets {
+              id
+              name
+              status
+              placement
+              thumbnail
+            }
+            rateQuoteConfigs {
+              rateQuoteID
+              activationID
+              activationName
+              description
+              pricing
+              affiliateID
+              affiliateName
+              affiliateAvatar
+            }
+          }
+          isPostCosmic
+          organizerProfile {
             id
-            status
-            rateQuotes
-            activeAdSets
-            inactiveAdSets
+            name
+            avatar
           }
         }
       }
