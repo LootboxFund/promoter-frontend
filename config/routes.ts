@@ -58,57 +58,70 @@ export default [
         component: './Welcome',
       },
       {
-        name: 'Partners',
-        path: '/dashboard/partners',
-        component: './Welcome',
-      },
-      {
-        name: 'Partner',
-        path: '/dashboard/partners/id/:partnerI',
-        hideInMenu: true,
-        component: './Welcome',
-      },
-    ],
-  },
-  {
-    path: '/marketplace',
-    icon: 'ShoppingOutlined',
-    name: 'Marketplace',
-    routes: [
-      {
-        hideInMenu: true,
-        path: '/marketplace',
-        redirect: '/marketplace/tutorial',
-      },
-      {
-        name: 'Tutorial',
-        path: '/marketplace/tutorial',
-        component: './Welcome',
-      },
-      {
-        name: 'Advertisers',
-        path: '/marketplace/advertisers',
-        component: './Welcome',
-      },
-      {
-        name: 'Advertiser',
-        path: '/marketplace/advertisers/id/:advertiserID',
-        hideInMenu: true,
-        component: './Welcome',
-      },
-      {
         name: 'Offers',
-        path: '/marketplace/offers',
-        component: './Welcome',
+        path: '/dashboard/offers',
+        component: './Dashboard/OffersPage',
       },
       {
         name: 'Offer',
-        path: '/marketplace/offers/id/:offerID',
+        path: '/dashboard/offers/id/:offerID',
+        hideInMenu: true,
+        component: './Dashboard/OfferPage',
+      },
+      {
+        name: 'Partners',
+        path: '/dashboard/partners',
+        component: './Welcome',
+        hideInMenu: true,
+      },
+      {
+        name: 'Partner',
+        path: '/dashboard/partners/id/:partnerID',
         hideInMenu: true,
         component: './Welcome',
       },
     ],
   },
+  // {
+  //   path: '/marketplace',
+  //   icon: 'ShoppingOutlined',
+  //   name: 'Marketplace',
+  //   routes: [
+  //     {
+  //       hideInMenu: true,
+  //       path: '/marketplace',
+  //       redirect: '/marketplace/tutorial',
+  //     },
+  //     {
+  //       name: 'Tutorial',
+  //       path: '/marketplace/tutorial',
+  //       component: './Welcome',
+  //     },
+  //     {
+  //       name: 'Advertisers',
+  //       path: '/marketplace/advertisers',
+  //       component: './Welcome',
+  //       hideInMenu: true,
+  //     },
+  //     {
+  //       name: 'Advertiser',
+  //       path: '/marketplace/advertisers/id/:advertiserID',
+  //       hideInMenu: true,
+  //       component: './Welcome',
+  //     },
+  //     {
+  //       name: 'Offers',
+  //       path: '/marketplace/offers',
+  //       component: './Welcome',
+  //     },
+  //     {
+  //       name: 'Offer',
+  //       path: '/marketplace/offers/id/:offerID',
+  //       hideInMenu: true,
+  //       component: './Welcome',
+  //     },
+  //   ],
+  // },
   {
     path: '/company',
     icon: 'ShopOutlined',

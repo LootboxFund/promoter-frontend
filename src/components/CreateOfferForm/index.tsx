@@ -131,24 +131,17 @@ const CreateOfferForm: React.FC<CreateOfferFormProps> = ({
   }, []);
   const getMeta = () => {
     const meta = {
-      columns: 2,
+      columns: 1,
       disabled: pending,
       initialValues: offerInfo,
       fields: [
         { key: 'title', label: 'Title', required: true },
-        {
-          key: 'startDate',
-          label: 'Start Date',
-          widget: 'date-picker',
-          viewWidget: DateView,
-        },
-        { key: 'description', label: 'Description', widget: 'textarea' },
-        {
-          key: 'endDate',
-          label: 'End Date',
-          widget: 'date-picker',
-          viewWidget: DateView,
-        },
+        // {
+        //   key: 'startDate',
+        //   label: 'Start Date',
+        //   widget: 'date-picker',
+        //   viewWidget: DateView,
+        // },
         {
           key: 'maxBudget',
           label: 'Max Budget',
@@ -159,39 +152,13 @@ const CreateOfferForm: React.FC<CreateOfferFormProps> = ({
             currency: 'USDC Polygon',
           },
         },
-        {
-          key: 'affiliateBaseLink',
-          label: 'Affiliate Link',
-          required: mode === 'create' ? true : false,
-          disabled: mode === 'create' ? false : true,
-          rules: [
-            { required: true } as Rule,
-            { type: 'url' } as Rule,
-            { type: 'string', min: 3 } as Rule,
-          ],
-        },
-        {
-          key: 'status',
-          label: 'Status',
-          widget: 'radio-group',
-          options: [
-            OfferStatus.Active,
-            OfferStatus.Inactive,
-            OfferStatus.Planned,
-            OfferStatus.Archived,
-          ],
-        },
-        {
-          key: 'mmp',
-          label: 'Tracking',
-          disabled: mode === 'create' ? false : true,
-          widget: 'select',
-          options: [
-            MeasurementPartnerType.Appsflyer,
-            MeasurementPartnerType.LootboxPixel,
-            MeasurementPartnerType.Manual,
-          ],
-        },
+        { key: 'description', label: 'Description', widget: 'textarea' },
+        // {
+        //   key: 'endDate',
+        //   label: 'End Date',
+        //   widget: 'date-picker',
+        //   viewWidget: DateView,
+        // },
       ],
     };
     if (!viewMode) {
