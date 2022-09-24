@@ -1,13 +1,14 @@
 import { gql } from '@apollo/client';
 
-export const LIST_CONQUEST_PREVIEWS = gql`
-  query ListConquestPreviews($advertiserID: ID!) {
-    listConquestPreviews(advertiserID: $advertiserID) {
-      ... on ListConquestPreviewsResponseSuccess {
-        conquests {
+export const GET_AFFILIATE = gql`
+  query AffiliatePublicView($affiliateID: ID!) {
+    affiliatePublicView(affiliateID: $affiliateID) {
+      ... on AffiliatePublicViewResponseSuccess {
+        affiliate {
           id
-          title
-          image
+          userID
+          name
+          avatar
         }
       }
       ... on ResponseError {

@@ -17,11 +17,10 @@ import { Button, Card, Input, message, Modal } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
+import { useAffiliateUser } from '../AuthGuard/advertiserUserInfo';
 import { $Horizontal, $Vertical } from '../generics';
 import { ADD_OFFER_ADSET_TO_TOURNAMENT } from './index.gql';
 import styles from './index.less';
-
-const affiliateID = 'rMpu8oZN3EjEe5XL3s50' as AffiliateID;
 
 interface AdSetToTournamentModalProps {
   offerID: OfferID;
@@ -35,6 +34,8 @@ const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
   isOpen,
   closeModal,
 }) => {
+  const { affiliateUser } = useAffiliateUser();
+  const { id: affiliateID } = affiliateUser;
   const [searchString, setSearchString] = useState('');
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [chosenTournament, setChosenTournament] = useState<TournamentID | null>(null);

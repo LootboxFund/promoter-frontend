@@ -1,14 +1,19 @@
-import type {
+import {
   ViewTournamentAsOrganizerResponse,
   QueryViewTournamentAsOrganizerArgs,
   Tournament,
   DealConfigTournament,
+  RemoveOfferAdSetFromTournamentResponse,
+  MutationRemoveOfferAdSetFromTournamentArgs,
+  ResponseError,
+  AdSetStatus,
 } from '@/api/graphql/generated/types';
 import { history } from '@umijs/max';
+import * as _ from 'lodash';
 
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
 
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { Link, useParams } from '@umijs/max';
 import type {
   ActivationID,
@@ -20,7 +25,7 @@ import type {
 import { AffiliateType } from '@wormgraph/helpers';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
-import { VIEW_TOURNAMENT_AS_ORGANIZER } from './api.gql';
+import { REMOVE_ADSET_FROM_TOURNAMENT, VIEW_TOURNAMENT_AS_ORGANIZER } from './api.gql';
 import styles from './index.less';
 import { $Horizontal, $Vertical, $ColumnGap } from '@/components/generics';
 import {
@@ -44,8 +49,8 @@ import AddPromoterToTournamentModal, {
   ChosenPromoter,
 } from '@/components/AddPromoterToTournamentModal';
 import { InfoCircleOutlined } from '@ant-design/icons';
-
-const affiliateID = 'rMpu8oZN3EjEe5XL3s50' as AffiliateID;
+import { AdSetInTournamentStatus } from '../../../api/graphql/generated/types';
+import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 
 interface DataType {
   rateQuoteID: string;
@@ -62,12 +67,15 @@ interface DataType {
 }
 
 const EventPage: React.FC = () => {
+  const { affiliateUser } = useAffiliateUser();
+  const { id: affiliateID } = affiliateUser;
   const { eventID } = useParams();
   const [rateCard, setRateCard] = useState<RateCardModalInput | null>(null);
   const [offerToAddPromoter, setOfferToAddPromoter] = useState<DealConfigTournament | null>(null);
   const [tournament, setTournament] = useState<Tournament>();
   const [showTableOfContents, setShowTableOfContents] = useState(true);
 
+  // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
     { viewTournamentAsOrganizer: ViewTournamentAsOrganizerResponse },
     QueryViewTournamentAsOrganizerArgs
@@ -85,6 +93,19 @@ const EventPage: React.FC = () => {
       }
     },
   });
+
+  // REMOVE ADSET FROM TOURNAMENT
+  const [removeAdSetOffer] = useMutation<
+    {
+      removeOfferAdSetFromTournament: ResponseError | RemoveOfferAdSetFromTournamentResponse;
+    },
+    MutationRemoveOfferAdSetFromTournamentArgs
+  >(REMOVE_ADSET_FROM_TOURNAMENT, {
+    refetchQueries: [
+      { query: VIEW_TOURNAMENT_AS_ORGANIZER, variables: { tournamentID: eventID || '' } },
+    ],
+  });
+
   if (error) {
     return <span>{error?.message || ''}</span>;
   } else if (data?.viewTournamentAsOrganizer.__typename === 'ResponseError') {
@@ -122,8 +143,8 @@ const EventPage: React.FC = () => {
               <p>{tournament.description}</p>
             </Card>
             <$ColumnGap />
-            <Affix offsetTop={60}>
-              <Card style={{ width: '300px' }}>
+            <Affix offsetTop={60} style={{ pointerEvents: 'none' }}>
+              <Card style={{ width: '300px', pointerEvents: 'all' }}>
                 <$Horizontal justifyContent="space-between">
                   <h4>Table of Contents</h4>
                   <Button size="small" onClick={() => setShowTableOfContents(!showTableOfContents)}>
@@ -133,6 +154,7 @@ const EventPage: React.FC = () => {
                 {showTableOfContents && (
                   <Anchor offsetTop={70}>
                     <Anchor.Link href="#breadcrumbs" title="Event Info" />
+                    <Anchor.Link href="#ticket-distribution" title="Ticket Distribution" />
                     <Anchor.Link href="#revenue-sharing" title="Revenue Sharing">
                       {tournament.dealConfigs.map((dealConfig) => {
                         return (
@@ -166,10 +188,12 @@ const EventPage: React.FC = () => {
           <br />
 
           {tournament.dealConfigs.map((dealConfig) => {
-            const uniqueActivations = dealConfig.rateQuoteConfigs
-              .slice()
-              .sort((a, b) => a.activationOrder - b.activationOrder)
-              .map((x) => x.activationID);
+            const uniqueActivations = _.uniq(
+              dealConfig.rateQuoteConfigs
+                .slice()
+                .sort((a, b) => a.activationOrder - b.activationOrder)
+                .map((x) => x.activationID),
+            );
 
             return (
               <Card id={`offer-${dealConfig.offerID}`} key={dealConfig.offerID}>
@@ -320,30 +344,52 @@ const EventPage: React.FC = () => {
                       </Popconfirm>
                     </$Horizontal>
                     <div className={styles.content}>
-                      {dealConfig.adSets.map((adSet) => (
-                        <Card
-                          key={`${dealConfig.offerID}-${adSet.id}`}
-                          hoverable
-                          className={styles.card}
-                          cover={
-                            <img
-                              alt="example"
-                              src={adSet.thumbnail || ''}
-                              className={styles.cardImage}
-                            />
-                          }
-                          actions={[
-                            <Button
-                              key={`${dealConfig.offerID}-${adSet.id}-button`}
-                              style={{ width: '80%' }}
+                      {dealConfig.adSets
+                        .filter((adSet) => adSet.status === AdSetInTournamentStatus.Active)
+                        .map((adSet) => {
+                          let isLoading = false;
+                          return (
+                            <Card
+                              key={`${dealConfig.offerID}-${adSet.id}`}
+                              hoverable
+                              className={styles.card}
+                              cover={
+                                <img
+                                  alt="example"
+                                  src={adSet.thumbnail || ''}
+                                  className={styles.cardImage}
+                                />
+                              }
+                              actions={[
+                                <Button
+                                  key={`${dealConfig.offerID}-${adSet.id}-button`}
+                                  style={{ width: '80%' }}
+                                  loading={isLoading}
+                                  onClick={async () => {
+                                    console.log(`eventID = `, eventID);
+                                    if (eventID) {
+                                      isLoading = true;
+                                      await removeAdSetOffer({
+                                        variables: {
+                                          payload: {
+                                            adSetID: adSet.id,
+                                            tournamentID: eventID,
+                                            offerID: dealConfig.offerID,
+                                          },
+                                        },
+                                      });
+                                      isLoading = false;
+                                    }
+                                  }}
+                                >
+                                  Remove
+                                </Button>,
+                              ]}
                             >
-                              Remove
-                            </Button>,
-                          ]}
-                        >
-                          <Meta title={adSet.name} description={adSet.placement} />
-                        </Card>
-                      ))}
+                              <Meta title={adSet.name} description={adSet.placement} />
+                            </Card>
+                          );
+                        })}
                     </div>
                   </Tabs.TabPane>
                 </Tabs>

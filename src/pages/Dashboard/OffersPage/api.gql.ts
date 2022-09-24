@@ -10,6 +10,8 @@ export const LIST_OFFERS_FOR_AFFILIATE = gql`
           description
           image
           advertiserID
+          advertiserName
+          advertiserAvatar
           spentBudget
           maxBudget
           startDate

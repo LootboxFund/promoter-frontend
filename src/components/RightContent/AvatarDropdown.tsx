@@ -7,7 +7,7 @@ import type { ItemType } from 'antd/lib/menu/hooks/useItems';
 import { stringify } from 'querystring';
 import type { MenuInfo } from 'rc-menu/lib/interface';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useAdvertiserUser } from '../AuthGuard/advertiserUserInfo';
+import { useAffiliateUser } from '../AuthGuard/advertiserUserInfo';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
 
@@ -17,7 +17,7 @@ export type GlobalHeaderRightProps = {
 
 const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
   const { logout } = useAuth();
-  const { advertiserUser, loading: userLoading } = useAdvertiserUser();
+  const { affiliateUser, loading: userLoading } = useAffiliateUser();
 
   const loginOut = async () => {
     await logout();
@@ -61,7 +61,7 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
     return loading;
   }
 
-  if (!advertiserUser || !advertiserUser.name) {
+  if (!affiliateUser || !affiliateUser.name) {
     return loading;
   }
 
@@ -97,8 +97,8 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
   return (
     <HeaderDropdown overlay={menuHeaderDropdown}>
       <span className={`${styles.action} ${styles.account}`}>
-        <Avatar size="small" className={styles.avatar} src={advertiserUser.avatar} alt="avatar" />
-        <span className={`${styles.name} anticon`}>{advertiserUser.name}</span>
+        <Avatar size="small" className={styles.avatar} src={affiliateUser.avatar} alt="avatar" />
+        <span className={`${styles.name} anticon`}>{affiliateUser.name}</span>
       </span>
     </HeaderDropdown>
   );

@@ -2,7 +2,7 @@ import type {
   QueryViewMyTournamentsAsOrganizerArgs,
   Tournament,
 } from '@/api/graphql/generated/types';
-import { useAdvertiserUser } from '@/components/AuthGuard/advertiserUserInfo';
+import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import { $Horizontal, $Vertical } from '@/components/generics';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
@@ -16,9 +16,9 @@ import { VIEW_TOURNAMENTS_AS_ORGANIZER } from './api.gql';
 import styles from './index.less';
 import { ViewMyTournamentsAsOrganizerResponse } from '../../../api/graphql/generated/types';
 
-const affiliateID = 'rMpu8oZN3EjEe5XL3s50' as AffiliateID;
-
 const EventsPage: React.FC = () => {
+  const { affiliateUser } = useAffiliateUser();
+  const { id: affiliateID } = affiliateUser;
   const [searchString, setSearchString] = useState('');
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const { data, loading, error } = useQuery<

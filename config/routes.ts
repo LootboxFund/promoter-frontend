@@ -82,46 +82,40 @@ export default [
       },
     ],
   },
-  // {
-  //   path: '/marketplace',
-  //   icon: 'ShoppingOutlined',
-  //   name: 'Marketplace',
-  //   routes: [
-  //     {
-  //       hideInMenu: true,
-  //       path: '/marketplace',
-  //       redirect: '/marketplace/tutorial',
-  //     },
-  //     {
-  //       name: 'Tutorial',
-  //       path: '/marketplace/tutorial',
-  //       component: './Welcome',
-  //     },
-  //     {
-  //       name: 'Advertisers',
-  //       path: '/marketplace/advertisers',
-  //       component: './Welcome',
-  //       hideInMenu: true,
-  //     },
-  //     {
-  //       name: 'Advertiser',
-  //       path: '/marketplace/advertisers/id/:advertiserID',
-  //       hideInMenu: true,
-  //       component: './Welcome',
-  //     },
-  //     {
-  //       name: 'Offers',
-  //       path: '/marketplace/offers',
-  //       component: './Welcome',
-  //     },
-  //     {
-  //       name: 'Offer',
-  //       path: '/marketplace/offers/id/:offerID',
-  //       hideInMenu: true,
-  //       component: './Welcome',
-  //     },
-  //   ],
-  // },
+  {
+    path: '/marketplace',
+    icon: 'ShoppingOutlined',
+    name: 'Marketplace',
+    routes: [
+      {
+        hideInMenu: true,
+        path: '/marketplace',
+        redirect: '/marketplace/welcome',
+      },
+      {
+        name: 'Welcome',
+        path: '/marketplace/welcome',
+        component: './Marketplace/Welcome',
+      },
+      {
+        name: 'Browse',
+        path: '/marketplace/browse',
+        component: './Marketplace/BrowseOffersPage',
+      },
+      {
+        name: 'Offer',
+        path: '/marketplace/offers/id/:offerID',
+        component: './Marketplace/PreviewOfferPage',
+        hideInMenu: true,
+      },
+      {
+        name: 'Recruit',
+        path: '/marketplace/recruit',
+        component: './Marketplace/RecruitPromotersPage',
+      },
+    ],
+  },
+
   {
     path: '/company',
     icon: 'ShopOutlined',

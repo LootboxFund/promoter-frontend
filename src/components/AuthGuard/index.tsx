@@ -5,10 +5,10 @@ import { useAuth } from '@/api/firebase/useAuth';
 import { useQuery } from '@apollo/client';
 import { history, Link } from '@umijs/max';
 import {
-  AdvertiserAdminViewResponse,
-  AdvertiserAdminViewResponseSuccess,
+  AffiliateAdminViewResponse,
+  AffiliateAdminViewResponseSuccess,
 } from '@/api/graphql/generated/types';
-import { GET_ADVERTISER } from '@/pages/User/Login/api.gql';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
 
 /**
  * strict = forces login
@@ -16,15 +16,15 @@ import { GET_ADVERTISER } from '@/pages/User/Login/api.gql';
 type AuthGuardProps = PropsWithChildren<{ strict?: boolean } & any>;
 
 const AuthGuard = ({ children, strict, ...props }: AuthGuardProps) => {
-  const [advertiserUser, setAdvertiserUser] = useState<AdvertiserAdminViewResponseSuccess>();
+  const [affiliateUser, setAffiliateUser] = useState<AffiliateAdminViewResponseSuccess>();
   const { user } = useAuth();
-  const { data, loading, error } = useQuery<{ advertiserAdminView: AdvertiserAdminViewResponse }>(
-    GET_ADVERTISER,
+  const { data, loading, error } = useQuery<{ affiliateAdminView: AffiliateAdminViewResponse }>(
+    GET_AFFILIATE_ADMIN_VIEW,
     {
       onCompleted: (data) => {
-        if (data?.advertiserAdminView.__typename === 'AdvertiserAdminViewResponseSuccess') {
-          const advertiser = data.advertiserAdminView;
-          setAdvertiserUser(advertiser);
+        if (data?.affiliateAdminView.__typename === 'AffiliateAdminViewResponseSuccess') {
+          const advertiser = data.affiliateAdminView;
+          setAffiliateUser(advertiser);
         }
       },
     },
@@ -37,7 +37,7 @@ const AuthGuard = ({ children, strict, ...props }: AuthGuardProps) => {
       </Link>
     );
   }
-  if (loading || !advertiserUser) {
+  if (loading || !affiliateUser) {
     return <Spin style={{ margin: 'auto' }} />;
   }
   return children;

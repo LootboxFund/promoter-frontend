@@ -60,3 +60,64 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
     }
   }
 `;
+
+export const REMOVE_ADSET_FROM_TOURNAMENT = gql`
+  mutation RemoveOfferAdSetFromTournament($payload: RemoveOfferAdSetFromTournamentPayload!) {
+    removeOfferAdSetFromTournament(payload: $payload) {
+      ... on RemoveOfferAdSetFromTournamentResponseSuccess {
+        tournament {
+          id
+          title
+          description
+          tournamentLink
+          creatorId
+          magicLink
+          tournamentDate
+          prize
+          coverPhoto
+          communityURL
+          organizer
+          organizerProfile {
+            id
+            name
+            avatar
+          }
+          promoters
+          dealConfigs {
+            tournamentID
+            offerID
+            offerName
+            advertiserID
+            advertiserName
+            advertiserAvatar
+            adSets {
+              id
+              name
+              status
+              placement
+              thumbnail
+            }
+            rateQuoteConfigs {
+              rateQuoteID
+              activationID
+              activationName
+              activationOrder
+              description
+              pricing
+              affiliateID
+              affiliateName
+              affiliateAvatar
+            }
+          }
+          isPostCosmic
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
