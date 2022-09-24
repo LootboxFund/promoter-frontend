@@ -13,7 +13,7 @@ import type { CreateOfferPayload, EditOfferPayload } from '@/api/graphql/generat
 import { AntUploadFile, PriceInput, PriceView } from '../AntFormBuilder';
 import { Rule } from 'antd/lib/form';
 import { DateView } from '../AntFormBuilder';
-import { AdvertiserStorageFolder } from '@/api/firebase/storage';
+import { AffiliateStorageFolder } from '@/api/firebase/storage';
 
 export type CreateOfferFormProps = {
   offer?: {
@@ -165,21 +165,6 @@ const CreateOfferForm: React.FC<CreateOfferFormProps> = ({
         // },
       ],
     };
-    if (!viewMode) {
-      // @ts-ignore
-      meta.fields.push({
-        key: 'image',
-        label: 'Image',
-        widget: () => (
-          <AntUploadFile
-            advertiserID={advertiserID}
-            folderName={AdvertiserStorageFolder.OFFER_IMAGE}
-            newMediaDestination={newMediaDestination}
-            acceptedFileTypes={'image/*'}
-          />
-        ),
-      });
-    }
     return meta;
   };
   return (

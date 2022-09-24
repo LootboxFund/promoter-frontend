@@ -17,7 +17,7 @@ import { Button, Card, Input, message, Modal } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
-import { useAffiliateUser } from '../AuthGuard/advertiserUserInfo';
+import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
 import { $Horizontal, $Vertical } from '../generics';
 import { ADD_OFFER_ADSET_TO_TOURNAMENT } from './index.gql';
 import styles from './index.less';

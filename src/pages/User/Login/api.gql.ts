@@ -9,6 +9,9 @@ export const GET_AFFILIATE_ADMIN_VIEW = gql`
           userID
           name
           avatar
+          description
+          avatar
+          publicContactEmail
         }
       }
       ... on ResponseError {

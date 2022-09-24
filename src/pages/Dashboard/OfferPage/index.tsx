@@ -17,9 +17,10 @@ import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
 import { VIEW_OFFER_AS_AFFILIATE } from './api.gql';
 import styles from './index.less';
-import CreateOfferForm from '@/components/CreateOfferForm';
+
 import Meta from 'antd/lib/card/Meta';
 import AdSetToTournamentModal from '@/components/AdSetToTournamentModal';
+import CreateOfferForm from '@/components/CreateOfferForm';
 
 const OfferPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();

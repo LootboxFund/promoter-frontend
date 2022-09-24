@@ -7,7 +7,7 @@ import type { ItemType } from 'antd/lib/menu/hooks/useItems';
 import { stringify } from 'querystring';
 import type { MenuInfo } from 'rc-menu/lib/interface';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useAffiliateUser } from '../AuthGuard/advertiserUserInfo';
+import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
 

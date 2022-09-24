@@ -1,16 +1,12 @@
 import { storage } from './app';
 import { ref, uploadBytes, getDownloadURL } from '@firebase/storage';
 import { v4 as uuidV4 } from 'uuid';
-import { AdvertiserID } from '@wormgraph/helpers';
+import { AdvertiserID, AffiliateID } from '@wormgraph/helpers';
 
 export const USER_ASSET_SUB_FOLDER = 'users';
 export const LOOTBOX_ADVERTISER_ASSET_FOLDER = `advertiser-assets`;
-export enum AdvertiserStorageFolder {
-  CAMPAIGN_IMAGE = 'campaign-image',
-  OFFER_IMAGE = 'offer-image',
-  ADSET_IMAGE = 'adset-image',
-  AD_IMAGE = 'ad-image',
-  AD_VIDEO = 'ad-video',
+export enum AffiliateStorageFolder {
+  AVATAR = 'avatar',
 }
 
 /**
@@ -35,16 +31,16 @@ export const uploadImageToFirestore = async ({
   folderName,
   folderID,
   file,
-  advertiserID,
+  affiliateID,
 }: {
-  folderName: AdvertiserStorageFolder;
+  folderName: AffiliateStorageFolder;
   folderID?: string;
   file: File;
-  advertiserID: AdvertiserID;
+  affiliateID: AffiliateID;
 }): Promise<string> => {
   const extension = file?.name?.split('.').pop();
   const fileID = uuidV4();
-  const fileDestination = `${LOOTBOX_ADVERTISER_ASSET_FOLDER}/advertiser/${advertiserID}/${folderName}/${
+  const fileDestination = `${LOOTBOX_ADVERTISER_ASSET_FOLDER}/affiliate/${affiliateID}/${folderName}/${
     folderID || 'unknown'
   }/${fileID}/${extension ? '.' + extension : ''}`;
   console.log(`fileDestination = ${fileDestination}`);
