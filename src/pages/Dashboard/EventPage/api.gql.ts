@@ -30,6 +30,14 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
               status
               placement
               thumbnail
+              ad {
+                adID
+                creativeType
+                creativeLinks
+                callToAction
+                aspectRatio
+                themeColor
+              }
             }
             rateQuoteConfigs {
               rateQuoteID

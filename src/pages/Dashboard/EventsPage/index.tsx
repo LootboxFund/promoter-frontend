@@ -50,8 +50,6 @@ const EventsPage: React.FC = () => {
     );
   };
 
-  console.log(`---- tournaments`);
-  console.log(tournaments);
   return (
     <PageContainer>
       {loading ? (

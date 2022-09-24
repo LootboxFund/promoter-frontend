@@ -75,3 +75,12 @@ export const $ColumnGap = styled.div<{
 
 export const placeholderImage =
   'https://media.istockphoto.com/vectors/thumbnail-image-vector-graphic-vector-id1147544807?k=20&m=1147544807&s=612x612&w=0&h=pBhz1dkwsCMq37Udtp9sfxbjaMl27JUapoyYpQm0anc=';
+
+export const placeholderGif =
+  'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-prod.appspot.com/o/assets%2Fgeneric%2Fconan.gif?alt=media&token=b75557ff-5f2b-40dc-aec9-d58485ad5656';
+
+export const placeholderVideo =
+  'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-prod.appspot.com/o/assets%2Fgeneric%2FRise_of_Cultures.mp4?alt=media&token=d1e26e9d-ddd0-4c4a-b863-471976136280';
+
+export const placeholderVideoThumbnail =
+  'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-prod.appspot.com/o/assets%2Fgeneric%2Fcolorful-dots-floating.gif?alt=media&token=d83e298c-fd5a-468e-9a31-f9e43c885bd7';

@@ -35,6 +35,7 @@ import {
   Button,
   Card,
   message,
+  Modal,
   Popconfirm,
   Space,
   Table,
@@ -51,6 +52,7 @@ import AddPromoterToTournamentModal, {
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { AdSetInTournamentStatus } from '../../../api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
+import DeviceSimulator, { DeviceSimulatorProps } from '@/components/DeviceSimulator';
 
 interface DataType {
   rateQuoteID: string;
@@ -65,7 +67,9 @@ interface DataType {
   offerID: string;
   offerName: string;
 }
-
+interface PreviewAdSimulator extends DeviceSimulatorProps {
+  title: string;
+}
 const EventPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();
   const { id: affiliateID } = affiliateUser;
@@ -74,6 +78,7 @@ const EventPage: React.FC = () => {
   const [offerToAddPromoter, setOfferToAddPromoter] = useState<DealConfigTournament | null>(null);
   const [tournament, setTournament] = useState<Tournament>();
   const [showTableOfContents, setShowTableOfContents] = useState(true);
+  const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
 
   // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
@@ -88,8 +93,8 @@ const EventPage: React.FC = () => {
         data?.viewTournamentAsOrganizer.__typename === 'ViewTournamentAsOrganizerResponseSuccess'
       ) {
         const tournament = data.viewTournamentAsOrganizer.tournament;
-
         setTournament(tournament);
+        console.log(`--- tournament`, tournament);
       }
     },
   });
@@ -362,10 +367,32 @@ const EventPage: React.FC = () => {
                               }
                               actions={[
                                 <Button
+                                  key={`${dealConfig.offerID}-${adSet.id}-view`}
+                                  type="primary"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (adSet.ad) {
+                                      setSimulatedAd({
+                                        title: `Offer "${dealConfig.offerName}" - Ad Set "${adSet.name}"`,
+                                        placement: adSet.placement,
+                                        creative: {
+                                          themeColor: adSet.ad.themeColor,
+                                          callToAction: adSet.ad.callToAction,
+                                          creativeType: adSet.ad.creativeType,
+                                          creativeLinks: adSet.ad.creativeLinks,
+                                          aspectRatio: adSet.ad.aspectRatio,
+                                        },
+                                      });
+                                    }
+                                  }}
+                                  style={{ width: '85%' }}
+                                >
+                                  View
+                                </Button>,
+                                <Popconfirm
                                   key={`${dealConfig.offerID}-${adSet.id}-button`}
-                                  style={{ width: '80%' }}
-                                  loading={isLoading}
-                                  onClick={async () => {
+                                  title="Are you sure to remove this Ad from your Event?"
+                                  onConfirm={async (e) => {
                                     console.log(`eventID = `, eventID);
                                     if (eventID) {
                                       isLoading = true;
@@ -381,9 +408,17 @@ const EventPage: React.FC = () => {
                                       isLoading = false;
                                     }
                                   }}
+                                  okText="Remove"
+                                  cancelText="Cancel"
                                 >
-                                  Remove
-                                </Button>,
+                                  <Button
+                                    onClick={(e) => e.preventDefault()}
+                                    loading={isLoading}
+                                    style={{ width: '85%' }}
+                                  >
+                                    Remove
+                                  </Button>
+                                </Popconfirm>,
                               ]}
                             >
                               <Meta title={adSet.name} description={adSet.placement} />
@@ -451,6 +486,18 @@ const EventPage: React.FC = () => {
           />
         </div>
       )}
+      <Modal
+        title={simulatedAd?.title || 'Simulated Ad'}
+        open={!!simulatedAd}
+        onCancel={() => setSimulatedAd(null)}
+        footer={[
+          <Button key="simulated-ad-modal-close" onClick={() => setSimulatedAd(null)}>
+            Close
+          </Button>,
+        ]}
+      >
+        {simulatedAd && <DeviceSimulator creative={simulatedAd.creative} />}
+      </Modal>
     </div>
   );
 };
