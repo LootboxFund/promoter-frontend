@@ -35,6 +35,7 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
               rateQuoteID
               activationID
               activationName
+              activationOrder
               description
               pricing
               affiliateID

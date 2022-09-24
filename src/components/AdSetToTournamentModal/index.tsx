@@ -1,20 +1,18 @@
 import type {
   AddOfferAdSetToTournamentResponse,
   AdSetPreview,
-  ListConquestPreviewsResponse,
   MutationAddOfferAdSetToTournamentArgs,
-  QueryListConquestPreviewsArgs,
   QueryViewMyTournamentsAsOrganizerArgs,
   ResponseError,
   Tournament,
   ViewMyTournamentsAsOrganizerResponse,
 } from '@/api/graphql/generated/types';
-import { useAdvertiserUser } from '@/components/AuthGuard/advertiserUserInfo';
+
 import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '@/pages/Dashboard/EventsPage/api.gql';
-import { PageContainer } from '@ant-design/pro-components';
+
 import { useMutation, useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
-import { AffiliateID, OfferID, TournamentID } from '@wormgraph/helpers';
+import type { AffiliateID, OfferID, TournamentID } from '@wormgraph/helpers';
 import { Button, Card, Input, message, Modal } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
@@ -74,8 +72,6 @@ const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
       tournament.title.toLowerCase().indexOf(searchString.toLowerCase()) > -1
     );
   };
-  console.log(`---- tournaments`);
-  console.log(tournaments);
   return (
     <Modal
       title="Include Ad to Event"

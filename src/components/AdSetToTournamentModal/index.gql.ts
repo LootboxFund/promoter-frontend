@@ -17,13 +17,6 @@ export const ADD_OFFER_ADSET_TO_TOURNAMENT = gql`
           communityURL
           organizer
           promoters
-          offers {
-            id
-            status
-            rateQuotes
-            activeAdSets
-            inactiveAdSets
-          }
         }
       }
       ... on ResponseError {

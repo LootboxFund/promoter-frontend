@@ -18,8 +18,32 @@
   }
 }
 
+
 .content {
+  display: grid;
   flex: 1;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 15px;
+  row-gap: 15px;
+  @media only screen and (max-width: 1000px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media only screen and (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 10px;
+    row-gap: 10px;
+  }
+}
+
+.card {
+  width: auto;
+  max-width: 250px;
+  height: auto;
+}
+
+.cardImage {
+  height: 250px;
+  object-fit: cover;
 }
 
 .loading_container {
@@ -34,9 +58,6 @@
   .container {
     background-image: url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr');
     background-size: cover;
-  }
-
-  .content {
   }
 }
 
