@@ -8,8 +8,8 @@ import { ApolloProvider } from '@apollo/client';
 import client from '@/api/graphql/client';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
-import { GET_ADVERTISER } from './pages/User/Login/api.gql';
-import { AdvertiserAdminViewResponse } from './api/graphql/generated/types';
+import { GET_AFFILIATE_ADMIN_VIEW } from './pages/User/Login/api.gql';
+import { AffiliateAdminViewResponse } from './api/graphql/generated/types';
 import { AdvertiserID, UserID } from '@wormgraph/helpers';
 import AuthGuard from './components/AuthGuard';
 
@@ -36,34 +36,28 @@ export async function getInitialState(): Promise<{
   const fetchUserInfo = async () => {
     try {
       const response = await client.query<any>({
-        query: GET_ADVERTISER,
+        query: GET_AFFILIATE_ADMIN_VIEW,
       });
-      console.log(response.data.advertiserAdminView);
-      if (response.data.__typename === 'AdvertiserAdminViewResponseSuccess') {
-        const userAdvertiserFE = {
-          id: response.data.advertiserAdminView.id,
-          userID: response.data.advertiserAdminView.userID,
-          name: response.data.advertiserAdminView.name,
-          description: response.data.advertiserAdminView.description,
-          avatar: response.data.advertiserAdminView.avatar,
+
+      if (response.data.__typename === 'AffiliateAdminViewResponseSuccess') {
+        const userAffiliateFE = {
+          id: response.data.affiliateAdminView.id,
+          userID: response.data.affiliateAdminView.userID,
+          name: response.data.affiliateAdminView.name,
+          description: response.data.affiliateAdminView.description,
+          avatar: response.data.affiliateAdminView.avatar,
         } as UserAdvertiserFE;
-        console.log(`
-
-        ---- here we go:
-
-        `);
-        console.log(userAdvertiserFE);
-        return userAdvertiserFE;
+        return userAffiliateFE;
       }
-      // console.log(response.data.advertiserAdminView);
-      return response.data.advertiserAdminView;
+      // console.log(response.data.affiliateAdminView);
+      return response.data.affiliateAdminView;
     } catch (error) {
       history.push(loginPath);
       return undefined;
     }
   };
   const x = await fetchUserInfo();
-  console.log(x);
+
   // 如果不是登录页面，执行
   // if (window.location.pathname !== loginPath) {
   //   const currentUser = await fetchUserInfo();

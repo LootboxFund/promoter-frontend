@@ -1,9 +1,11 @@
 import { gql } from '@apollo/client';
 
-export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
-  query ViewTournamentAsOrganizer($tournamentID: ID!) {
-    viewTournamentAsOrganizer(tournamentID: $tournamentID) {
-      ... on ViewTournamentAsOrganizerResponseSuccess {
+export const ADD_UPDATE_PROMOTER_RATEQUOTE_TOURNAMENT = gql`
+  mutation AddUpdatePromoterRateQuoteInTournament(
+    $payload: AddUpdatePromoterRateQuoteToTournamentPayload!
+  ) {
+    addUpdatePromoterRateQuoteInTournament(payload: $payload) {
+      ... on UpdatePromoterRateQuoteInTournamentResponseSuccess {
         tournament {
           id
           title
@@ -16,6 +18,11 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
           coverPhoto
           communityURL
           organizer
+          organizerProfile {
+            id
+            name
+            avatar
+          }
           promoters
           dealConfigs {
             tournamentID
@@ -44,11 +51,6 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
             }
           }
           isPostCosmic
-          organizerProfile {
-            id
-            name
-            avatar
-          }
         }
       }
       ... on ResponseError {
@@ -61,10 +63,10 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
   }
 `;
 
-export const REMOVE_ADSET_FROM_TOURNAMENT = gql`
-  mutation RemoveOfferAdSetFromTournament($payload: RemoveOfferAdSetFromTournamentPayload!) {
-    removeOfferAdSetFromTournament(payload: $payload) {
-      ... on RemoveOfferAdSetFromTournamentResponseSuccess {
+export const REMOVE_PROMOTER_FROM_TOURNAMENT = gql`
+  mutation RemovePromoterFromTournament($payload: RemovePromoterFromTournamentPayload!) {
+    removePromoterFromTournament(payload: $payload) {
+      ... on RemovePromoterFromTournamentResponseSuccess {
         tournament {
           id
           title

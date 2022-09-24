@@ -1,34 +1,35 @@
 import type {
-  ListConquestPreviewsResponse,
+  AffiliatePublicViewResponse,
+  QueryAffiliatePublicViewArgs,
   QueryListConquestPreviewsArgs,
 } from '@/api/graphql/generated/types';
-import { useAdvertiserUser } from '@/components/AuthGuard/advertiserUserInfo';
+import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import Spin from 'antd/lib/spin';
 import React from 'react';
-import { LIST_CONQUEST_PREVIEWS } from './api.gql';
+import { GET_AFFILIATE } from './api.gql';
 import styles from './index.less';
 
 const Template: React.FC = () => {
-  const { advertiserUser } = useAdvertiserUser();
-  const { id: advertiserID } = advertiserUser;
+  const { affiliateUser } = useAffiliateUser();
+  const { id: affiliateID } = affiliateUser;
   const { data, loading, error } = useQuery<
-    { listConquestPreviews: ListConquestPreviewsResponse },
-    QueryListConquestPreviewsArgs
-  >(LIST_CONQUEST_PREVIEWS, {
-    variables: { advertiserID },
+    { affiliatePublicView: AffiliatePublicViewResponse },
+    QueryAffiliatePublicViewArgs
+  >(GET_AFFILIATE, {
+    variables: { affiliateID },
     onCompleted: (data) => {
-      if (data?.listConquestPreviews.__typename === 'ListConquestPreviewsResponseSuccess') {
-        const conquests = data.listConquestPreviews.conquests;
-        console.log(conquests);
+      if (data?.affiliatePublicView.__typename === 'AffiliatePublicViewResponseSuccess') {
+        const affiliate = data.affiliatePublicView.affiliate;
+        console.log(affiliate);
       }
     },
   });
   if (error) {
     return <span>{error?.message || ''}</span>;
-  } else if (data?.listConquestPreviews.__typename === 'ResponseError') {
-    return <span>{data?.listConquestPreviews.error?.message || ''}</span>;
+  } else if (data?.affiliatePublicView.__typename === 'ResponseError') {
+    return <span>{data?.affiliatePublicView.error?.message || ''}</span>;
   }
 
   return (

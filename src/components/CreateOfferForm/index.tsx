@@ -13,7 +13,7 @@ import type { CreateOfferPayload, EditOfferPayload } from '@/api/graphql/generat
 import { AntUploadFile, PriceInput, PriceView } from '../AntFormBuilder';
 import { Rule } from 'antd/lib/form';
 import { DateView } from '../AntFormBuilder';
-import { AdvertiserStorageFolder } from '@/api/firebase/storage';
+import { AffiliateStorageFolder } from '@/api/firebase/storage';
 
 export type CreateOfferFormProps = {
   offer?: {
@@ -21,6 +21,7 @@ export type CreateOfferFormProps = {
     description?: string;
     image?: string;
     advertiserID?: AdvertiserID;
+    advertiserName?: string;
     maxBudget: number;
     startDate: number;
     endDate: number;
@@ -38,6 +39,7 @@ const OFFER_INFO = {
   description: '',
   image: '',
   advertiserID: '',
+  advertiserName: '',
   maxBudget: 1000,
   startDate: moment(new Date()),
   endDate: moment(new Date()).add(365, 'days'),
@@ -69,6 +71,7 @@ const CreateOfferForm: React.FC<CreateOfferFormProps> = ({
         description: offer.description || '',
         image: offer.image || '',
         advertiserID: advertiserID,
+        advertiserName: offer.advertiserName || '',
         maxBudget: offer.maxBudget || 1000,
         startDate: moment.unix(offer.startDate),
         endDate: moment.unix(offer.endDate),
@@ -136,6 +139,7 @@ const CreateOfferForm: React.FC<CreateOfferFormProps> = ({
       initialValues: offerInfo,
       fields: [
         { key: 'title', label: 'Title', required: true },
+        { key: 'advertiserName', label: 'Advertiser', required: true },
         // {
         //   key: 'startDate',
         //   label: 'Start Date',
@@ -161,27 +165,12 @@ const CreateOfferForm: React.FC<CreateOfferFormProps> = ({
         // },
       ],
     };
-    if (!viewMode) {
-      // @ts-ignore
-      meta.fields.push({
-        key: 'image',
-        label: 'Image',
-        widget: () => (
-          <AntUploadFile
-            advertiserID={advertiserID}
-            folderName={AdvertiserStorageFolder.OFFER_IMAGE}
-            newMediaDestination={newMediaDestination}
-            acceptedFileTypes={'image/*'}
-          />
-        ),
-      });
-    }
     return meta;
   };
   return (
     <Card style={{ flex: 1 }}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        {viewMode && !lockedToEdit && (
+        {viewMode && mode !== 'view-only' && !lockedToEdit && (
           <Button type="link" onClick={() => setViewMode(false)} style={{ alignSelf: 'flex-end' }}>
             Edit
           </Button>

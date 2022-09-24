@@ -17,17 +17,16 @@ import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
 import { VIEW_OFFER_AS_AFFILIATE } from './api.gql';
 import styles from './index.less';
-
+import CreateOfferForm from '@/components/CreateOfferForm';
 import Meta from 'antd/lib/card/Meta';
 import AdSetToTournamentModal from '@/components/AdSetToTournamentModal';
-import CreateOfferForm from '@/components/CreateOfferForm';
 
-const OfferPage: React.FC = () => {
+const PreviewOfferPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();
   const { id: affiliateID } = affiliateUser;
   const { offerID } = useParams();
   const [offer, setOffer] = useState<OfferAffiliateView>();
-  const [selectedAdSet, setSelectedAdSet] = useState<AdSetPreview | null>(null);
+
   const { data, loading, error } = useQuery<
     { viewOfferDetailsAsAffiliate: ViewOfferDetailsAsEventAffiliateResponse },
     {
@@ -61,12 +60,12 @@ const OfferPage: React.FC = () => {
   const gridStyle: React.CSSProperties = {
     flex: '100%',
   };
-  const maxWidth = '1000px';
   const breadLine = [
-    { title: 'Manage', route: '/dashboard' },
-    { title: 'Offers', route: '/dashboard/offers' },
-    { title: offer?.title || '', route: `/dashboard/offers/id/${offer?.id}` },
+    { title: 'Marketplace', route: '/marketplace' },
+    { title: 'Browse', route: '/marketplace/browse' },
+    { title: offer?.title || '', route: `/marketplace/browse/offers/id/${offer?.id}` },
   ];
+  const maxWidth = '1000px';
   const activationsSorted = (offer?.activationsForAffiliate || [])
     .slice()
     .sort((a, b) => (a.order && b.order ? a.order - b.order : 1));
@@ -130,46 +129,10 @@ const OfferPage: React.FC = () => {
           </Card>
           <br />
           <br />
-          <h2>Ad Sets</h2>
-          <br />
-          <div className={styles.adSetGrid}>
-            {offer.adSetPreviews.map((adSet) => {
-              const imageToDisplay = adSet.thumbnail || placeholderImage;
-              return (
-                <Card
-                  key={adSet.id}
-                  hoverable
-                  className={styles.card}
-                  cover={<img alt="example" src={imageToDisplay} className={styles.cardImage} />}
-                  actions={[
-                    <Button
-                      key={`${adSet.id}-add-to-event`}
-                      onClick={() => setSelectedAdSet(adSet)}
-                      type="primary"
-                      style={{ width: '90%' }}
-                    >
-                      Add To Event
-                    </Button>,
-                  ]}
-                >
-                  <Meta title={adSet.name} description={adSet.placement} />
-                </Card>
-              );
-            })}
-          </div>
-          <br />
-          <AdSetToTournamentModal
-            offerID={offer.id as OfferID}
-            adSet={selectedAdSet}
-            isOpen={!!selectedAdSet}
-            closeModal={() => {
-              setSelectedAdSet(null);
-            }}
-          />
         </div>
       )}
     </div>
   );
 };
 
-export default OfferPage;
+export default PreviewOfferPage;

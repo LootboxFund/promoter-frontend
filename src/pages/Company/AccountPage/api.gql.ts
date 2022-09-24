@@ -1,13 +1,17 @@
 import { gql } from '@apollo/client';
 
-export const LIST_CONQUEST_PREVIEWS = gql`
-  query ListConquestPreviews($advertiserID: ID!) {
-    listConquestPreviews(advertiserID: $advertiserID) {
-      ... on ListConquestPreviewsResponseSuccess {
-        conquests {
+export const UPDATE_AFFILIATE = gql`
+  mutation UpdateAffiliateDetails($affiliateID: ID!, $payload: UpdateAffiliateDetailsPayload!) {
+    updateAffiliateDetails(affiliateID: $affiliateID, payload: $payload) {
+      ... on UpdateAffiliateDetailsResponseSuccess {
+        affiliate {
           id
-          title
-          image
+          userID
+          name
+          avatar
+          description
+          rank
+          publicContactEmail
         }
       }
       ... on ResponseError {

@@ -4,22 +4,20 @@ import { UploadOutlined } from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { useEffect, useState } from 'react';
 import { ChromePicker } from 'react-color';
-import { AdvertiserID, ConquestID } from '@wormgraph/helpers';
-import { AdvertiserStorageFolder, uploadImageToFirestore } from '@/api/firebase/storage';
+import { AdvertiserID, AffiliateID, ConquestID } from '@wormgraph/helpers';
+import { AffiliateStorageFolder, uploadImageToFirestore } from '@/api/firebase/storage';
 import { $Vertical, $Horizontal } from '@/components/generics';
 
 export const HiddenViewWidget = (data: any) => null;
 
 interface AntUploadFileProps {
-  advertiserID: AdvertiserID;
-  conquestID?: ConquestID;
+  affiliateID: AffiliateID;
   newMediaDestination: React.MutableRefObject<string>;
-  folderName: AdvertiserStorageFolder;
+  folderName: AffiliateStorageFolder;
   acceptedFileTypes: 'image/*,video/*' | 'image/*' | 'video/*';
 }
 export const AntUploadFile: React.FC<AntUploadFileProps> = ({
-  advertiserID,
-  conquestID,
+  affiliateID,
   newMediaDestination,
   folderName,
   acceptedFileTypes,
@@ -29,8 +27,8 @@ export const AntUploadFile: React.FC<AntUploadFileProps> = ({
     const destination = await uploadImageToFirestore({
       folderName,
       file: file,
-      folderID: conquestID,
-      advertiserID,
+      folderID: 'media',
+      affiliateID,
     });
     newMediaDestination.current = destination;
 

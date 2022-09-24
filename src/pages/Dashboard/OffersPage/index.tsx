@@ -3,6 +3,7 @@ import type {
   OfferAffiliateView,
   QueryListOffersAvailableForOrganizerArgs,
 } from '@/api/graphql/generated/types';
+import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import { $Horizontal, $Vertical } from '@/components/generics';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
@@ -15,9 +16,9 @@ import React, { useState } from 'react';
 import { LIST_OFFERS_FOR_AFFILIATE } from './api.gql';
 import styles from './index.less';
 
-const affiliateID = 'ebv8vWQXpycAtKGvMnvG' as AffiliateID;
-
 const OffersPage: React.FC = () => {
+  const { affiliateUser } = useAffiliateUser();
+  const { id: affiliateID } = affiliateUser;
   const [searchString, setSearchString] = useState('');
   const [offers, setOffers] = useState<OfferAffiliateView[]>([]);
   const { data, loading, error } = useQuery<

@@ -1,16 +1,15 @@
 import { gql } from '@apollo/client';
 
-export const GET_AFFILIATE_ADMIN_VIEW = gql`
-  query AffiliateAdminView {
-    affiliateAdminView {
-      ... on AffiliateAdminViewResponseSuccess {
-        affiliate {
+export const BROWSE_ALL_AFFILIATES = gql`
+  query BrowseAllAffiliates {
+    browseAllAffiliates {
+      ... on BrowseAllAffiliatesResponseSuccess {
+        affiliates {
           id
-          userID
           name
           avatar
           description
-          avatar
+          rank
           publicContactEmail
         }
       }

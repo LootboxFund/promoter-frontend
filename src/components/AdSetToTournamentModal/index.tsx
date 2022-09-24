@@ -1,26 +1,44 @@
 import type {
+  AddOfferAdSetToTournamentResponse,
+  AdSetPreview,
+  MutationAddOfferAdSetToTournamentArgs,
   QueryViewMyTournamentsAsOrganizerArgs,
+  ResponseError,
   Tournament,
+  ViewMyTournamentsAsOrganizerResponse,
 } from '@/api/graphql/generated/types';
-import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
-import { $Horizontal, $Vertical } from '@/components/generics';
-import { PageContainer } from '@ant-design/pro-components';
-import { useQuery } from '@apollo/client';
+
+import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '@/pages/Dashboard/EventsPage/api.gql';
+
+import { useMutation, useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
-import { AffiliateID } from '@wormgraph/helpers';
-import { Button, Card, Input } from 'antd';
+import type { AffiliateID, OfferID, TournamentID } from '@wormgraph/helpers';
+import { Button, Card, Input, message, Modal } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
-import { VIEW_TOURNAMENTS_AS_ORGANIZER } from './api.gql';
+import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
+import { $Horizontal, $Vertical } from '../generics';
+import { ADD_OFFER_ADSET_TO_TOURNAMENT } from './index.gql';
 import styles from './index.less';
-import { ViewMyTournamentsAsOrganizerResponse } from '../../../api/graphql/generated/types';
 
-const EventsPage: React.FC = () => {
+interface AdSetToTournamentModalProps {
+  offerID: OfferID;
+  adSet: AdSetPreview | null;
+  isOpen: boolean;
+  closeModal: () => void;
+}
+const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
+  offerID,
+  adSet,
+  isOpen,
+  closeModal,
+}) => {
   const { affiliateUser } = useAffiliateUser();
   const { id: affiliateID } = affiliateUser;
   const [searchString, setSearchString] = useState('');
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [chosenTournament, setChosenTournament] = useState<TournamentID | null>(null);
   const { data, loading, error } = useQuery<
     { viewMyTournamentsAsOrganizer: ViewMyTournamentsAsOrganizerResponse },
     QueryViewMyTournamentsAsOrganizerArgs
@@ -37,6 +55,12 @@ const EventsPage: React.FC = () => {
       }
     },
   });
+  const [addOfferAdSetToTournamentMutation] = useMutation<
+    { createConquest: ResponseError | AddOfferAdSetToTournamentResponse },
+    MutationAddOfferAdSetToTournamentArgs
+  >(ADD_OFFER_ADSET_TO_TOURNAMENT, {
+    refetchQueries: [],
+  });
   if (error) {
     return <span>{error?.message || ''}</span>;
   } else if (data?.viewMyTournamentsAsOrganizer.__typename === 'ResponseError') {
@@ -49,11 +73,15 @@ const EventsPage: React.FC = () => {
       tournament.title.toLowerCase().indexOf(searchString.toLowerCase()) > -1
     );
   };
-
-  console.log(`---- tournaments`);
-  console.log(tournaments);
   return (
-    <PageContainer>
+    <Modal
+      title="Include Ad to Event"
+      open={isOpen}
+      onCancel={() => closeModal()}
+      width="100%"
+      footer={<Button onClick={() => closeModal()}>Cancel</Button>}
+      style={{ width: '100%', maxWidth: '1000px' }}
+    >
       {loading ? (
         <div className={styles.loading_container}>
           <Spin />
@@ -68,9 +96,6 @@ const EventsPage: React.FC = () => {
               onSearch={setSearchString}
               style={{ width: 200 }}
             />
-            <Button>
-              <Link to="/dashboard/events/create">Create Event</Link>
-            </Button>
           </$Horizontal>
           <br />
           <div className={styles.content}>
@@ -86,6 +111,34 @@ const EventsPage: React.FC = () => {
                       className={styles.cardImage}
                     />
                   }
+                  actions={[
+                    <Button
+                      type="primary"
+                      key={`add-${tournament.id}`}
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        if (adSet?.id) {
+                          setChosenTournament(tournament.id as TournamentID);
+                          await addOfferAdSetToTournamentMutation({
+                            variables: {
+                              payload: {
+                                adSetID: adSet.id,
+                                offerID: offerID,
+                                organizerID: affiliateID,
+                                tournamentID: tournament.id,
+                              },
+                            },
+                          });
+                          setChosenTournament(null);
+                          message.success('Ad Set added to Event');
+                        }
+                      }}
+                      style={{ width: '90%' }}
+                      loading={chosenTournament === tournament.id}
+                    >
+                      Add To Event
+                    </Button>,
+                  ]}
                 >
                   <Meta title={tournament.title} />
                 </Card>
@@ -94,8 +147,8 @@ const EventsPage: React.FC = () => {
           </div>
         </$Vertical>
       )}
-    </PageContainer>
+    </Modal>
   );
 };
 
-export default EventsPage;
+export default AdSetToTournamentModal;
