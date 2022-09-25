@@ -16,6 +16,8 @@ export type EditAffiliateFormProps = {
     description?: string;
     avatar?: string;
     publicContactEmail?: string;
+    website?: string;
+    audienceSize?: number;
   };
   onSubmit: (payload: UpdateAffiliateDetailsPayload) => void;
   mode: 'view-edit' | 'view-only';
@@ -26,6 +28,8 @@ const AFFILIATE_INFO = {
   description: '',
   avatar: '',
   publicContactEmail: '',
+  website: '',
+  audienceSize: 0,
 };
 
 const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubmit, mode }) => {
@@ -40,6 +44,8 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
       description: affiliate.description || '',
       avatar: affiliate.avatar || '',
       publicContactEmail: affiliate.publicContactEmail || '',
+      website: affiliate.website || '',
+      audienceSize: affiliate.audienceSize || 0,
     });
   }, [affiliate]);
   const handleFinish = useCallback(async (values) => {
@@ -55,6 +61,12 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
     }
     if (values.publicContactEmail) {
       payload.publicContactEmail = values.publicContactEmail;
+    }
+    if (values.website) {
+      payload.website = values.website;
+    }
+    if (values.audienceSize) {
+      payload.audienceSize = values.audienceSize;
     }
     setPending(true);
     try {
@@ -80,6 +92,8 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
       fields: [
         { key: 'name', label: 'Name', required: true },
         { key: 'publicContactEmail', label: 'Public Contact Email' },
+        { key: 'website', label: 'Website' },
+        { key: 'audienceSize', label: 'Audience Size', widget: 'number' },
         {
           key: 'description',
           label: 'Description',

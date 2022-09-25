@@ -12,6 +12,8 @@ export const GET_AFFILIATE_ADMIN_VIEW = gql`
           description
           avatar
           publicContactEmail
+          website
+          audienceSize
         }
       }
       ... on ResponseError {

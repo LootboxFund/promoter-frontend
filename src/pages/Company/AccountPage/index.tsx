@@ -66,6 +66,8 @@ const AccountPage: React.FC = () => {
           description: payload.description,
           avatar: payload.avatar,
           publicContactEmail: payload.publicContactEmail,
+          website: payload.website,
+          audienceSize: payload.audienceSize,
         },
         affiliateID: affiliateID,
       },
@@ -108,6 +110,8 @@ const AccountPage: React.FC = () => {
                 description: affiliate.description || '',
                 avatar: affiliate.avatar || '',
                 publicContactEmail: affiliate.publicContactEmail || '',
+                website: affiliate.website || '',
+                audienceSize: affiliate.audienceSize || 0,
               }}
               onSubmit={updateAffiliate}
               mode="view-edit"

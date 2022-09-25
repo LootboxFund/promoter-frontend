@@ -11,6 +11,8 @@ export const BROWSE_ALL_AFFILIATES = gql`
           description
           rank
           publicContactEmail
+          website
+          audienceSize
         }
       }
       ... on ResponseError {

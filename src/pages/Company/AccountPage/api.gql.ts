@@ -12,6 +12,8 @@ export const UPDATE_AFFILIATE = gql`
           description
           rank
           publicContactEmail
+          audienceSize
+          website
         }
       }
       ... on ResponseError {

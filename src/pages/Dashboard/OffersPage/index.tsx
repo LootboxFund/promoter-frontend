@@ -66,9 +66,9 @@ const OffersPage: React.FC = () => {
               onSearch={setSearchString}
               style={{ width: 200 }}
             />
-            <Button onClick={() => message.info('Ask an advertiser to whitelist you')}>
-              Add Offer
-            </Button>
+            <Link to="/marketplace/browse">
+              <Button>Add Offer</Button>
+            </Link>
           </$Horizontal>
           <br />
           <div className={styles.content}>
