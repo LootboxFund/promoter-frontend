@@ -68,6 +68,6 @@ export default {
   'menu.Marketplace.Offer': 'Offer',
   'menu.Company': 'Company',
   'menu.Company.Account': 'Account',
-  'menu.Company.Billing': 'Billing',
-  'menu.Company.Template': 'Template',
+  'menu.Company.Payouts': 'Payouts',
+  'menu.Company.Tiers': 'Tiers',
 };
