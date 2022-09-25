@@ -115,7 +115,7 @@ const Login: React.FC = () => {
           title={
             <h1 style={{ fontWeight: 900, color: '#26A6EF', fontSize: '2rem' }}>🎁 LOOTBOX</h1>
           }
-          subTitle={'Advertiser Dashboard'}
+          subTitle={'Promoter Dashboard'}
           initialValues={{
             autoLogin: true,
           }}

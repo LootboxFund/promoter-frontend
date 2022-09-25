@@ -15,9 +15,34 @@ import {
   MarketplacePreviewOffer,
 } from '../../../api/graphql/generated/types';
 import { $Horizontal, $Vertical } from '@/components/generics';
-import { Button, Card, Input, message } from 'antd';
+import {
+  Button,
+  Card,
+  Input,
+  message,
+  Table,
+  Image,
+  Space,
+  Avatar,
+  Popover,
+  Popconfirm,
+} from 'antd';
 import { Link } from '@umijs/max';
 import Meta from 'antd/lib/card/Meta';
+import { ColumnsType } from 'antd/lib/table';
+import { AdvertiserID, OfferID } from '@wormgraph/helpers';
+
+type DataType = {
+  advertiserAvatar: string;
+  advertiserID: AdvertiserID;
+  advertiserName: string;
+  description: string;
+  id: OfferID;
+  image: string;
+  lowerEarn: number;
+  title: string;
+  upperEarn: number;
+};
 
 const BrowseOffersPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();
@@ -48,6 +73,73 @@ const BrowseOffersPage: React.FC = () => {
     );
   };
 
+  const columns: ColumnsType<DataType> = [
+    {
+      title: '',
+      dataIndex: 'advertiserAvatar',
+      key: 'advertiserAvatar',
+      render: (_, record) => <Avatar src={record.advertiserAvatar} size="default" />,
+    },
+    {
+      title: 'Offer Revenue',
+      dataIndex: 'advertiserID',
+      key: 'advertiserID',
+      render: (_, record) => (
+        <$Vertical>
+          <b style={{ fontSize: '1rem' }}>{record.title}</b>
+          <span>{record.advertiserName}</span>
+        </$Vertical>
+      ),
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      width: '40%',
+      render: (_, record) => {
+        return (
+          <Popover content={record.description} title={record.title}>
+            <span>{record.description.slice(0, 200)}</span>
+          </Popover>
+        );
+      },
+    },
+    {
+      title: 'Low',
+      dataIndex: 'lowerEarn',
+      key: 'lowerEarn',
+      render: (_, record) => <span>{`$${record.lowerEarn.toFixed(2)}`}</span>,
+    },
+    {
+      title: 'High',
+      dataIndex: 'upperEarn',
+      key: 'upperEarn',
+      render: (_, record) => <span>{`$${record.upperEarn.toFixed(2)}`}</span>,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => {
+        return (
+          <Space size="middle">
+            <Popconfirm
+              title="Currently this offer is only available to promoters on a whitelist basis. You must request access from the advertiser."
+              onConfirm={() => {
+                message.success(
+                  "Request sent! We'll let you know if the advertiser has approved you.",
+                );
+              }}
+              okText="Request Access"
+              cancelText="Cancel"
+            >
+              <a onClick={() => console.log('clicked')}>Add Revenue</a>
+            </Popconfirm>
+          </Space>
+        );
+      },
+    },
+  ];
+
   return (
     <PageContainer>
       {loading ? (
@@ -65,26 +157,23 @@ const BrowseOffersPage: React.FC = () => {
           />
           <br />
           <div className={styles.content}>
-            {activeOffers.filter(filterBySearchString).map((offer) => {
-              return (
-                <Link key={offer.id} to={`/marketplace/offers/id/${offer.id}`}>
-                  <Card
-                    hoverable
-                    className={styles.card}
-                    cover={
-                      <img alt="example" src={offer.image || ''} className={styles.cardImage} />
-                    }
-                  >
-                    <Meta
-                      title={offer.title}
-                      description={`$${offer.lowerEarn.toFixed(2)}-$${offer.upperEarn.toFixed(
-                        2,
-                      )} Each`}
-                    />
-                  </Card>
-                </Link>
-              );
-            })}
+            <Table
+              // @ts-ignore
+              columns={columns}
+              dataSource={activeOffers.filter(filterBySearchString).map((offer) => {
+                return {
+                  advertiserAvatar: offer.advertiserAvatar,
+                  advertiserID: offer.advertiserID,
+                  advertiserName: offer.advertiserName,
+                  description: offer.description || '',
+                  id: offer.id,
+                  image: offer.image || '',
+                  lowerEarn: offer.lowerEarn,
+                  title: offer.title,
+                  upperEarn: offer.upperEarn,
+                };
+              })}
+            />
           </div>
         </$Vertical>
       )}

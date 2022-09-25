@@ -9,6 +9,8 @@ export const GET_AFFILIATE = gql`
           userID
           name
           avatar
+          audienceSize
+          website
         }
       }
       ... on ResponseError {
