@@ -41,6 +41,7 @@ const Tier2 = [
   <Timeline.Item color="#CECECE" position="right">
     <h4>Bronze Tier 2</h4>
     <p>65% Revenue Share</p>
+    <p>Access to Marketplace</p>
   </Timeline.Item>,
   <Timeline.Item color="#CECECE" position="left">
     <a href="https://google.ca" target="_blank" rel="noreferrer">
