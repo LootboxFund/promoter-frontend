@@ -6,7 +6,7 @@ import type {
 } from '@/api/graphql/generated/types';
 import { history } from '@umijs/max';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
-import { $Vertical } from '@/components/generics';
+import { $InfoDescription, $Vertical } from '@/components/generics';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
@@ -135,6 +135,15 @@ const RecruitPromotersPage: React.FC = () => {
     },
   ];
 
+  const renderHelpText = () => {
+    return (
+      <$InfoDescription>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat.
+      </$InfoDescription>
+    );
+  };
   return (
     <PageContainer>
       {loading ? (
@@ -143,6 +152,7 @@ const RecruitPromotersPage: React.FC = () => {
         </div>
       ) : (
         <$Vertical>
+          {renderHelpText()}
           <Input.Search
             placeholder="Filter Promoters"
             allowClear

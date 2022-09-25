@@ -22,7 +22,7 @@ import {
   UpdateAffiliateDetailsResponseSuccess,
   Affiliate,
 } from '../../../api/graphql/generated/types';
-import { $Horizontal } from '@/components/generics';
+import { $Horizontal, $InfoDescription } from '@/components/generics';
 import EditAffiliateForm from '@/components/EditAffiliateForm';
 import { AffiliateID } from '@wormgraph/helpers';
 import { Image } from 'antd';
@@ -93,6 +93,15 @@ const AccountPage: React.FC = () => {
       });
     }
   };
+  const renderHelpText = () => {
+    return (
+      <$InfoDescription>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat.
+      </$InfoDescription>
+    );
+  };
   const maxWidth = '1000px';
   return (
     <PageContainer>
@@ -102,6 +111,7 @@ const AccountPage: React.FC = () => {
         </div>
       ) : (
         <div className={styles.content}>
+          {renderHelpText()}
           <$Horizontal style={{ maxWidth }}>
             <EditAffiliateForm
               affiliate={{

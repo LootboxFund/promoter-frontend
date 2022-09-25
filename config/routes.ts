@@ -134,7 +134,7 @@ export default [
       {
         name: 'Payouts',
         path: '/company/payouts',
-        component: './Welcome',
+        component: './Company/PayoutsPage',
       },
       {
         name: 'Tiers',

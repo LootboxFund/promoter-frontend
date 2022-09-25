@@ -12,6 +12,7 @@ import { GET_AFFILIATE_ADMIN_VIEW } from './pages/User/Login/api.gql';
 import { AffiliateAdminViewResponse } from './api/graphql/generated/types';
 import { AdvertiserID, UserID } from '@wormgraph/helpers';
 import AuthGuard from './components/AuthGuard';
+import { CookiesProvider } from 'react-cookie';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -131,22 +132,24 @@ export const layout: any = ({
       return (
         <>
           <ApolloProvider client={client}>
-            <AuthGuard>
-              {children}
-              {!props.location?.pathname?.includes('/login') && (
-                <SettingDrawer
-                  disableUrlParams
-                  enableDarkTheme
-                  settings={initialState?.settings}
-                  onSettingChange={(settings) => {
-                    setInitialState((preInitialState: any) => ({
-                      ...preInitialState,
-                      settings,
-                    }));
-                  }}
-                />
-              )}
-            </AuthGuard>
+            <CookiesProvider>
+              <AuthGuard>
+                {children}
+                {!props.location?.pathname?.includes('/login') && (
+                  <SettingDrawer
+                    disableUrlParams
+                    enableDarkTheme
+                    settings={initialState?.settings}
+                    onSettingChange={(settings) => {
+                      setInitialState((preInitialState: any) => ({
+                        ...preInitialState,
+                        settings,
+                      }));
+                    }}
+                  />
+                )}
+              </AuthGuard>
+            </CookiesProvider>
           </ApolloProvider>
         </>
       );

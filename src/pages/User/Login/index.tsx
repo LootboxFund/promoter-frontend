@@ -16,6 +16,7 @@ import { Alert, message, Tabs } from 'antd';
 import React, { ChangeEvent, useState } from 'react';
 import styles from './index.less';
 import { auth } from '@/api/firebase/app';
+import { CookiesProvider } from 'react-cookie';
 
 const LoginMessage: React.FC<{
   content: string;
@@ -272,7 +273,9 @@ const Login: React.FC = () => {
 const WrappedLogin: React.FC = () => {
   return (
     <ApolloProvider client={client}>
-      <Login />
+      <CookiesProvider>
+        <Login />
+      </CookiesProvider>
     </ApolloProvider>
   );
 };

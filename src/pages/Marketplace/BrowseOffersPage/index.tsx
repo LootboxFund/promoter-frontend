@@ -14,7 +14,7 @@ import {
   BrowseActiveOffersResponse,
   MarketplacePreviewOffer,
 } from '../../../api/graphql/generated/types';
-import { $Horizontal, $Vertical } from '@/components/generics';
+import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics';
 import {
   Button,
   Card,
@@ -140,6 +140,15 @@ const BrowseOffersPage: React.FC = () => {
     },
   ];
 
+  const renderHelpText = () => {
+    return (
+      <$InfoDescription>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat.
+      </$InfoDescription>
+    );
+  };
   return (
     <PageContainer>
       {loading ? (
@@ -148,6 +157,7 @@ const BrowseOffersPage: React.FC = () => {
         </div>
       ) : (
         <$Vertical>
+          {renderHelpText()}
           <Input.Search
             placeholder="Filter Offers"
             allowClear
