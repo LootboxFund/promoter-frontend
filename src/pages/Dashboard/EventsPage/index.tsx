@@ -8,7 +8,7 @@ import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
 import { AffiliateID } from '@wormgraph/helpers';
-import { Button, Card, Input } from 'antd';
+import { Button, Card, Empty, Input } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
@@ -81,25 +81,44 @@ const EventsPage: React.FC = () => {
             </Button>
           </$Horizontal>
           <br />
-          <div className={styles.content}>
-            {tournaments.filter(filterBySearchString).map((tournament) => (
-              <Link key={tournament.id} to={`/dashboard/events/id/${tournament.id}`}>
-                <Card
-                  hoverable
-                  className={styles.card}
-                  cover={
-                    <img
-                      alt="example"
-                      src={tournament.coverPhoto || ''}
-                      className={styles.cardImage}
-                    />
-                  }
-                >
-                  <Meta title={tournament.title} />
-                </Card>
+          {tournaments && tournaments.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              imageStyle={{
+                height: 60,
+              }}
+              description={
+                <span style={{ maxWidth: '200px' }}>
+                  {`You have not created any events yet.
+                  Create your first event now!`}
+                </span>
+              }
+            >
+              <Link to="/dashboard/events/create">
+                <Button type="primary">Create Event</Button>
               </Link>
-            ))}
-          </div>
+            </Empty>
+          ) : (
+            <div className={styles.content}>
+              {tournaments.filter(filterBySearchString).map((tournament) => (
+                <Link key={tournament.id} to={`/dashboard/events/id/${tournament.id}`}>
+                  <Card
+                    hoverable
+                    className={styles.card}
+                    cover={
+                      <img
+                        alt="example"
+                        src={tournament.coverPhoto || ''}
+                        className={styles.cardImage}
+                      />
+                    }
+                  >
+                    <Meta title={tournament.title} />
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </$Vertical>
       )}
     </PageContainer>

@@ -14,13 +14,15 @@ interface AntUploadFileProps {
   affiliateID: AffiliateID;
   newMediaDestination: React.MutableRefObject<string>;
   folderName: AffiliateStorageFolder;
-  acceptedFileTypes: 'image/*,video/*' | 'image/*' | 'video/*';
+  acceptedFileTypes: 'image/*,video/mp4' | 'image/*' | 'video/mp4';
+  forceRefresh?: () => void;
 }
 export const AntUploadFile: React.FC<AntUploadFileProps> = ({
   affiliateID,
   newMediaDestination,
   folderName,
   acceptedFileTypes,
+  forceRefresh,
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const customUploadImage = async ({ file, onSuccess }: any) => {
@@ -31,7 +33,9 @@ export const AntUploadFile: React.FC<AntUploadFileProps> = ({
       affiliateID,
     });
     newMediaDestination.current = destination;
-
+    if (forceRefresh) {
+      forceRefresh();
+    }
     onSuccess('ok');
   };
   const handleChange: UploadProps['onChange'] = async (info: any) => {

@@ -165,18 +165,21 @@ const RecruitPromotersPage: React.FC = () => {
             <Table
               // @ts-ignore
               columns={columns}
-              dataSource={affiliates.filter(filterBySearchString).map((affiliate) => {
-                return {
-                  avatar: affiliate.avatar || '',
-                  description: affiliate.description || '',
-                  id: affiliate.id,
-                  name: affiliate.name,
-                  publicContactEmail: affiliate.publicContactEmail || '',
-                  rank: affiliate.rank || rankInfoTable.ClayRank1,
-                  website: affiliate.website || '',
-                  audienceSize: affiliate.audienceSize || 0,
-                };
-              })}
+              dataSource={affiliates
+                .filter((a) => a.id !== affiliateID)
+                .filter(filterBySearchString)
+                .map((affiliate) => {
+                  return {
+                    avatar: affiliate.avatar || '',
+                    description: affiliate.description || '',
+                    id: affiliate.id,
+                    name: affiliate.name,
+                    publicContactEmail: affiliate.publicContactEmail || '',
+                    rank: affiliate.rank || rankInfoTable.ClayRank1,
+                    website: affiliate.website || '',
+                    audienceSize: affiliate.audienceSize || 0,
+                  };
+                })}
             />
           </div>
         </$Vertical>

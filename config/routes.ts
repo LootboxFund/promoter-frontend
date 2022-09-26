@@ -55,7 +55,7 @@ export default [
         name: 'Create Event',
         hideInMenu: true,
         path: '/dashboard/events/create',
-        component: './Welcome',
+        component: './Dashboard/EventCreatePage',
       },
       {
         name: 'Offers',

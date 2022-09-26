@@ -9,7 +9,7 @@ import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
 import { AffiliateID } from '@wormgraph/helpers';
-import { Button, Card, Input, message } from 'antd';
+import { Button, Card, Empty, Input, message } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
@@ -81,6 +81,23 @@ const OffersPage: React.FC = () => {
             </Link>
           </$Horizontal>
           <br />
+          {offers.length === 0 && (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              imageStyle={{
+                height: 60,
+              }}
+              description={
+                <span style={{ maxWidth: '200px' }}>
+                  {`You do not have any offers yet. Visit the marketplace to hunt for a good one!`}
+                </span>
+              }
+            >
+              <Link to="/marketplace/browse">
+                <Button type="primary">Visit Marketplace</Button>
+              </Link>
+            </Empty>
+          )}
           <div className={styles.content}>
             {offers.filter(filterBySearchString).map((offer) => {
               const minEarn = offer.activationsForAffiliate

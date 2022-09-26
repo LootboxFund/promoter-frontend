@@ -7,6 +7,9 @@ import {
   MutationRemoveOfferAdSetFromTournamentArgs,
   ResponseError,
   AdSetStatus,
+  EditTournamentResponseSuccess,
+  MutationEditTournamentArgs,
+  EditTournamentPayload,
 } from '@/api/graphql/generated/types';
 import { history } from '@umijs/max';
 import * as _ from 'lodash';
@@ -25,7 +28,11 @@ import type {
 import { AffiliateType } from '@wormgraph/helpers';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
-import { REMOVE_ADSET_FROM_TOURNAMENT, VIEW_TOURNAMENT_AS_ORGANIZER } from './api.gql';
+import {
+  EDIT_TOURNAMENT_AS_ORGANIZER,
+  REMOVE_ADSET_FROM_TOURNAMENT,
+  VIEW_TOURNAMENT_AS_ORGANIZER,
+} from './api.gql';
 import styles from './index.less';
 import { $Horizontal, $Vertical, $ColumnGap } from '@/components/generics';
 import {
@@ -34,6 +41,7 @@ import {
   Avatar,
   Button,
   Card,
+  Empty,
   message,
   Modal,
   Popconfirm,
@@ -53,6 +61,8 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 import { AdSetInTournamentStatus } from '../../../api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import DeviceSimulator, { DeviceSimulatorProps } from '@/components/DeviceSimulator';
+import CreateEventForm from '@/components/CreateEventForm';
+import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 
 interface DataType {
   rateQuoteID: string;
@@ -99,6 +109,20 @@ const EventPage: React.FC = () => {
     },
   });
 
+  // EDIT TOURNAMENT AS ORGANIZER
+  const [editTournamentMutation] = useMutation<
+    { editTournament: ResponseError | EditTournamentResponseSuccess },
+    MutationEditTournamentArgs
+  >(EDIT_TOURNAMENT_AS_ORGANIZER, {
+    refetchQueries: [
+      {
+        query: VIEW_TOURNAMENT_AS_ORGANIZER,
+        variables: { tournamentID: eventID || '' },
+      },
+      { query: VIEW_TOURNAMENTS_AS_ORGANIZER, variables: { affiliateID } },
+    ],
+  });
+
   // REMOVE ADSET FROM TOURNAMENT
   const [removeAdSetOffer] = useMutation<
     {
@@ -116,6 +140,28 @@ const EventPage: React.FC = () => {
   } else if (data?.viewTournamentAsOrganizer.__typename === 'ResponseError') {
     return <span>{data?.viewTournamentAsOrganizer.error?.message || ''}</span>;
   }
+
+  const editTournament = async (payload: EditTournamentPayload) => {
+    const res = await editTournamentMutation({
+      variables: {
+        payload: {
+          id: eventID || '',
+          title: payload.title || 'Untitled Tournament',
+          description: payload.description,
+          tournamentLink: payload.tournamentLink || '',
+          coverPhoto: payload.coverPhoto || '',
+          prize: payload.prize || '',
+          tournamentDate: payload.tournamentDate,
+          communityURL: payload.communityURL || '',
+          magicLink: payload.magicLink || '',
+        },
+      },
+    });
+    if (!res?.data || res?.data?.editTournament?.__typename === 'ResponseError') {
+      // @ts-ignore
+      throw new Error(res?.data?.editTournament?.error?.message || words.anErrorOccured);
+    }
+  };
 
   const breadLine = [
     { title: 'Dashboard', route: '/dashboard' },
@@ -144,9 +190,21 @@ const EventPage: React.FC = () => {
           </$Horizontal>
           <br />
           <$Horizontal justifyContent="flex-end" style={{ width: '100%' }}>
-            <Card style={{ flex: 1 }}>
-              <p>{tournament.description}</p>
-            </Card>
+            <CreateEventForm
+              onSubmitEdit={editTournament}
+              tournament={{
+                title: tournament.title,
+                description: tournament.description,
+                tournamentDate: tournament.tournamentDate,
+                tournamentLink: tournament.tournamentLink || '',
+                coverPhoto: tournament.coverPhoto || '',
+                magicLink: tournament.magicLink || '',
+                prize: tournament.prize || '',
+                communityURL: tournament.communityURL || '',
+              }}
+              mode="view-edit"
+              affiliateID={affiliateID as AffiliateID}
+            />
             <$ColumnGap />
             <Affix offsetTop={60} style={{ pointerEvents: 'none' }}>
               <Card style={{ width: '300px', pointerEvents: 'all' }}>
@@ -182,16 +240,22 @@ const EventPage: React.FC = () => {
           <$Horizontal justifyContent="space-between">
             <h2 id="revenue-sharing">Revenue Sharing</h2>
             <Popconfirm
-              title="Go to the Offers Page to add them into this Event"
+              title="Go to the Offers Page to add them as a revenue for this Event"
               onConfirm={() => history.push(`/dashboard/offers`)}
               okText="Go To Offers Page"
               showCancel={false}
             >
-              <Button type="primary">Add Offer</Button>
+              <Button type="primary">Add Revenue</Button>
             </Popconfirm>
           </$Horizontal>
           <br />
-
+          {!tournament.dealConfigs || tournament.dealConfigs.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="No Revenue Streams Yet"
+              style={{ padding: '100px' }}
+            />
+          ) : null}
           {tournament.dealConfigs.map((dealConfig) => {
             const uniqueActivations = _.uniq(
               dealConfig.rateQuoteConfigs
