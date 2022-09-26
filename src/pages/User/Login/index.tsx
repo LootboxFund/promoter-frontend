@@ -16,6 +16,8 @@ import { Alert, message, Tabs } from 'antd';
 import React, { ChangeEvent, useState } from 'react';
 import styles from './index.less';
 import { auth } from '@/api/firebase/app';
+import { CookiesProvider } from 'react-cookie';
+import RegisterAccount from '@/components/RegisterAccount';
 
 const LoginMessage: React.FC<{
   content: string;
@@ -42,10 +44,11 @@ type BullshitAntProAuthType = {
 const Login: React.FC = () => {
   const [userLoginState, setUserLoginState] = useState<any>({});
   const [type, setType] = useState<string>('account');
-  const persistence: 'session' | 'local' = (localStorage.getItem('auth.persistence') ||
-    'session') as 'session' | 'local';
+  const persistence: 'session' | 'local' = (localStorage.getItem('auth.persistence') || 'local') as
+    | 'local'
+    | 'session';
   const [persistenceChecked, setPersistenceChecked] = useState(persistence === 'local');
-
+  const [registrationModal, setRegistrationModal] = useState(false);
   const { signInWithEmailAndPassword, sendPhoneVerification, signInPhoneWithCode } = useAuth();
 
   const [hackyBugFixPhoneInput, setHackyBugFixPhoneInput] = useState<string>('');
@@ -63,22 +66,22 @@ const Login: React.FC = () => {
     console.log(values);
     if (values.mobile && values.captcha) {
       try {
-        setPersistence(auth, browserLocalPersistence);
+        await setPersistence(auth, browserLocalPersistence);
         const user = await signInPhoneWithCode(values.captcha);
         message.success('Phone login successful');
         const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/');
+        window.location.href = `${window.location.origin}/dashboard/getting-started`;
         return;
       } catch (err: any) {
         message.error(err?.message || 'Phone Login has failed');
       }
     } else if (values.username && values.password) {
       try {
-        setPersistence(auth, browserLocalPersistence);
+        await setPersistence(auth, browserLocalPersistence);
         await signInWithEmailAndPassword(values.username, values.password);
         message.success('Email login successful');
         const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/');
+        window.location.href = `${window.location.origin}/dashboard/getting-started`;
         return;
       } catch (err: any) {
         message.error(err?.message || 'Email Login has failed');
@@ -261,20 +264,16 @@ const Login: React.FC = () => {
               <FormattedMessage id="pages.login.forgotPassword" defaultMessage="Forgot Password" />
             </a>
           </div>
+          <a onClick={() => setRegistrationModal(true)} style={{ marginBottom: '10px' }}>
+            Register
+          </a>
         </LoginForm>
       </div>
       <Footer />
       <div id="recaptcha-container" />
+      <RegisterAccount isModalOpen={registrationModal} setIsModalOpen={setRegistrationModal} />
     </div>
   );
 };
 
-const WrappedLogin: React.FC = () => {
-  return (
-    <ApolloProvider client={client}>
-      <Login />
-    </ApolloProvider>
-  );
-};
-
-export default WrappedLogin;
+export default Login;

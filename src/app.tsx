@@ -12,6 +12,8 @@ import { GET_AFFILIATE_ADMIN_VIEW } from './pages/User/Login/api.gql';
 import { AffiliateAdminViewResponse } from './api/graphql/generated/types';
 import { AdvertiserID, UserID } from '@wormgraph/helpers';
 import AuthGuard from './components/AuthGuard';
+import { CookiesProvider } from 'react-cookie';
+import React from 'react';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -116,10 +118,10 @@ export const layout: any = ({
     ],
     links: isDev
       ? [
-          <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
+          <a key="referral" href="https://lootbox.fund" target="_blank" rel="noreferrer">
             <LinkOutlined />
             <span>Referral Program</span>
-          </Link>,
+          </a>,
         ]
       : [],
     menuHeaderRender: undefined,
@@ -130,30 +132,45 @@ export const layout: any = ({
       // if (initialState?.loading) return <PageLoading />;
       return (
         <>
-          <ApolloProvider client={client}>
-            <AuthGuard>
-              {children}
-              {!props.location?.pathname?.includes('/login') && (
-                <SettingDrawer
-                  disableUrlParams
-                  enableDarkTheme
-                  settings={initialState?.settings}
-                  onSettingChange={(settings) => {
-                    setInitialState((preInitialState: any) => ({
-                      ...preInitialState,
-                      settings,
-                    }));
-                  }}
-                />
-              )}
-            </AuthGuard>
-          </ApolloProvider>
+          {children}
+          {!props.location?.pathname?.includes('/login') && (
+            <SettingDrawer
+              disableUrlParams
+              enableDarkTheme
+              settings={initialState?.settings}
+              onSettingChange={(settings) => {
+                setInitialState((preInitialState: any) => ({
+                  ...preInitialState,
+                  settings,
+                }));
+              }}
+            />
+          )}
         </>
       );
     },
     ...initialState?.settings,
   };
 };
+
+const RootProvider = ({ children, routes }: any) => {
+  const newChildren = React.cloneElement(children, {
+    ...children.props,
+    routes,
+  });
+
+  return (
+    <ApolloProvider client={client}>
+      <CookiesProvider>
+        <AuthGuard>{newChildren}</AuthGuard>
+      </CookiesProvider>
+    </ApolloProvider>
+  );
+};
+
+export function rootContainer(container: any) {
+  return React.createElement(RootProvider, null, container);
+}
 
 /**
  * @name request 配置，可以配置错误处理

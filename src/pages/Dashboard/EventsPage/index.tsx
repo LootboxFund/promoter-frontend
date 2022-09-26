@@ -3,12 +3,12 @@ import type {
   Tournament,
 } from '@/api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
-import { $Horizontal, $Vertical } from '@/components/generics';
+import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
 import { AffiliateID } from '@wormgraph/helpers';
-import { Button, Card, Input } from 'antd';
+import { Button, Card, Empty, Input } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
@@ -50,6 +50,15 @@ const EventsPage: React.FC = () => {
     );
   };
 
+  const renderHelpText = () => {
+    return (
+      <$InfoDescription>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat.
+      </$InfoDescription>
+    );
+  };
   return (
     <PageContainer>
       {loading ? (
@@ -58,6 +67,7 @@ const EventsPage: React.FC = () => {
         </div>
       ) : (
         <$Vertical>
+          {renderHelpText()}
           <$Horizontal justifyContent="space-between">
             <Input.Search
               placeholder="Find Event"
@@ -71,25 +81,45 @@ const EventsPage: React.FC = () => {
             </Button>
           </$Horizontal>
           <br />
-          <div className={styles.content}>
-            {tournaments.filter(filterBySearchString).map((tournament) => (
-              <Link key={tournament.id} to={`/dashboard/events/id/${tournament.id}`}>
-                <Card
-                  hoverable
-                  className={styles.card}
-                  cover={
-                    <img
-                      alt="example"
-                      src={tournament.coverPhoto || ''}
-                      className={styles.cardImage}
-                    />
-                  }
-                >
-                  <Meta title={tournament.title} />
-                </Card>
+          {tournaments && tournaments.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              imageStyle={{
+                height: 60,
+              }}
+              description={
+                <span style={{ maxWidth: '200px' }}>
+                  {`You have not created any events yet.
+                  Create your first event now!`}
+                </span>
+              }
+              style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
+            >
+              <Link to="/dashboard/events/create">
+                <Button type="primary">Create Event</Button>
               </Link>
-            ))}
-          </div>
+            </Empty>
+          ) : (
+            <div className={styles.content}>
+              {tournaments.filter(filterBySearchString).map((tournament) => (
+                <Link key={tournament.id} to={`/dashboard/events/id/${tournament.id}`}>
+                  <Card
+                    hoverable
+                    className={styles.card}
+                    cover={
+                      <img
+                        alt="example"
+                        src={tournament.coverPhoto || ''}
+                        className={styles.cardImage}
+                      />
+                    }
+                  >
+                    <Meta title={tournament.title} />
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
         </$Vertical>
       )}
     </PageContainer>

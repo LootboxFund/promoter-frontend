@@ -79,7 +79,7 @@ const InfoCard: React.FC<{
   );
 };
 
-const Welcome: React.FC = () => {
+const GettingStarted: React.FC = () => {
   return (
     <PageContainer>
       <Card
@@ -106,7 +106,7 @@ const Welcome: React.FC = () => {
               color: '#1A1A1A',
             }}
           >
-            Grow Your Community
+            {`The Guide to Profitable Esports`}
           </div>
           <p
             style={{
@@ -132,18 +132,18 @@ const Welcome: React.FC = () => {
             <InfoCard
               index={1}
               href="https://umijs.org/docs/introduce/introduce"
-              title="Plan an Esports Tournament"
+              title="The Problem"
               desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
             />
             <InfoCard
               index={2}
-              title="Partner with an Affiliate"
+              title="The Solution"
               href="https://ant.design"
               desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
             />
             <InfoCard
               index={3}
-              title="Grow Your Community"
+              title="Your Oppourtunity"
               href="https://procomponents.ant.design"
               desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
             />
@@ -177,4 +177,4 @@ const Welcome: React.FC = () => {
   );
 };
 
-export default Welcome;
+export default GettingStarted;

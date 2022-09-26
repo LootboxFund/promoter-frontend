@@ -69,6 +69,40 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
   }
 `;
 
+export const EDIT_TOURNAMENT_AS_ORGANIZER = gql`
+  mutation EditTournament($payload: EditTournamentPayload!) {
+    editTournament(payload: $payload) {
+      ... on EditTournamentResponseSuccess {
+        tournament {
+          id
+          title
+          description
+          tournamentLink
+          creatorId
+          magicLink
+          tournamentDate
+          prize
+          coverPhoto
+          communityURL
+          organizer
+          organizerProfile {
+            id
+            name
+            avatar
+          }
+          promoters
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
+
 export const REMOVE_ADSET_FROM_TOURNAMENT = gql`
   mutation RemoveOfferAdSetFromTournament($payload: RemoveOfferAdSetFromTournamentPayload!) {
     removeOfferAdSetFromTournament(payload: $payload) {

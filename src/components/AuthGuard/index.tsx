@@ -9,6 +9,7 @@ import {
   AffiliateAdminViewResponseSuccess,
 } from '@/api/graphql/generated/types';
 import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
+import { $Horizontal, $Vertical } from '../generics';
 
 /**
  * strict = forces login
@@ -29,15 +30,28 @@ const AuthGuard = ({ children, strict, ...props }: AuthGuardProps) => {
       },
     },
   );
+
   if (!user) {
-    // return <Spin style={{ margin: 'auto' }} />;
+    if (window.location.pathname === `/user/login`) {
+      return children;
+    }
     return (
-      <Link to="/user/login">
-        <Button type="primary">Login</Button>
-      </Link>
+      <$Horizontal
+        justifyContent="center"
+        verticalCenter
+        style={{ width: '100vw', height: '100vh' }}
+      >
+        <$Vertical>
+          <Spin style={{ margin: 'auto' }} />
+          <br />
+          <a href={`${window.location.origin}/user/login`}>
+            <Button>LOGIN</Button>
+          </a>
+        </$Vertical>
+      </$Horizontal>
     );
   }
-  if (loading || !affiliateUser) {
+  if (loading) {
     return <Spin style={{ margin: 'auto' }} />;
   }
   return children;
