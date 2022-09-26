@@ -93,6 +93,7 @@ const EventsPage: React.FC = () => {
                   Create your first event now!`}
                 </span>
               }
+              style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
             >
               <Link to="/dashboard/events/create">
                 <Button type="primary">Create Event</Button>

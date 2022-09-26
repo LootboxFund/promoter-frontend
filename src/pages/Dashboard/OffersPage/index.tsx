@@ -92,6 +92,7 @@ const OffersPage: React.FC = () => {
                   {`You do not have any offers yet. Visit the marketplace to hunt for a good one!`}
                 </span>
               }
+              style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
             >
               <Link to="/marketplace/browse">
                 <Button type="primary">Visit Marketplace</Button>

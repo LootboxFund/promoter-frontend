@@ -1,12 +1,14 @@
 import type {
   CreateUserResponse,
   MutationCreateUserWithPasswordArgs,
+  MutationUpgradeToAffiliateArgs,
   ResponseError,
+  UpgradeToAffiliateResponse,
 } from '../../graphql/generated/types';
 import { useEffect, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { auth } from '../app';
-import { SIGN_UP_WITH_PASSWORD, CREATE_USER } from './api.gql';
+import { SIGN_UP_WITH_PASSWORD, CREATE_USER, UPGRADE_TO_AFFILIATE } from './api.gql';
 import {
   signInWithEmailAndPassword as signInWithEmailAndPasswordFirebase,
   sendEmailVerification,
@@ -60,6 +62,11 @@ export const useAuth = () => {
     null,
   );
 
+  const [upgradeToAffiliateMutation] = useMutation<
+    { upgradeToAffiliate: UpgradeToAffiliateResponse },
+    MutationUpgradeToAffiliateArgs
+  >(UPGRADE_TO_AFFILIATE);
+
   const setCaptcha = () => {
     const el = document.getElementById('recaptcha-container');
     if (!!el) {
@@ -86,7 +93,7 @@ export const useAuth = () => {
 
   const setAuthPersistence = () => {
     const persistence: 'session' | 'local' = (localStorage.getItem('auth.persistence') ||
-      'session') as 'session' | 'local';
+      'local') as 'local' | 'session';
 
     if (persistence === 'local') {
       setPersistence(auth, browserLocalPersistence);
@@ -205,7 +212,7 @@ export const useAuth = () => {
     email: string,
     password: string,
     passwordConfirmation: string,
-  ): Promise<void> => {
+  ): Promise<string> => {
     if (!email) {
       throw new Error('Email is required');
     }
@@ -227,11 +234,33 @@ export const useAuth = () => {
     } else if (data?.createUserWithPassword?.__typename === 'ResponseError') {
       throw new Error(data.createUserWithPassword.error.message);
     }
+    if (data.createUserWithPassword.__typename === 'CreateUserResponseSuccess') {
+      return data.createUserWithPassword.user.id;
+    }
+    return '';
   };
 
   const logout = async (): Promise<void> => {
     await auth.signOut();
     setUser(null);
+  };
+
+  const upgradeToAffiliate = async (userID: UserID) => {
+    if (!userID) {
+      throw new Error('User ID is required');
+    }
+    const { data } = await upgradeToAffiliateMutation({
+      variables: {
+        userID,
+      },
+    });
+
+    if (!data) {
+      throw new Error('An error occurred');
+    } else if (data?.upgradeToAffiliate?.__typename === 'ResponseError') {
+      throw new Error(data.upgradeToAffiliate.error.message);
+    }
+    return data.upgradeToAffiliate;
   };
 
   // const updatePassword = async (password: string, newPassword: string): Promise<void> => {
@@ -242,6 +271,7 @@ export const useAuth = () => {
     signUpWithEmailAndPassword,
     sendPhoneVerification,
     signInPhoneWithCode,
+    upgradeToAffiliate,
     logout,
   };
 };

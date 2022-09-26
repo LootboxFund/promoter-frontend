@@ -89,3 +89,29 @@ export const CONNECT_WALLET = gql`
     }
   }
 `;
+
+export const UPGRADE_TO_AFFILIATE = gql`
+  mutation UpgradeToAffiliate($userID: ID!) {
+    upgradeToAffiliate(userID: $userID) {
+      ... on UpgradeToAffiliateResponseSuccess {
+        affiliate {
+          id
+          userID
+          name
+          avatar
+          description
+          rank
+          publicContactEmail
+          website
+          audienceSize
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;

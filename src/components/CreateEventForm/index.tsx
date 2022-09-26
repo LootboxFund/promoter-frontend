@@ -205,7 +205,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         },
         { key: 'communityURL', label: 'Link to Community', rules: [{ type: 'url' } as Rule] },
         { key: 'prize', label: 'Prize' },
-        { key: 'description', label: 'Description', widget: 'textarea' },
+        { key: 'description', label: 'Description', widget: 'textarea', required: true },
       ],
     };
     if (mode === 'view-edit') {

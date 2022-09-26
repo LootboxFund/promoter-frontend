@@ -252,9 +252,21 @@ const EventPage: React.FC = () => {
           {!tournament.dealConfigs || tournament.dealConfigs.length === 0 ? (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="No Revenue Streams Yet"
-              style={{ padding: '100px' }}
-            />
+              imageStyle={{
+                height: 60,
+              }}
+              description={
+                <span style={{ maxWidth: '200px' }}>
+                  {`You have not created any revenue streams yet.
+                  Go to the Offers Page to get started!`}
+                </span>
+              }
+              style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
+            >
+              <Link to="/dashboard/offers">
+                <Button>Add Revenue</Button>
+              </Link>
+            </Empty>
           ) : null}
           {tournament.dealConfigs.map((dealConfig) => {
             const uniqueActivations = _.uniq(
