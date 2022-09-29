@@ -14,6 +14,7 @@ import { AdvertiserID, UserID } from '@wormgraph/helpers';
 import AuthGuard from './components/AuthGuard';
 import { CookiesProvider } from 'react-cookie';
 import React from 'react';
+import { Web3Provider } from './hooks/useWeb3';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -161,9 +162,11 @@ const RootProvider = ({ children, routes }: any) => {
 
   return (
     <ApolloProvider client={client}>
-      <CookiesProvider>
-        <AuthGuard>{newChildren}</AuthGuard>
-      </CookiesProvider>
+      <Web3Provider>
+        <CookiesProvider>
+          <AuthGuard>{newChildren}</AuthGuard>
+        </CookiesProvider>
+      </Web3Provider>
     </ApolloProvider>
   );
 };
