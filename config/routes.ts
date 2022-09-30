@@ -80,6 +80,12 @@ export default [
         hideInMenu: true,
         component: './Welcome',
       },
+      {
+        name: 'Create Lootbox',
+        path: '/dashboard/lootbox/create',
+        hideInMenu: true,
+        component: './Dashboard/LootboxCreatePage',
+      },
     ],
   },
   {

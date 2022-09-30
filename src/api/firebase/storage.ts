@@ -8,6 +8,7 @@ export const LOOTBOX_ADVERTISER_ASSET_FOLDER = `advertiser-assets`;
 export enum AffiliateStorageFolder {
   AVATAR = 'avatar',
   TOURNAMENT = 'tournament',
+  LOOTBOX = 'lootbox',
 }
 
 /**
