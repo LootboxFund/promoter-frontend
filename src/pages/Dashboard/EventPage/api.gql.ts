@@ -1,4 +1,6 @@
+import { LootboxTournamentStatus } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
+import { Address, LootboxID, LootboxTournamentSnapshotID } from '@wormgraph/helpers';
 
 export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
   query ViewTournamentAsOrganizer($tournamentID: ID!) {
@@ -63,6 +65,59 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
         error {
           code
           message
+        }
+      }
+    }
+  }
+`;
+
+export interface LootboxTournamentSnapshotFE {
+  address: Address;
+  lootboxID: LootboxID;
+  stampImage: string;
+  status: LootboxTournamentStatus;
+}
+
+export interface PaginateEventLootboxesFE {
+  __resolveType: 'TournamentResponseSuccess';
+  tournament: {
+    paginateLootboxSnapshots: {
+      edges: {
+        node: LootboxTournamentSnapshotFE;
+        cursor: LootboxTournamentSnapshotID;
+      }[];
+      pageInfo: {
+        hasNextPage: boolean;
+      };
+    };
+  };
+}
+
+export const parsePaginatedLootboxEventSnapshots = (
+  response: PaginateEventLootboxesFE | undefined,
+): LootboxTournamentSnapshotFE[] => {
+  return response?.tournament?.paginateLootboxSnapshots?.edges?.map((edge) => edge.node) || [];
+};
+
+export const PAGINATE_EVENT_LOOTBOXES = gql`
+  query PaginateLootboxSnapshots($tournamentID: ID!, $first: Int!, $after: ID) {
+    tournament(id: $tournamentID) {
+      ... on TournamentResponseSuccess {
+        tournament {
+          paginateLootboxSnapshots(first: $first, after: $after) {
+            edges {
+              node {
+                address
+                lootboxID
+                stampImage
+                status
+              }
+              cursor
+            }
+            pageInfo {
+              hasNextPage
+            }
+          }
         }
       }
     }
