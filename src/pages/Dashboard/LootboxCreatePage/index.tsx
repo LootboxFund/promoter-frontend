@@ -98,6 +98,7 @@ const LootboxCreatePage: React.FC = () => {
           themeColor: request.payload.themeColor,
           nftBountyValue: request.payload.nftBountyValue,
           joinCommunityUrl: request.payload.joinCommunityUrl,
+          symbol: request.payload.tag,
         },
       });
     } catch (err) {

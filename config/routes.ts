@@ -86,6 +86,12 @@ export default [
         hideInMenu: true,
         component: './Dashboard/LootboxCreatePage',
       },
+      {
+        name: '',
+        path: '/dashboard/lootbox/id/:lootboxID',
+        hideInMenu: true,
+        component: './Dashboard/LootboxPage',
+      },
     ],
   },
   {

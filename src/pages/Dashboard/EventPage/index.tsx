@@ -10,6 +10,7 @@ import {
   EditTournamentResponseSuccess,
   MutationEditTournamentArgs,
   EditTournamentPayload,
+  LootboxTournamentSnapshot,
 } from '@/api/graphql/generated/types';
 import { history } from '@umijs/max';
 import * as _ from 'lodash';
@@ -27,11 +28,15 @@ import type {
 } from '@wormgraph/helpers';
 import { AffiliateType } from '@wormgraph/helpers';
 import Spin from 'antd/lib/spin';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   EDIT_TOURNAMENT_AS_ORGANIZER,
   REMOVE_ADSET_FROM_TOURNAMENT,
   VIEW_TOURNAMENT_AS_ORGANIZER,
+  PAGINATE_EVENT_LOOTBOXES,
+  PaginateEventLootboxesFE,
+  LootboxTournamentSnapshotFE,
+  parsePaginatedLootboxEventSnapshots,
 } from './api.gql';
 import styles from './index.less';
 import { $Horizontal, $Vertical, $ColumnGap } from '@/components/generics';
@@ -109,6 +114,24 @@ const EventPage: React.FC = () => {
     },
   });
 
+  // GET EVENT LOOTBOXES
+  const {
+    data: paginatedLootboxEdges,
+    loading: loadingLootboxEdges,
+    // error: errorLootboxEdges,
+  } = useQuery<{ tournament: PaginateEventLootboxesFE | ResponseError }>(PAGINATE_EVENT_LOOTBOXES, {
+    variables: {
+      tournamentID: eventID || '',
+      first: 30,
+    },
+  });
+
+  const lootboxTournamentSnapshots: LootboxTournamentSnapshotFE[] = useMemo(() => {
+    return parsePaginatedLootboxEventSnapshots(
+      paginatedLootboxEdges?.tournament as PaginateEventLootboxesFE | undefined,
+    );
+  }, [paginatedLootboxEdges?.tournament]);
+
   // EDIT TOURNAMENT AS ORGANIZER
   const [editTournamentMutation] = useMutation<
     { editTournament: ResponseError | EditTournamentResponseSuccess },
@@ -169,6 +192,16 @@ const EventPage: React.FC = () => {
     { title: tournament?.title || '', route: `/dashboard/events/id/${tournament?.id}` },
   ];
 
+  const LootboxGallery = ({
+    snapshots,
+    loading,
+  }: {
+    snapshots: LootboxTournamentSnapshotFE[];
+    loading: boolean;
+  }) => {
+    return <$Horizontal></$Horizontal>;
+  };
+
   return (
     <div>
       {loading || !tournament ? (
@@ -217,6 +250,7 @@ const EventPage: React.FC = () => {
                 {showTableOfContents && (
                   <Anchor offsetTop={70}>
                     <Anchor.Link href="#breadcrumbs" title="Event Info" />
+                    <Anchor.Link href="#lootbox-gallery" title="Lootbox Gallery" />
                     <Anchor.Link href="#ticket-distribution" title="Ticket Distribution" />
                     <Anchor.Link href="#revenue-sharing" title="Revenue Sharing">
                       {tournament.dealConfigs.map((dealConfig) => {
@@ -234,6 +268,42 @@ const EventPage: React.FC = () => {
               </Card>
             </Affix>
           </$Horizontal>
+          <br />
+          <br />
+
+          <$Horizontal justifyContent="space-between">
+            <h2 id="lootbox-gallery">Lootbox Gallery</h2>
+            <Popconfirm
+              title="Go to create Lootbox page?"
+              onConfirm={() => history.push(`/dashboard/lootbox/create?tid=${eventID}`)}
+              okText="Create Lootbox"
+              showCancel={true}
+            >
+              <Button type="primary">Create Lootbox</Button>
+            </Popconfirm>
+          </$Horizontal>
+          <br />
+          {!tournament.dealConfigs || tournament.dealConfigs.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              imageStyle={{
+                height: 60,
+              }}
+              description={
+                <span style={{ maxWidth: '200px' }}>
+                  {`There are no Lootboxes for this event. Create one to get started.`}
+                </span>
+              }
+              style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
+            >
+              <Link to="/dashboard/lootbox/create">
+                <Button>Add Lootbox</Button>
+              </Link>
+            </Empty>
+          ) : null}
+          <br />
+          <LootboxGallery loading={loadingLootboxEdges} snapshots={lootboxTournamentSnapshots} />
+
           <br />
           <br />
 
