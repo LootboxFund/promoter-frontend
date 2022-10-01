@@ -76,6 +76,7 @@ export interface LootboxTournamentSnapshotFE {
   lootboxID: LootboxID;
   stampImage: string;
   status: LootboxTournamentStatus;
+  name: string;
 }
 
 export interface PaginateEventLootboxesFE {
@@ -111,6 +112,7 @@ export const PAGINATE_EVENT_LOOTBOXES = gql`
                 lootboxID
                 stampImage
                 status
+                name
               }
               cursor
             }
