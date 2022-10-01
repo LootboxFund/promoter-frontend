@@ -1,62 +1,35 @@
-import type {
-  AffiliatePublicViewResponse,
-  CreateTournamentPayload,
-  CreateTournamentResponseSuccess,
-  MutationCreateTournamentArgs,
-  QueryAffiliatePublicViewArgs,
-  ResponseError,
-} from '@/api/graphql/generated/types';
-import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
-import CreateLootboxForm, {
-  CreateLootboxFormProps,
-  CreateLootboxRequest,
-} from '@/components/CreateLootboxForm';
+import CreateLootboxForm, { CreateLootboxRequest } from '@/components/CreateLootboxForm';
 import { $InfoDescription } from '@/components/generics';
 import { PageContainer } from '@ant-design/pro-components';
-import { useMutation, useQuery } from '@apollo/client';
-import { Address, AffiliateID } from '@wormgraph/helpers';
-import { history, Link } from '@umijs/max';
-import Spin from 'antd/lib/spin';
-import React, { useCallback } from 'react';
-// import { useAccount, useContract, useSigner } from '@web3modal/react';
+import { Address, TournamentID } from '@wormgraph/helpers';
+import React, { useState } from 'react';
 import { manifest } from '@/manifest';
 import { useLootboxFactory } from '@/hooks/useLootboxFactory';
 import { startLootboxCreatedListener } from '@/api/firebase/functions';
 import useWeb3 from '@/hooks/useWeb3';
 import { generateCreateLootboxNonce } from '@/lib/lootbox';
-// import { useLootboxFactory } from '@/hooks/useLootboxFactory';
-// import { CREATE_TOURNAMENT } from './api.gql';
+
+interface MagicLinkParams {
+  tournamentID?: TournamentID;
+}
+
+export const extractURLState_LootboxCreatePage = (): MagicLinkParams => {
+  const url = new URL(window.location.href);
+
+  const params: MagicLinkParams = {
+    tournamentID: url.searchParams.get('tid') as TournamentID | undefined,
+  };
+
+  return params;
+};
 
 const LootboxCreatePage: React.FC = () => {
   // const { chainId } = useAccount();
   const { library, network } = useWeb3();
   const { lootboxFactory } = useLootboxFactory();
-  // const { signer } = useSigner();
-
-  // console.log('signer', signer);
-
-  // console.log('outer contract', contract);
-
-  // const createLootbox = useCallback(
-  //   async (payload: CreateLootboxRequest) => {
-  //     console.log('create lootbox', payload, chainId);
-
-  //     console.log('factory', contract);
-
-  //     if (!contract || !signer) {
-  //       return;
-  //     }
-
-  //     console.log('creating lootbox');
-  //     try {
-  //       const res = await contract.connect(signer).createLootbox();
-  //       console.log('res', res);
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   },
-  //   [contract, signer, useSigner, useLootboxFactory],
-  // );
+  const [magicLinkParams, setMagicLinkParams] = useState<MagicLinkParams>(
+    extractURLState_LootboxCreatePage(),
+  );
 
   const createLootbox = async (request: CreateLootboxRequest) => {
     console.log('create lootbox', request);
@@ -98,68 +71,14 @@ const LootboxCreatePage: React.FC = () => {
           themeColor: request.payload.themeColor,
           nftBountyValue: request.payload.nftBountyValue,
           joinCommunityUrl: request.payload.joinCommunityUrl,
+          symbol: request.payload.tag,
+          tournamentID: magicLinkParams.tournamentID,
         },
       });
     } catch (err) {
       console.error(err);
     }
   };
-
-  // const { affiliateUser } = useAffiliateUser();
-  // const { id: affiliateID } = affiliateUser;
-  //   const [createTournamentMutation] = useMutation<
-  //     { createTournament: ResponseError | CreateTournamentResponseSuccess },
-  //     MutationCreateTournamentArgs
-  //   >(CREATE_TOURNAMENT, {
-  //     refetchQueries: [{ query: VIEW_TOURNAMENTS_AS_ORGANIZER, variables: { affiliateID } }],
-  //   });
-
-  // const createLootbox = async (payload: CreateLootboxRequest) => {
-  //   console.log('create lootbox', payload, chainId);
-
-  //   console.log('factory', contract);
-
-  //   if (!contract) {
-  //     return;
-  //   }
-
-  //   console.log('creating lootbox');
-  //   try {
-  //     await contract.createLootbox();
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-
-  //   // Start the blockchain transaction
-  //   // const {} = useContract({
-  //   //   address: manifest,
-  //   // });
-  //   // const lootboxFactory = use;
-
-  //   // Start the backend event listener
-
-  //   // const res = await createTournamentMutation({
-  //   //   variables: {
-  //   //     payload: {
-  //   //       title: payload.title || 'Untitled Tournament',
-  //   //       description: payload.description,
-  //   //       tournamentLink: payload.tournamentLink || '',
-  //   //       coverPhoto: payload.coverPhoto || '',
-  //   //       prize: payload.prize || '',
-  //   //       tournamentDate: payload.tournamentDate,
-  //   //       communityURL: payload.communityURL || '',
-  //   //       organizer: affiliateID,
-  //   //     },
-  //   //   },
-  //   // });
-  //   // if (!res?.data || res?.data?.createTournament?.__typename === 'ResponseError') {
-  //   //   // @ts-ignore
-  //   //   throw new Error(res?.data?.createTournament?.error?.message || words.anErrorOccured);
-  //   // }
-  //   // if (res?.data?.createTournament?.__typename === 'CreateTournamentResponseSuccess') {
-  //   //   history.push(`/dashboard/events/id/${res?.data?.createTournament?.tournament?.id}`);
-  //   // }
-  // };
 
   const renderHelpText = () => {
     return (

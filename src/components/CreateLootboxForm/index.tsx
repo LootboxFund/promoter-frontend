@@ -1,4 +1,4 @@
-import { AffiliateID } from '@wormgraph/helpers';
+import { AffiliateID, TournamentID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
 import { Button, Card, Form, Modal } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -26,6 +26,7 @@ interface LootboxBodyPayload {
   name: string;
   maxTickets: number;
   tag: string; // AKA symbol
+  tournamentID?: TournamentID;
 }
 
 export type CreateLootboxFormProps = {
@@ -99,14 +100,15 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       const payload: CreateLootboxRequest = {
         payload: {
           name: values.name,
-          description: values.bio,
+          description: values.description,
           backgroundImage: newMediaDestinationBackground.current,
           logoImage: newMediaDestinationLogo.current,
           themeColor: values.themeColor,
           nftBountyValue: values.nftBountyValue,
           joinCommunityUrl: values.joinCommunityUrl,
           maxTickets: values.maxTickets,
-          tag: values.tag,
+          tag: values.symbol,
+          tournamentID: lootbox?.tournamentID,
         },
       };
 
@@ -216,8 +218,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       initialValues: lootboxInfo,
       fields: [
         { key: 'name', label: 'Team Name', required: true },
-        { key: 'tag', label: 'Team Tag', required: true },
-        { key: 'bio', label: 'Team Bio', required: true, widget: 'textarea' },
+        { key: 'symbol', label: 'Team Tag', required: true },
+        { key: 'description', label: 'Team Bio', required: true, widget: 'textarea' },
         { key: 'chain', label: 'Network', widget: SelectChain },
         {
           key: 'nftBountyValue',
