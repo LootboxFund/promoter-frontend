@@ -199,7 +199,23 @@ const EventPage: React.FC = () => {
     snapshots: LootboxTournamentSnapshotFE[];
     loading: boolean;
   }) => {
-    return <$Horizontal></$Horizontal>;
+    return (
+      <div className={styles.content}>
+        {snapshots.map((snapshot) => (
+          <Link key={snapshot.lootboxID} to={`/dashboard/lootbox/id/${snapshot.lootboxID}`}>
+            <Card
+              hoverable
+              className={styles.card}
+              cover={
+                <img alt="example" src={snapshot.stampImage || ''} className={styles.cardImage} />
+              }
+            >
+              <Meta title={snapshot.name} description={snapshot.status} />
+            </Card>
+          </Link>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -283,7 +299,7 @@ const EventPage: React.FC = () => {
             </Popconfirm>
           </$Horizontal>
           <br />
-          {!tournament.dealConfigs || tournament.dealConfigs.length === 0 ? (
+          {!lootboxTournamentSnapshots || lootboxTournamentSnapshots.length === 0 ? (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               imageStyle={{
@@ -300,13 +316,11 @@ const EventPage: React.FC = () => {
                 <Button>Add Lootbox</Button>
               </Link>
             </Empty>
-          ) : null}
+          ) : (
+            <LootboxGallery loading={loadingLootboxEdges} snapshots={lootboxTournamentSnapshots} />
+          )}
           <br />
-          <LootboxGallery loading={loadingLootboxEdges} snapshots={lootboxTournamentSnapshots} />
-
           <br />
-          <br />
-
           <$Horizontal justifyContent="space-between">
             <h2 id="revenue-sharing">Revenue Sharing</h2>
             <Popconfirm
