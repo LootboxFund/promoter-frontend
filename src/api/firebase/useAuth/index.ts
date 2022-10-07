@@ -6,7 +6,7 @@ import type {
   UpgradeToAffiliateResponse,
 } from '../../graphql/generated/types';
 import { useEffect, useState } from 'react';
-import { useMutation } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { auth } from '../app';
 import { SIGN_UP_WITH_PASSWORD, CREATE_USER, UPGRADE_TO_AFFILIATE } from './api.gql';
 import {
@@ -24,6 +24,10 @@ import {
 import client from '../../graphql/client';
 import { throwInvalidPasswords } from './password';
 import type { UserID } from '@wormgraph/helpers';
+
+import { AFFILIATE_ID_COOKIE } from '@/api/constants';
+import { useCookies } from 'react-cookie';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
 
 interface FrontendUser {
   id: UserID;
@@ -57,10 +61,21 @@ export const useAuth = () => {
    */
   const [user, setUser] = useState<FrontendUser | undefined | null>(undefined);
 
+  const [cookies, setCookie, removeCookie] = useCookies([AFFILIATE_ID_COOKIE]);
+
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
   const [phoneConfirmationResult, setPhoneConfirmationResult] = useState<ConfirmationResult | null>(
     null,
   );
+
+  const [getAffiliate, { loading: loadingAffiliate, error: errorAffiliate, data: dataAffiliate }] =
+    useLazyQuery(GET_AFFILIATE_ADMIN_VIEW);
+
+  useEffect(() => {
+    if (!loadingAffiliate && !errorAffiliate && dataAffiliate) {
+      setCookie(AFFILIATE_ID_COOKIE, dataAffiliate.affiliateAdminView.affiliate.id, { path: '/' });
+    }
+  }, [dataAffiliate]);
 
   const [upgradeToAffiliateMutation] = useMutation<
     { upgradeToAffiliate: UpgradeToAffiliateResponse },
@@ -180,6 +195,8 @@ export const useAuth = () => {
         .catch((err) => console.log(err));
     }
 
+    await getAffiliate();
+
     return data.createUserRecord as CreateUserResponse;
   };
 
@@ -197,6 +214,8 @@ export const useAuth = () => {
 
     // Send email verification only once on login
     const verificationEmailAlreadySent = localStorage.getItem(EMAIL_VERIFICATION_COOKIE_NAME);
+    console.log('Getting affiliate....');
+    await getAffiliate();
 
     if (!!user.email && !user.emailVerified && !verificationEmailAlreadySent) {
       sendEmailVerification(user)
@@ -206,6 +225,7 @@ export const useAuth = () => {
         })
         .catch((err) => console.log(err));
     }
+    return;
   };
 
   const signUpWithEmailAndPassword = async (
@@ -243,6 +263,7 @@ export const useAuth = () => {
   const logout = async (): Promise<void> => {
     await auth.signOut();
     setUser(null);
+    removeCookie(AFFILIATE_ID_COOKIE, { path: '/' });
   };
 
   const upgradeToAffiliate = async (userID: UserID) => {

@@ -81,8 +81,7 @@ const GlobalHeaderRight: React.FC = () => {
         checked={navTheme === 'realDark'}
         onChange={() => {
           const newTheme = navTheme === 'realDark' ? 'light' : 'realDark';
-          // @ts-ignore
-          setCookie(THEME_COLOR_BRIGHTNESS, newTheme, '/');
+          setCookie(THEME_COLOR_BRIGHTNESS, newTheme, { path: '/' });
           const updatedSettings = {
             ...initialState,
             settings: {
