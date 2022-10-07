@@ -24,6 +24,7 @@ export type EditAffiliateFormProps = {
 };
 
 const AFFILIATE_INFO = {
+  id: '',
   name: '',
   description: '',
   avatar: '',
@@ -40,6 +41,7 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
   const [affiliateInfo, setAffiliateInfo] = useState(AFFILIATE_INFO);
   useEffect(() => {
     setAffiliateInfo({
+      id: affiliate.id,
       name: affiliate.name,
       description: affiliate.description || '',
       avatar: affiliate.avatar || '',
@@ -115,6 +117,9 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
           />
         ),
       });
+    }
+    if (viewMode) {
+      meta.fields.push({ key: 'id', label: 'Affiliate ID' });
     }
     return meta;
   };
