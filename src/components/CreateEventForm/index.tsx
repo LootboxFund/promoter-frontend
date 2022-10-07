@@ -236,7 +236,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
             affiliateID={affiliateID}
             folderName={AffiliateStorageFolder.TOURNAMENT}
             newMediaDestination={newMediaDestination}
-            forceRefresh={() => setPreviewMedias([newMediaDestination.current])}
             acceptedFileTypes={'image/*'}
           />
         ),

@@ -646,18 +646,20 @@ const EventPage: React.FC = () => {
           />
         </div>
       )}
-      <Modal
-        title={simulatedAd?.title || 'Simulated Ad'}
-        open={!!simulatedAd}
-        onCancel={() => setSimulatedAd(null)}
-        footer={[
-          <Button key="simulated-ad-modal-close" onClick={() => setSimulatedAd(null)}>
-            Close
-          </Button>,
-        ]}
-      >
-        {simulatedAd && <DeviceSimulator creative={simulatedAd.creative} />}
-      </Modal>
+      {simulatedAd && (
+        <Modal
+          title={simulatedAd?.title || 'Simulated Ad'}
+          open={!!simulatedAd}
+          onCancel={() => setSimulatedAd(null)}
+          footer={[
+            <Button key="simulated-ad-modal-close" onClick={() => setSimulatedAd(null)}>
+              Close
+            </Button>,
+          ]}
+        >
+          {simulatedAd && <DeviceSimulator creative={simulatedAd.creative} />}
+        </Modal>
+      )}
     </div>
   );
 };
