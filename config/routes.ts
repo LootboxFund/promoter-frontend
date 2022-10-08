@@ -92,6 +92,23 @@ export default [
         hideInMenu: true,
         component: './Dashboard/LootboxPage',
       },
+      {
+        name: 'Stamp',
+        path: '/dashboard/stamp',
+        component: './Dashboard/StampPage',
+      },
+      {
+        name: 'Lootbox Marketing',
+        path: '/dashboard/stamp/lootbox/id/:lootboxID',
+        component: './Dashboard/StampLootbox',
+        hideInMenu: true,
+      },
+      {
+        name: 'Event Marketing',
+        path: '/dashboard/stamp/event/id/:eventID',
+        component: './Dashboard/StampEvent',
+        hideInMenu: true,
+      },
     ],
   },
   {

@@ -50,9 +50,17 @@ const LootboxCreatePage: React.FC = () => {
       const blockNum = await library.getBlockNumber();
 
       console.log('block num', blockNum);
+      console.log(`
+
+      request.payload.name = ${request.payload.name}
+      request.payload.name.slice(0, 11) = ${request.payload.name.slice(0, 11)}
+      request.payload.maxTickets = ${request.payload.maxTickets}
+      nonce = ${nonce}
+
+      `);
       const res = await lootboxFactory.createLootbox(
         request.payload.name,
-        request.payload.tag,
+        request.payload.name.slice(0, 11),
         request.payload.maxTickets,
         nonce,
       );

@@ -209,6 +209,7 @@ const EventPage: React.FC = () => {
           <Link
             key={snapshot.lootboxID}
             to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
+            target="_blank"
           >
             <Card
               hoverable

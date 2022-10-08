@@ -1,3 +1,4 @@
+import { COLORS, TYPOGRAPHY } from '@wormgraph/helpers';
 import styled from 'styled-components';
 
 interface HorizontalProps {
@@ -40,6 +41,13 @@ export const $Horizontal = styled.div<HorizontalProps>`
   & > *:not(:last-child) {
     margin-right: ${(props) => props.spacing && `${SPACING_VALS[props.spacing - 1]}px`};
   }
+`;
+
+export const $ErrorMessage = styled.span`
+  color: ${COLORS.dangerFontColor}ae;
+  font-size: ${TYPOGRAPHY.fontSize.medium};
+  font-weight: ${TYPOGRAPHY.fontWeight.medium};
+  font-family: ${TYPOGRAPHY.fontFamily.regular};
 `;
 
 export const $Vertical = styled.div<{
