@@ -8,6 +8,7 @@ import { useLootboxFactory } from '@/hooks/useLootboxFactory';
 import { startLootboxCreatedListener } from '@/api/firebase/functions';
 import useWeb3 from '@/hooks/useWeb3';
 import { generateCreateLootboxNonce } from '@/lib/lootbox';
+import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -90,13 +91,20 @@ const LootboxCreatePage: React.FC = () => {
     );
   };
 
+  const breadLine = [
+    { title: 'Dashboard', route: '/dashboard' },
+    { title: 'Event', route: `/dashboard/events/id/${magicLinkParams.tournamentID}` },
+    { title: 'Create Lootbox', route: `/dashboard/lootbox/create` },
+  ];
+
   return (
-    <PageContainer>
+    <div id="breadcrumbs" style={{ maxWidth: '1000px' }}>
+      <BreadCrumbDynamic breadLine={breadLine} />
       {renderHelpText()}
-      <div style={{ maxWidth: '800px' }}>
+      <div style={{ maxWidth: '1000px' }}>
         <CreateLootboxForm onSubmitCreate={createLootbox} mode="create" />
       </div>
-    </PageContainer>
+    </div>
   );
 };
 
