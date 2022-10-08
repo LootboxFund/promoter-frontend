@@ -16,8 +16,9 @@ import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
 import { $ColumnGap, $Horizontal, $InfoDescription } from '@/components/generics';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import CreateLootboxForm from '@/components/CreateLootboxForm';
-import { TournamentID } from '@wormgraph/helpers';
+import { LootboxID, TournamentID } from '@wormgraph/helpers';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
+import { Link } from '@umijs/max';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -145,10 +146,9 @@ const LootboxPage: React.FC = () => {
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Team Members</h2>
         <Popconfirm
-          title="Go to the Offers Page to add them as a revenue for this Event"
+          title="Invite a team member to this LOOTBOX by sending them a magic invite link. They will automatically be onboarded by clicking the link."
           onConfirm={() => console.log('confirm')}
-          okText="Go To Offers Page"
-          showCancel={false}
+          okText="Copy Invite Link"
         >
           <Button type="primary">Invite Member</Button>
         </Popconfirm>
@@ -165,7 +165,13 @@ const LootboxPage: React.FC = () => {
         }
         style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
       >
-        <Button>Invite Member</Button>
+        <Popconfirm
+          title="Invite a team member to this LOOTBOX by sending them a magic invite link. They will automatically be onboarded by clicking the link."
+          onConfirm={() => console.log('confirm')}
+          okText="Copy Invite Link"
+        >
+          <Button>Invite Member</Button>
+        </Popconfirm>
       </Empty>
       <br />
       <br />
@@ -175,14 +181,9 @@ const LootboxPage: React.FC = () => {
           <Button onClick={() => setIsReferralModalOpen(true)} style={{ marginRight: '5px' }}>
             Generate Invite
           </Button>
-          <Popconfirm
-            title="Go to the Offers Page to add them as a revenue for this Event"
-            onConfirm={() => console.log('confirm')}
-            okText="Go To Offers Page"
-            showCancel={false}
-          >
-            <Button type="primary">Generate Marketing</Button>
-          </Popconfirm>
+          <Link to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}>
+            <Button type="primary">Generate Stamp</Button>
+          </Link>
         </$Horizontal>
       </$Horizontal>
       <Empty
@@ -194,14 +195,7 @@ const LootboxPage: React.FC = () => {
       <br />
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Payout Rewards</h2>
-        <Popconfirm
-          title="Go to the Offers Page to add them as a revenue for this Event"
-          onConfirm={() => console.log('confirm')}
-          okText="Go To Offers Page"
-          showCancel={false}
-        >
-          <Button type="primary">Deposit Payout</Button>
-        </Popconfirm>
+        <Button type="primary">Deposit Payout</Button>
       </$Horizontal>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -217,7 +211,12 @@ const LootboxPage: React.FC = () => {
       >
         <Button>Payout Rewards</Button>
       </Empty>
-      <GenerateReferralModal isOpen={isReferralModalOpen} setIsOpen={setIsReferralModalOpen} />
+      <GenerateReferralModal
+        isOpen={isReferralModalOpen}
+        setIsOpen={setIsReferralModalOpen}
+        lootboxID={(lootboxID || '') as LootboxID}
+        tournamentID={(magicLinkParams.tournamentID || '') as TournamentID}
+      />
     </div>
   );
 };

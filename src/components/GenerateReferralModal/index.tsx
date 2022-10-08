@@ -1,58 +1,178 @@
-import { Button, Input, InputNumber, message, Modal, Tabs } from 'antd';
-import { $Vertical, $Horizontal, $InfoDescription } from '@/components/generics';
+import { Badge, Button, Input, InputNumber, message, Modal, Tabs, Tag } from 'antd';
+import { $Vertical, $Horizontal, $InfoDescription, $ErrorMessage } from '@/components/generics';
 import { useEffect, useState } from 'react';
 import QRCodeComponent from 'easyqrcodejs';
+import { useMutation } from '@apollo/client';
+import {
+  BulkCreateReferralResponseSuccess,
+  MutationBulkCreateReferralArgs,
+  MutationCreateReferralArgs,
+  ReferralType,
+  ResponseError,
+} from '@/api/graphql/generated/types';
+import {
+  BulkCreateReferralResponseFE,
+  BULK_CREATE_REFERRAL,
+  CreateReferralFE,
+  CreateReferralResponseFE,
+  CREATE_REFERRAL,
+} from './api.gql';
+import { LootboxID, TournamentID } from '@wormgraph/helpers';
+import { manifest } from '../../manifest';
 
 export type GenerateReferralModalProps = {
   isOpen: boolean;
   setIsOpen: (bool: boolean) => void;
+  lootboxID: LootboxID;
+  tournamentID: TournamentID;
 };
-enum INVITE_TYPE {
-  GENESIS = 'GENESIS',
-  VIRAL = 'VIRAL',
-  PARTICIPATION = 'PARTICIPATION',
-}
-const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, setIsOpen }) => {
+const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
+  isOpen,
+  setIsOpen,
+  lootboxID,
+  tournamentID,
+}) => {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<INVITE_TYPE>(INVITE_TYPE.GENESIS);
-  const [generatedUrl, setGeneratedUrl] = useState('');
+  const [activeTab, setActiveTab] = useState<ReferralType>(ReferralType.Genesis);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [csvFile, setCsvFile] = useState<string>('');
   const [campaignName, setCampaignName] = useState('');
   const [attributedTo, setAttributedTo] = useState('');
-  const [quantityTickets, setQuantityTickets] = useState(1);
+  const [quantityTickets, setQuantityTickets] = useState(10);
+  const [createdReferral, setCreatedReferral] = useState<CreateReferralFE | null>(null);
+  const inviteLink = `${manifest.microfrontends.webflow.referral}?r=${createdReferral?.slug}`;
+  const [createReferral, { loading: loadingReferralCreation }] = useMutation<
+    { createReferral: CreateReferralResponseFE | ResponseError },
+    MutationCreateReferralArgs
+  >(CREATE_REFERRAL);
+  const [bulkCreateReferral] = useMutation<
+    { bulkCreateReferral: BulkCreateReferralResponseFE | ResponseError },
+    MutationBulkCreateReferralArgs
+  >(BULK_CREATE_REFERRAL);
   useEffect(() => {
-    const link = `${generatedUrl}`;
-    const options_object = {
-      // ====== Basic
-      text: link,
-      width: 120,
-      height: 120,
-      colorDark: '#000000',
-      colorLight: '#ffffff',
-      correctLevel: QRCodeComponent.CorrectLevel.H, // L, M, Q, <H></H>
-      quietZone: 12,
-      /*
-        title: 'QR Title', // content
+    if (createdReferral) {
+      const options_object = {
+        // ====== Basic
+        text: inviteLink,
+        width: 120,
+        height: 120,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCodeComponent.CorrectLevel.H, // L, M, Q, <H></H>
+        quietZone: 12,
+        /*
+          title: 'QR Title', // content
 
-        titleColor: "#004284", // color. default is "#000"
-        titleBackgroundColor: "#fff", // background color. default is "#fff"
-        titleHeight: 70, // height, including subTitle. default is 0
-        titleTop: 25, // draws y coordinates. default is 30
-    */
-    };
-    const el = document.getElementById('qrcode');
-    if (el) {
-      if (el.firstChild) {
-        el.removeChild(el.firstChild);
+          titleColor: "#004284", // color. default is "#000"
+          titleBackgroundColor: "#fff", // background color. default is "#fff"
+          titleHeight: 70, // height, including subTitle. default is 0
+          titleTop: 25, // draws y coordinates. default is 30
+      */
+      };
+      const el = document.getElementById('qrcode');
+      if (el) {
+        if (el.firstChild) {
+          el.removeChild(el.firstChild);
+        }
+        new QRCodeComponent(el, options_object);
       }
-      new QRCodeComponent(el, options_object);
     }
-  }, [generatedUrl]);
+  }, [createdReferral]);
   const exitModal = () => {
     setIsOpen(false);
-    setGeneratedUrl('');
+    setCreatedReferral(null);
     setCampaignName('');
     setQuantityTickets(1);
     setAttributedTo('');
+    setCsvFile('');
+  };
+  const generateReferral = async () => {
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      if (!lootboxID) {
+        throw new Error('A Lootbox is required to generated a referral invite link');
+      } else if (!tournamentID) {
+        throw new Error('Tournament is required to generate a referral invite link');
+      }
+
+      const { data } = await createReferral({
+        variables: {
+          payload: {
+            campaignName,
+            lootboxID: lootboxID,
+            tournamentId: tournamentID,
+            type: activeTab,
+            referrerId: !!attributedTo ? attributedTo : undefined,
+          },
+        },
+      });
+
+      if (!data) {
+        setLoading(false);
+        throw new Error(`An error occurred!`);
+      } else if (data?.createReferral?.__typename === 'ResponseError') {
+        setLoading(false);
+        throw new Error(
+          data?.createReferral.error?.message ||
+            'An error occurred when creating the referral invite link! No data returned',
+        );
+      }
+
+      const referral = (data.createReferral as CreateReferralResponseFE).referral;
+
+      if (referral) {
+        setCreatedReferral(referral);
+      }
+      setLoading(false);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.message || 'An error occurred when creating the referral invite link!');
+      setLoading(false);
+    }
+  };
+
+  const generateBulkReferral = async () => {
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      if (!lootboxID) {
+        throw new Error('A Lootbox is required to generated a referral invite link');
+      } else if (!tournamentID) {
+        throw new Error('Tournament is required to generate a referral invite link');
+      } else if (quantityTickets <= 0) {
+        throw new Error('Must bulk participation rewards more than 0');
+      }
+
+      const { data } = await bulkCreateReferral({
+        variables: {
+          payload: {
+            campaignName,
+            tournamentId: tournamentID,
+            type: ReferralType.OneTime,
+            numReferrals: quantityTickets,
+          },
+        },
+      });
+
+      if (!data) {
+        setLoading(false);
+        throw new Error(`An error occurred creating participation rewards! No data returned`);
+      } else if (data?.bulkCreateReferral?.__typename === 'ResponseError') {
+        setLoading(false);
+        throw new Error(
+          data?.bulkCreateReferral.error?.message ||
+            'An error occurred creating participation rewards! bulkCreateReferral.error',
+        );
+      }
+      const csv = (data.bulkCreateReferral as BulkCreateReferralResponseSuccess).csv;
+      setCsvFile(csv);
+      setLoading(false);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.message || 'An error occurred creating participation rewards!');
+      setLoading(false);
+    }
   };
   const renderCopyableReferral = () => {
     return (
@@ -68,12 +188,12 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
             <Input
               prefix={<span>🔒 </span>}
               style={{ maxWidth: '80%' }}
-              value={generatedUrl}
+              value={inviteLink}
               readOnly
             />
             <Button
               onClick={() => {
-                navigator.clipboard.writeText(generatedUrl);
+                navigator.clipboard.writeText(inviteLink);
                 message.success('Invite link copied to clipboard');
               }}
               type="primary"
@@ -82,6 +202,20 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
             </Button>
           </Input.Group>
         </$Vertical>
+      </$Horizontal>
+    );
+  };
+  const renderDownloadCsv = () => {
+    return (
+      <$Horizontal justifyContent="flex-end">
+        <Button onClick={() => exitModal()} style={{ marginRight: '5px' }}>
+          Cancel
+        </Button>
+        <a href={csvFile} download style={{ fontStyle: 'italic' }}>
+          <Button style={{ backgroundColor: '#4baf21', border: '0px solid white', color: 'white' }}>
+            Download CSV
+          </Button>
+        </a>
       </$Horizontal>
     );
   };
@@ -97,12 +231,13 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
         type="card"
         activeKey={activeTab}
         onChange={(key) => {
-          setGeneratedUrl('');
-          setActiveTab(key as INVITE_TYPE);
+          setCreatedReferral(null);
+          setActiveTab(key as ReferralType);
           console.log(`Now on key = ${key}`);
+          setCsvFile('');
         }}
       >
-        <Tabs.TabPane tab="Regular Invite" key={INVITE_TYPE.GENESIS}>
+        <Tabs.TabPane tab="Regular Invite" key={ReferralType.Genesis}>
           <h3>Regular Invite</h3>
           <$InfoDescription fontSize="0.8rem">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
@@ -122,7 +257,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
           <br />
           <br />
 
-          {generatedUrl && activeTab === INVITE_TYPE.GENESIS ? (
+          {createdReferral && activeTab === ReferralType.Genesis ? (
             renderCopyableReferral()
           ) : (
             <$Horizontal justifyContent="flex-end">
@@ -131,12 +266,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
               </Button>
               <Button
                 loading={loading}
-                onClick={() => {
-                  setLoading(true);
-                  setTimeout(() => {
-                    setLoading(false);
-                    setGeneratedUrl('https://lootbox.fund');
-                  }, 1000);
+                onClick={async () => {
+                  await generateReferral();
                 }}
                 type="primary"
               >
@@ -145,7 +276,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
             </$Horizontal>
           )}
         </Tabs.TabPane>
-        <Tabs.TabPane tab="Viral Invite" key={INVITE_TYPE.VIRAL}>
+        <Tabs.TabPane tab="Viral Invite" key={ReferralType.Viral}>
           <h3>Viral Invite</h3>
           <$InfoDescription fontSize="0.8rem">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
@@ -176,7 +307,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
           <br />
           <br />
 
-          {generatedUrl && activeTab === INVITE_TYPE.VIRAL ? (
+          {createdReferral && activeTab === ReferralType.Viral ? (
             renderCopyableReferral()
           ) : (
             <$Horizontal justifyContent="flex-end">
@@ -185,12 +316,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
               </Button>
               <Button
                 loading={loading}
-                onClick={() => {
-                  setLoading(true);
-                  setTimeout(() => {
-                    setLoading(false);
-                    setGeneratedUrl('https://lootbox.fund');
-                  }, 1000);
+                onClick={async () => {
+                  await generateReferral();
                 }}
                 type="primary"
               >
@@ -199,7 +326,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
             </$Horizontal>
           )}
         </Tabs.TabPane>
-        <Tabs.TabPane tab="Participation Rewards" key={INVITE_TYPE.PARTICIPATION}>
+        <Tabs.TabPane tab="Participation Rewards" key={ReferralType.OneTime}>
           <h3>Participation Rewards</h3>
           <$InfoDescription fontSize="0.8rem">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
@@ -237,8 +364,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
           <br />
           <br />
           <br />
-          {generatedUrl && activeTab === INVITE_TYPE.PARTICIPATION ? (
-            renderCopyableReferral()
+          {csvFile && activeTab === ReferralType.OneTime ? (
+            renderDownloadCsv()
           ) : (
             <$Horizontal justifyContent="flex-end">
               <Button onClick={() => exitModal()} style={{ marginRight: '5px' }}>
@@ -246,12 +373,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
               </Button>
               <Button
                 loading={loading}
-                onClick={() => {
-                  setLoading(true);
-                  setTimeout(() => {
-                    setLoading(false);
-                    setGeneratedUrl('https://lootbox.fund');
-                  }, 1000);
+                onClick={async () => {
+                  await generateBulkReferral();
                 }}
                 type="primary"
               >
@@ -260,6 +383,9 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({ isOpen, s
             </$Horizontal>
           )}
         </Tabs.TabPane>
+        {errorMessage ? (
+          <$ErrorMessage style={{ paddingTop: '15px' }}>{errorMessage}</$ErrorMessage>
+        ) : null}
       </Tabs>
     </Modal>
   );
