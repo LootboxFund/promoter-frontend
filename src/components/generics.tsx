@@ -73,10 +73,11 @@ export const $ColumnGap = styled.div<{
   ${(props) => (props.width ? `width: ${props.width};` : `width: 10px`)};
 `;
 
-export const $InfoDescription = styled.div`
-  font-size: 1rem;
+export const $InfoDescription = styled.div<{ fontSize?: string; marginBottom?: string }>`
+  ${(props) => (props.fontSize ? `font-size: ${props.fontSize};` : `font-size: 1rem;`)}
+  ${(props) =>
+    props.marginBottom ? `margin-bottom: ${props.marginBottom};` : `margin-bottom: 30px;`}
   color: gray;
-  margin-bottom: 30px;
   max-width: 800px;
   font-weight: light;
 `;

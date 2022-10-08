@@ -4,7 +4,7 @@ import type {
   QueryGetLootboxByIdArgs,
   Lootbox,
 } from '@/api/graphql/generated/types';
-import { Button, Empty, Image, Popconfirm } from 'antd';
+import { Button, Empty, Image, Modal, Popconfirm } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useMutation, useQuery } from '@apollo/client';
 import Spin from 'antd/lib/spin';
@@ -17,6 +17,7 @@ import { $ColumnGap, $Horizontal, $InfoDescription } from '@/components/generics
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import CreateLootboxForm from '@/components/CreateLootboxForm';
 import { TournamentID } from '@wormgraph/helpers';
+import GenerateReferralModal from '@/components/GenerateReferralModal';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -41,6 +42,8 @@ const LootboxPage: React.FC = () => {
   const [magicLinkParams, setMagicLinkParams] = useState<MagicLinkParams>(
     extractURLState_LootboxPage(),
   );
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+
   //   const [lootbox, setLootbox] = useState<LootboxFE>();
 
   // VIEW Lootbox
@@ -168,14 +171,19 @@ const LootboxPage: React.FC = () => {
       <br />
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Ticket Analytics</h2>
-        <Popconfirm
-          title="Go to the Offers Page to add them as a revenue for this Event"
-          onConfirm={() => console.log('confirm')}
-          okText="Go To Offers Page"
-          showCancel={false}
-        >
-          <Button type="primary">Generate Marketing</Button>
-        </Popconfirm>
+        <$Horizontal justifyContent="space-between">
+          <Button onClick={() => setIsReferralModalOpen(true)} style={{ marginRight: '5px' }}>
+            Generate Invite
+          </Button>
+          <Popconfirm
+            title="Go to the Offers Page to add them as a revenue for this Event"
+            onConfirm={() => console.log('confirm')}
+            okText="Go To Offers Page"
+            showCancel={false}
+          >
+            <Button type="primary">Generate Marketing</Button>
+          </Popconfirm>
+        </$Horizontal>
       </$Horizontal>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -209,6 +217,7 @@ const LootboxPage: React.FC = () => {
       >
         <Button>Payout Rewards</Button>
       </Empty>
+      <GenerateReferralModal isOpen={isReferralModalOpen} setIsOpen={setIsReferralModalOpen} />
     </div>
   );
 };
