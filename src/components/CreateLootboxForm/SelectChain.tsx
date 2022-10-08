@@ -1,9 +1,10 @@
-import { Radio, RadioChangeEvent } from 'antd';
+import { Button, Dropdown, Menu, Radio, RadioChangeEvent, Space } from 'antd';
 import { manifest } from '@/manifest';
 import { useEffect } from 'react';
 import { chainIdToHex } from '@/lib/chain';
 import { ChainIDHex } from '@wormgraph/helpers';
 import useWeb3 from '@/hooks/useWeb3';
+import { DownOutlined } from '@ant-design/icons';
 
 export const SelectChain = ({
   value,
@@ -30,18 +31,38 @@ export const SelectChain = ({
       value: chainIdToHex(parseInt(chain.chainIdDecimal)),
     };
   });
+  const chainTextToShow =
+    manifest.chains.find(
+      (chain) => chain.chainIdDecimal.toString() === (network?.chainId || '').toString(),
+    )?.chainName || 'Select Network';
 
-  const buttonClick = async (e: RadioChangeEvent) => {
-    switchNetwork(e.target.value);
-  };
-
-  return (
-    <Radio.Group
-      options={options}
-      onChange={buttonClick}
-      value={value}
-      optionType="button"
-      buttonStyle="solid"
+  const menu = (
+    <Menu
+      onClick={(e) => switchNetwork(e.key)}
+      items={options.map((o) => ({
+        label: o.label,
+        key: o.value,
+      }))}
     />
   );
+
+  return (
+    <Dropdown overlay={menu}>
+      <Button>
+        <Space>
+          {chainTextToShow}
+          <DownOutlined />
+        </Space>
+      </Button>
+    </Dropdown>
+  );
+  // return (
+  //   <Radio.Group
+  //     options={options}
+  //     onChange={buttonClick}
+  //     value={value}
+  //     optionType="button"
+  //     buttonStyle="solid"
+  //   />
+  // );
 };

@@ -1,11 +1,10 @@
 import type {
   ResponseError,
   EditLootboxPayload,
-  GetLootboxByIdResponse,
   QueryGetLootboxByIdArgs,
   Lootbox,
 } from '@/api/graphql/generated/types';
-import { Image } from 'antd';
+import { Button, Empty, Image, Popconfirm } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useMutation, useQuery } from '@apollo/client';
 import Spin from 'antd/lib/spin';
@@ -19,13 +18,29 @@ import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import CreateLootboxForm from '@/components/CreateLootboxForm';
 import { TournamentID } from '@wormgraph/helpers';
 
+interface MagicLinkParams {
+  tournamentID?: TournamentID;
+}
+
+export const extractURLState_LootboxPage = (): MagicLinkParams => {
+  const url = new URL(window.location.href);
+
+  const params: MagicLinkParams = {
+    tournamentID: url.searchParams.get('tid') as TournamentID | undefined,
+  };
+
+  return params;
+};
+
 const LootboxPage: React.FC = () => {
   // get the advertiser user
   //   const { affiliateUser } = useAffiliateUser();
   //   const { id: affiliateUserID } = affiliateUser;
   // do the rest
-  const { lootboxID, tid: tournamentID } = useParams();
-  console.log(lootboxID, tournamentID);
+  const { lootboxID } = useParams();
+  const [magicLinkParams, setMagicLinkParams] = useState<MagicLinkParams>(
+    extractURLState_LootboxPage(),
+  );
   //   const [lootbox, setLootbox] = useState<LootboxFE>();
 
   // VIEW Lootbox
@@ -89,37 +104,112 @@ const LootboxPage: React.FC = () => {
 
   const breadLine = [
     { title: 'Dashboard', route: '/dashboard' },
-    { title: 'Lootbox', route: '/dashboard/lootbox' },
+    { title: 'Event', route: `/dashboard/events/id/${magicLinkParams.tournamentID}` },
     { title: lootbox?.name || '', route: `/dashboard/lootbox/id/${lootboxID}` },
   ];
 
+  const maxWidth = '1000px';
   return (
-    <PageContainer>
-      <div className={styles.content}>
-        <BreadCrumbDynamic breadLine={breadLine} />
+    <div style={{ maxWidth }}>
+      <BreadCrumbDynamic breadLine={breadLine} />
+
+      <$Horizontal justifyContent="space-between">
         <h1>{lootbox.name}</h1>
-        <br />
-        {renderHelpText()}
-        <div style={{ minWidth: '1000px', maxWidth: '1000px' }}>
-          <CreateLootboxForm
-            lootbox={{
-              description: lootbox.description,
-              backgroundImage: lootbox.backgroundImage,
-              logoImage: lootbox.logo,
-              themeColor: lootbox.themeColor,
-              nftBountyValue: lootbox.nftBountyValue || '',
-              joinCommunityUrl: lootbox.joinCommunityUrl || '',
-              name: lootbox.name,
-              maxTickets: lootbox.maxTickets,
-              tag: lootbox.symbol,
-              tournamentID: tournamentID as TournamentID | undefined,
-            }}
-            mode="view-edit"
-            onSubmitEdit={editLootbox}
-          />
-        </div>
+        <Button type="primary">View Public Page</Button>
+      </$Horizontal>
+      <br />
+      {renderHelpText()}
+      <div style={{ minWidth: '1000px', maxWidth: '1000px' }}>
+        <CreateLootboxForm
+          lootbox={{
+            description: lootbox.description,
+            backgroundImage: lootbox.backgroundImage,
+            logoImage: lootbox.logo,
+            themeColor: lootbox.themeColor,
+            nftBountyValue: lootbox.nftBountyValue || '',
+            joinCommunityUrl: lootbox.joinCommunityUrl || '',
+            name: lootbox.name,
+            maxTickets: lootbox.maxTickets,
+            tag: lootbox.symbol,
+            tournamentID: magicLinkParams.tournamentID as TournamentID | undefined,
+          }}
+          mode="view-edit"
+          onSubmitEdit={editLootbox}
+        />
       </div>
-    </PageContainer>
+      <br />
+      <br />
+      <$Horizontal justifyContent="space-between">
+        <h2 id="team-members">Team Members</h2>
+        <Popconfirm
+          title="Go to the Offers Page to add them as a revenue for this Event"
+          onConfirm={() => console.log('confirm')}
+          okText="Go To Offers Page"
+          showCancel={false}
+        >
+          <Button type="primary">Invite Member</Button>
+        </Popconfirm>
+      </$Horizontal>
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        imageStyle={{
+          height: 60,
+        }}
+        description={
+          <span style={{ maxWidth: '200px' }}>
+            {`There are no team members for this LOOTBOX. Invite some to start generating marketing graphics & social media posts.`}
+          </span>
+        }
+        style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
+      >
+        <Button>Invite Member</Button>
+      </Empty>
+      <br />
+      <br />
+      <$Horizontal justifyContent="space-between">
+        <h2 id="team-members">Ticket Analytics</h2>
+        <Popconfirm
+          title="Go to the Offers Page to add them as a revenue for this Event"
+          onConfirm={() => console.log('confirm')}
+          okText="Go To Offers Page"
+          showCancel={false}
+        >
+          <Button type="primary">Generate Marketing</Button>
+        </Popconfirm>
+      </$Horizontal>
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        description="Analytics Coming Soon"
+        style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
+      />
+      <br />
+      <br />
+      <$Horizontal justifyContent="space-between">
+        <h2 id="team-members">Payout Rewards</h2>
+        <Popconfirm
+          title="Go to the Offers Page to add them as a revenue for this Event"
+          onConfirm={() => console.log('confirm')}
+          okText="Go To Offers Page"
+          showCancel={false}
+        >
+          <Button type="primary">Deposit Payout</Button>
+        </Popconfirm>
+      </$Horizontal>
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        imageStyle={{
+          height: 60,
+        }}
+        description={
+          <span style={{ maxWidth: '200px' }}>
+            {`There are no team members for this LOOTBOX. Invite some to start generating marketing graphics & social media posts.`}
+          </span>
+        }
+        style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
+      >
+        <Button>Payout Rewards</Button>
+      </Empty>
+    </div>
   );
 };
 

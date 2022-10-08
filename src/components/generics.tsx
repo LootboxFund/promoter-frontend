@@ -92,3 +92,6 @@ export const placeholderVideo =
 
 export const placeholderVideoThumbnail =
   'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-prod.appspot.com/o/assets%2Fgeneric%2Fcolorful-dots-floating.gif?alt=media&token=d83e298c-fd5a-468e-9a31-f9e43c885bd7';
+
+export const placeholderBackground =
+  'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2Fxxx3.png?alt=media&token=bfd1a458-38e5-47f9-a092-eb66bcee0f21';

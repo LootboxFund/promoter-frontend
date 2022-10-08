@@ -53,6 +53,7 @@ import {
   Space,
   Table,
   Tabs,
+  Tag,
   Tooltip,
 } from 'antd';
 import Meta from 'antd/lib/card/Meta';
@@ -63,7 +64,10 @@ import AddPromoterToTournamentModal, {
   ChosenPromoter,
 } from '@/components/AddPromoterToTournamentModal';
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { AdSetInTournamentStatus } from '../../../api/graphql/generated/types';
+import {
+  AdSetInTournamentStatus,
+  LootboxTournamentStatus,
+} from '../../../api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import DeviceSimulator, { DeviceSimulatorProps } from '@/components/DeviceSimulator';
 import CreateEventForm from '@/components/CreateEventForm';
@@ -202,7 +206,10 @@ const EventPage: React.FC = () => {
     return (
       <div className={styles.content}>
         {snapshots.map((snapshot) => (
-          <Link key={snapshot.lootboxID} to={`/dashboard/lootbox/id/${snapshot.lootboxID}`}>
+          <Link
+            key={snapshot.lootboxID}
+            to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
+          >
             <Card
               hoverable
               className={styles.card}
@@ -210,7 +217,16 @@ const EventPage: React.FC = () => {
                 <img alt="example" src={snapshot.stampImage || ''} className={styles.cardImage} />
               }
             >
-              <Meta title={snapshot.name} description={snapshot.status} />
+              <Meta
+                title={snapshot.name}
+                description={
+                  snapshot.status === LootboxTournamentStatus.Active ? (
+                    <Tag color="success">Active</Tag>
+                  ) : (
+                    <Tag color="warning">Inactive</Tag>
+                  )
+                }
+              />
             </Card>
           </Link>
         ))}
@@ -267,7 +283,7 @@ const EventPage: React.FC = () => {
                   <Anchor offsetTop={70}>
                     <Anchor.Link href="#breadcrumbs" title="Event Info" />
                     <Anchor.Link href="#lootbox-gallery" title="Lootbox Gallery" />
-                    <Anchor.Link href="#ticket-distribution" title="Ticket Distribution" />
+                    <Anchor.Link href="#ticket-analytics" title="Ticket Analytics" />
                     <Anchor.Link href="#revenue-sharing" title="Revenue Sharing">
                       {tournament.dealConfigs.map((dealConfig) => {
                         return (
@@ -289,14 +305,31 @@ const EventPage: React.FC = () => {
 
           <$Horizontal justifyContent="space-between">
             <h2 id="lootbox-gallery">Lootbox Gallery</h2>
-            <Popconfirm
-              title="Go to create Lootbox page?"
-              onConfirm={() => history.push(`/dashboard/lootbox/create?tid=${eventID}`)}
-              okText="Create Lootbox"
-              showCancel={true}
-            >
-              <Button type="primary">Create Lootbox</Button>
-            </Popconfirm>
+            <$Horizontal>
+              <Popconfirm
+                title={`Inviting a team means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it.`}
+                onConfirm={() => {
+                  navigator.clipboard.writeText('magic_link');
+                  message.success('Copied Lootbox Invite Link to clipboard');
+                }}
+                okText="Copy Invite Link"
+                cancelText={'Cancel'}
+                style={{ maxWidth: '500px' }}
+              >
+                <Button style={{ marginRight: '5px' }}>Invite Team</Button>
+              </Popconfirm>
+              <Popconfirm
+                title={`You are about to create a Lootbox on behalf of a team. Your other option is to invite the team to create their own. Would you like to proceed with creating the LOOTBOX on behalf of a team?`}
+                onConfirm={() => {
+                  history.push(`/dashboard/lootbox/create?tid=${eventID}`);
+                }}
+                okText="Proceed"
+                cancelText={'Cancel'}
+                style={{ maxWidth: '500px' }}
+              >
+                <Button type="primary">Create Lootbox</Button>
+              </Popconfirm>
+            </$Horizontal>
           </$Horizontal>
           <br />
           {!lootboxTournamentSnapshots || lootboxTournamentSnapshots.length === 0 ? (
@@ -312,13 +345,21 @@ const EventPage: React.FC = () => {
               }
               style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
             >
-              <Link to="/dashboard/lootbox/create">
-                <Button>Add Lootbox</Button>
+              <Link to={`/dashboard/lootbox/create?tid=${eventID}`}>
+                <Button>Create Lootbox</Button>
               </Link>
             </Empty>
           ) : (
             <LootboxGallery loading={loadingLootboxEdges} snapshots={lootboxTournamentSnapshots} />
           )}
+          <br />
+          <br />
+          <h2 id="ticket-analytics">Ticket Analytics</h2>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Analytics Coming Soon"
+            style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
+          />
           <br />
           <br />
           <$Horizontal justifyContent="space-between">

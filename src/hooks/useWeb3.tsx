@@ -4,7 +4,7 @@ import { createContext, PropsWithChildren, useContext, useEffect, useState } fro
 import Web3Modal from 'web3modal';
 import { manifest } from '@/manifest';
 
-interface Web3Context {
+interface IWeb3Context {
   library?: ethers.providers.Web3Provider;
   currentAccount?: Address; // connected address
   accounts?: Address[];
@@ -13,7 +13,7 @@ interface Web3Context {
   switchNetwork: (chainIdHex: ChainIDHex) => Promise<void>;
 }
 
-const Web3Context = createContext<Web3Context>({
+const Web3Context = createContext<IWeb3Context>({
   connectWallet: async () => {},
   switchNetwork: async () => {},
 });
@@ -51,6 +51,22 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
     refreshState();
   };
 
+  const connectWallet = async () => {
+    try {
+      const _provider = await web3Modal.connect();
+      const _library = new ethers.providers.Web3Provider(_provider);
+      const _accounts = await _library.listAccounts();
+      const _network = await _library.getNetwork();
+      setProvider(_provider);
+      setLibrary(_library);
+      setNetwork(_network);
+      if (_accounts) {
+        setAccounts(_accounts as Address[]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
   useEffect(() => {
     if (web3Modal.cachedProvider) {
       connectWallet();
@@ -89,23 +105,6 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
     }
     return;
   }, [provider]);
-
-  const connectWallet = async () => {
-    try {
-      const _provider = await web3Modal.connect();
-      const _library = new ethers.providers.Web3Provider(_provider);
-      const _accounts = await _library.listAccounts();
-      const _network = await _library.getNetwork();
-      setProvider(_provider);
-      setLibrary(_library);
-      setNetwork(_network);
-      if (_accounts) {
-        setAccounts(_accounts as Address[]);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const switchNetwork = async (chainIdHex: ChainIDHex) => {
     if (!library?.provider?.request) {

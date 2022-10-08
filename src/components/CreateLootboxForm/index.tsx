@@ -1,19 +1,20 @@
-import { AffiliateID, TournamentID } from '@wormgraph/helpers';
+import { Address, AffiliateID, TournamentID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Form, Modal } from 'antd';
+import { Affix, Button, Card, Empty, Form, Modal } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EditLootboxPayload } from '@/api/graphql/generated/types';
 import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
 import { $Horizontal, $ColumnGap } from '@/components/generics';
-import { placeholderGif, placeholderImage } from '../generics';
+import { placeholderBackground, placeholderImage, placeholderGif } from '../generics';
 import ConnectWalletButton from '../ConnectWalletButton';
 import { SelectChain } from './SelectChain';
 import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { useWeb3 } from '@/hooks/useWeb3';
+import LootboxPreview from '../LootboxPreview';
 
 export interface CreateLootboxRequest {
-  payload: LootboxBodyPayload;
+  payload: Omit<LootboxBodyPayload, 'address'>;
 }
 
 interface LootboxBodyPayload {
@@ -27,6 +28,7 @@ interface LootboxBodyPayload {
   maxTickets: number;
   tag: string; // AKA symbol
   tournamentID?: TournamentID;
+  address?: Address;
 }
 
 export type CreateLootboxFormProps = {
@@ -38,14 +40,15 @@ export type CreateLootboxFormProps = {
 
 const LOOTBOX_INFO: LootboxBodyPayload = {
   description: '',
-  backgroundImage: placeholderGif,
+  backgroundImage: placeholderBackground,
   logoImage: placeholderImage,
   themeColor: '#000000',
   nftBountyValue: '',
   joinCommunityUrl: '',
   name: '',
-  maxTickets: 1000,
+  maxTickets: 100,
   tag: '',
+  address: 'missing' as Address,
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
@@ -61,6 +64,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const newMediaDestinationLogo = useRef('');
   const newMediaDestinationBackground = useRef('');
   const newThemeColor = useRef<string>();
+
   const [previewMediasLogo, setPreviewMediasLogo] = useState<string[]>([]);
   const [previewMediasBackground, setPreviewMediasBackground] = useState<string[]>([]);
   const [form] = Form.useForm();
@@ -89,7 +93,10 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         name: lootbox.name,
         maxTickets: lootbox.maxTickets,
         tag: lootbox.tag,
+        address: lootbox.address,
       });
+      newMediaDestinationLogo.current = lootbox.logoImage;
+      newMediaDestinationBackground.current = lootbox.backgroundImage;
     }
   }, [lootbox]);
 
@@ -217,31 +224,40 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
-        { key: 'name', label: 'Team Name', required: true },
-        { key: 'symbol', label: 'Team Tag', required: true },
-        { key: 'description', label: 'Team Bio', required: true, widget: 'textarea' },
-        { key: 'chain', label: 'Network', widget: SelectChain },
+        { key: 'chain', label: 'Network', widget: SelectChain, required: true },
+        {
+          key: 'name',
+          label: 'Team Name',
+          required: true,
+          rules: [
+            {
+              max: 30,
+              message: 'Name should be less than 30 characters',
+            },
+          ],
+        },
         {
           key: 'nftBountyValue',
-          label: 'Value per NFT Ticket',
+          label: 'Max Ticket Value',
           required: true,
           widget: 'input',
           placeholder: 'e.g. $20 USD',
         },
         {
-          key: 'joinCommunityUrl',
-          label: 'Team Community URL',
-          required: false,
-          widget: 'input',
-          type: 'url',
-        },
-        {
           key: 'maxTickets',
-          label: 'Number of Tickets',
+          label: 'Max Tickets',
           required: true,
           widget: 'number',
           tooltip: 'The maximum number of tickets available for distribution.',
         },
+        {
+          key: 'joinCommunityUrl',
+          label: 'Community URL',
+          required: false,
+          widget: 'input',
+          type: 'url',
+        },
+        { key: 'description', label: 'Description', widget: 'textarea' },
       ],
     };
 
@@ -256,6 +272,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'logoImage',
           label: 'Team Logo',
+          required: true,
           rules: [
             {
               validator: (rule: any, value: any, callback: any) => {
@@ -282,6 +299,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'backgroundImage',
           label: 'Background Image',
+          required: true,
           rules: [
             {
               validator: (rule: any, value: any, callback: any) => {
@@ -313,7 +331,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           required: true,
           widget: () => (
             <AntColorPicker
-              color={lootboxInfo.themeColor}
+              initialColor={lootboxInfo.themeColor}
               updateColor={(hex: string) => {
                 newThemeColor.current = hex;
                 setLootboxInfo({
@@ -329,88 +347,166 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
     return meta;
   };
+  const metaBlockchain = () => {
+    const meta = {
+      columns: 1,
+      disabled: pending,
+      initialValues: lootboxInfo,
+      fields: [
+        {
+          key: 'blockchainExplorer',
+          label: 'Lootbox Address',
+          // @ts-ignore
+          viewWidget: () => (
+            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
+              {lootboxInfo.address}
+            </a>
+          ),
+        },
+        {
+          key: 'lootboxOwner',
+          label: 'Owner Address',
+          // @ts-ignore
+          viewWidget: () => (
+            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
+              {lootboxInfo.address}
+            </a>
+          ),
+        },
+        {
+          key: 'lootboxTreasury',
+          label: 'Treasury Address',
+          // @ts-ignore
+          viewWidget: () => (
+            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
+              {lootboxInfo.address}
+            </a>
+          ),
+        },
+      ],
+    };
+
+    return meta;
+  };
   return (
     <Card style={{ flex: 1 }}>
       <$Horizontal>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-          {viewMode && !lockedToEdit && (
-            <Button
-              type="link"
-              onClick={() => setViewMode(false)}
-              style={{ alignSelf: 'flex-end' }}
-            >
-              Edit
-            </Button>
-          )}
-          <Form
-            layout="horizontal"
-            form={form}
-            onFinish={mode === 'create' ? handleCreateFinish : handleEditFinish}
-            onValuesChange={forceUpdate}
+        {mode === 'create' && !currentAccount ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            imageStyle={{
+              height: 60,
+            }}
+            description={
+              <span style={{ maxWidth: '200px' }}>
+                {`You must connect your Metamask wallet before you can create a LOOTBOX`}
+              </span>
+            }
+            style={{
+              padding: '50px',
+              flex: 1,
+              minWidth: '500px',
+              borderRadius: '10px',
+            }}
           >
-            <fieldset>
-              <legend>{`Public Details`}</legend>
-              <FormBuilder form={form} meta={metaPublic()} viewMode={viewMode} />
-            </fieldset>
-            <fieldset>
-              <legend>{`Lootbox NFT`}</legend>
-              <FormBuilder form={form} meta={metaCreative()} viewMode={viewMode} />
-            </fieldset>
-            {!viewMode && (
-              <fieldset>
-                <legend>{`Submit`}</legend>
-                <$Horizontal justifyContent="flex-end">
-                  <Form.Item className="form-footer" style={{ width: 'auto' }}>
-                    <Button
-                      onClick={() => {
-                        form.resetFields();
-                        if (!lockedToEdit) {
-                          setViewMode(true);
-                        }
-                        if (mode === 'create') {
-                          history.back();
-                        }
-                      }}
-                      style={{ marginRight: '15px' }}
-                    >
-                      Cancel
-                    </Button>
-
-                    {mode === 'create' && !currentAccount ? (
-                      <ConnectWalletButton />
-                    ) : mode === 'create' && !!currentAccount ? (
-                      <Button htmlType="submit" type="primary" disabled={pending}>
-                        {pending ? 'Creating...' : 'Create'}
-                      </Button>
-                    ) : (
-                      <Button htmlType="submit" type="primary" disabled={pending}>
-                        {pending ? 'Updating...' : 'Update'}
-                      </Button>
-                    )}
-                  </Form.Item>
-                </$Horizontal>
-              </fieldset>
+            <ConnectWalletButton />
+          </Empty>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '500px' }}>
+            {viewMode && !lockedToEdit && (
+              <Button
+                type="link"
+                onClick={() => setViewMode(false)}
+                style={{ alignSelf: 'flex-end' }}
+              >
+                Edit
+              </Button>
             )}
-          </Form>
-        </div>
-        <$ColumnGap width="50px" />
-        <div>Stamp Image Preview</div>
+            <Form
+              layout="horizontal"
+              form={form}
+              onFinish={mode === 'create' ? handleCreateFinish : handleEditFinish}
+              onValuesChange={forceUpdate}
+            >
+              <fieldset>
+                <legend>{`Public Details`}</legend>
+                <FormBuilder form={form} meta={metaPublic()} viewMode={viewMode} />
+              </fieldset>
+              <br />
+              {!viewMode && (
+                <fieldset>
+                  <legend>{`Lootbox Design`}</legend>
+                  <FormBuilder form={form} meta={metaCreative()} viewMode={viewMode} />
+                </fieldset>
+              )}
+              {viewMode && (
+                <fieldset>
+                  <legend>{`Blockchain Details`}</legend>
+                  <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
+                </fieldset>
+              )}
+              {!viewMode && (
+                <fieldset>
+                  <legend>{`Submit`}</legend>
+                  <$Horizontal justifyContent="flex-end">
+                    <Form.Item className="form-footer" style={{ width: 'auto' }}>
+                      <Button
+                        onClick={() => {
+                          form.resetFields();
+                          if (!lockedToEdit) {
+                            setViewMode(true);
+                          }
+                          newMediaDestinationLogo.current = lootboxInfo.logoImage;
+                          newMediaDestinationBackground.current = lootboxInfo.backgroundImage;
+                          if (mode === 'create') {
+                            history.back();
+                          }
+                        }}
+                        style={{ marginRight: '15px' }}
+                      >
+                        Cancel
+                      </Button>
 
-        {/* <DeviceSimulator
-          creative={{
-            themeColor: newThemeColor.current ? newThemeColor.current : adInfo.creative.themeColor,
-            callToAction:
-              form.getFieldValue('creative_callToAction') === AdSampleCallToActions.Custom
-                ? form.getFieldValue('customCTA') || adInfo.creative.callToAction
-                : form.getFieldValue('creative_callToAction') || adInfo.creative.callToAction,
-            creativeType:
-              form.getFieldValue('creative_creativeType') || adInfo.creative.creativeType,
-            creativeLinks: newMediaDestination.current
-              ? [newMediaDestination.current]
-              : adInfo.creative.creativeLinks,
-            aspectRatio: form.getFieldValue('creative_aspectRatio') || adInfo.creative.aspectRatio,
-          }}
-        /> */}
+                      {mode === 'create' && !currentAccount ? (
+                        <ConnectWalletButton />
+                      ) : mode === 'create' && !!currentAccount ? (
+                        <Button htmlType="submit" type="primary" disabled={pending}>
+                          {pending ? 'Creating...' : 'Create'}
+                        </Button>
+                      ) : (
+                        <Button htmlType="submit" type="primary" disabled={pending}>
+                          {pending ? 'Updating...' : 'Update'}
+                        </Button>
+                      )}
+                    </Form.Item>
+                  </$Horizontal>
+                </fieldset>
+              )}
+            </Form>
+          </div>
+        )}
+        <$ColumnGap width="50px" />
+        {viewMode ? (
+          <LootboxPreview
+            name={form.getFieldValue('name') || lootboxInfo.name}
+            logoImage={newMediaDestinationLogo.current || lootboxInfo.logoImage || placeholderImage}
+            backgroundImage={
+              newMediaDestinationBackground.current ||
+              lootboxInfo.backgroundImage ||
+              placeholderBackground
+            }
+            themeColor={newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor}
+          />
+        ) : (
+          <Affix offsetTop={70} style={{ pointerEvents: 'none' }}>
+            <LootboxPreview
+              name={form.getFieldValue('name')}
+              logoImage={newMediaDestinationLogo.current || placeholderImage}
+              backgroundImage={newMediaDestinationBackground.current || placeholderBackground}
+              themeColor={newThemeColor.current || lootboxInfo.themeColor}
+            />
+          </Affix>
+        )}
       </$Horizontal>
     </Card>
   );
