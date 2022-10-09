@@ -1,4 +1,4 @@
-import { GithubOutlined } from '@ant-design/icons';
+import { GithubOutlined, TwitterOutlined } from '@ant-design/icons';
 import { DefaultFooter } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
 
@@ -19,21 +19,21 @@ const Footer: React.FC = () => {
       copyright={`${currentYear} ${defaultMessage}`}
       links={[
         {
-          key: '🎁 LOOTBOX',
-          title: '🎁 LOOTBOX',
-          href: 'https://pro.ant.design',
+          key: 'sayhi',
+          title: 'Tweet Us',
+          href: 'https://twitter.com/LootboxFund',
           blankTarget: true,
         },
         {
-          key: 'github',
-          title: <GithubOutlined />,
-          href: 'https://github.com/ant-design/ant-design-pro',
+          key: 'twitter',
+          title: <TwitterOutlined />,
+          href: 'https://twitter.com/LootboxFund',
           blankTarget: true,
         },
         {
           key: 'LOOTBOX',
           title: 'LOOTBOX',
-          href: 'https://ant.design',
+          href: 'https://twitter.com/LootboxFund',
           blankTarget: true,
         },
       ]}

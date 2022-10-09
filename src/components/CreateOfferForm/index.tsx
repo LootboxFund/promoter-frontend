@@ -148,13 +148,15 @@ const CreateOfferForm: React.FC<CreateOfferFormProps> = ({
         // },
         {
           key: 'maxBudget',
-          label: 'Max Budget',
+          label: 'Prepaid Budget',
           widget: PriceInput,
           viewWidget: PriceView,
           initialValue: {
             price: mode === 'create' ? 1000 : offer?.maxBudget || 1000,
             currency: 'USDC Polygon',
           },
+          tooltip:
+            'The amount of money the advertiser has prepaid upfront towards paying affiliates. Anything more than this requires the advertiser to deposit more funds into their wallet.',
         },
         { key: 'description', label: 'Description', widget: 'textarea' },
         // {

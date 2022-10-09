@@ -119,7 +119,7 @@ export const layout: any = ({
     ],
     links: isDev
       ? [
-          <a key="referral" href="https://lootbox.fund" target="_blank" rel="noreferrer">
+          <a key="referral" href="https://lootbox.fyi/3S37QXT" target="_blank" rel="noreferrer">
             <LinkOutlined />
             <span>Referral Program</span>
           </a>,

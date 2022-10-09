@@ -224,7 +224,14 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
-        { key: 'chain', label: 'Network', widget: SelectChain, required: true },
+        {
+          key: 'chain',
+          label: 'Network',
+          widget: SelectChain,
+          required: true,
+          tooltip:
+            'The blockchain network that this Lootbox will reside on. The fan prize money must also be distributed on this same blockchain network.',
+        },
         {
           key: 'name',
           label: 'Team Name',
@@ -235,6 +242,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               message: 'Name should be less than 30 characters',
             },
           ],
+          tooltip:
+            'The display name of the Lootbox. Typically this is the Team name or a variation, since a Lootbox is only used for a single event.',
         },
         {
           key: 'nftBountyValue',
@@ -242,6 +251,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           required: true,
           widget: 'input',
           placeholder: 'e.g. $20 USD',
+          tooltip:
+            'The advertised max value of the Lootbox fan ticket. Calculate this by taking the largest 1st place prize and divide it by the number of tickets in this Lootbox. You can change this field at any time.',
         },
         {
           key: 'maxTickets',
@@ -256,8 +267,16 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           required: false,
           widget: 'input',
           type: 'url',
+          tooltip:
+            'Link to where you want to funnel your fans who claim these Lootbox tickets. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
         },
-        { key: 'description', label: 'Description', widget: 'textarea' },
+        {
+          key: 'description',
+          label: 'Description',
+          widget: 'textarea',
+          tooltip:
+            'Additional information shown publically on your Lootbox. We recommend linking your socials.',
+        },
       ],
     };
 
@@ -295,6 +314,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               acceptedFileTypes={'image/*'}
             />
           ),
+          tooltip:
+            'A square image that will be cropped to a circle. Used as your Lootbox centerpiece. Avoid transparent backgrounds.',
         },
         {
           key: 'backgroundImage',
@@ -324,6 +345,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               acceptedFileTypes={'image/*'}
             />
           ),
+          tooltip:
+            "A portrait image that will be used as your Lootbox's background. Avoid transparent backgrounds.",
         },
         {
           key: 'themeColor',
@@ -341,6 +364,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               }}
             />
           ),
+          tooltip:
+            "The color that will radiate from your Lootbox's logo and also act as an accent color on generated stamp graphics.",
         },
       ],
     };
