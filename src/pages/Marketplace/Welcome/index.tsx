@@ -1,4 +1,5 @@
 import { PageContainer } from '@ant-design/pro-components';
+import { Link } from '@umijs/max';
 import { Card } from 'antd';
 import React from 'react';
 import styles from './index.less';
@@ -12,8 +13,8 @@ const InfoCard: React.FC<{
   title: string;
   index: number;
   desc: string;
-  href: string;
-}> = ({ title, href, index, desc }) => {
+  action: JSX.Element;
+}> = ({ title, index, desc, action }) => {
   return (
     <div
       style={{
@@ -72,9 +73,7 @@ const InfoCard: React.FC<{
       >
         {desc}
       </div>
-      <a href={href} target="_blank" rel="noreferrer">
-        Tutorial {'>'}
-      </a>
+      {action}
     </div>
   );
 };
@@ -106,7 +105,7 @@ const Welcome: React.FC = () => {
               color: '#1A1A1A',
             }}
           >
-            Welcome to the Marketplace
+            The Guide to Profitable Esports
           </div>
           <p
             style={{
@@ -118,10 +117,7 @@ const Welcome: React.FC = () => {
               width: '65%',
             }}
           >
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-            dolor in reprehenderit in voluptate
+            {`The LOOTBOX Marketplace is where you can find revenue opportunities working with advertisers and marketing partners. We recommend that you watch the below tutorial video to get started.`}
           </p>
           <div
             style={{
@@ -131,21 +127,21 @@ const Welcome: React.FC = () => {
           >
             <InfoCard
               index={1}
-              href="https://umijs.org/docs/introduce/introduce"
               title="Find Revenue Opportunities"
-              desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+              desc="Browse the Marketplace to find offers that you match your audience and interests."
+              action={<Link to="/marketplace/browse">Browse Offers {'>'}</Link>}
             />
             <InfoCard
               index={2}
               title="Invite Your Partners"
-              href="https://ant.design"
-              desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+              desc={`Recruit partners & influencers to help promote offers and share the revenue.`}
+              action={<Link to="/marketplace/recruit">Recruit Partners {'>'}</Link>}
             />
             <InfoCard
               index={3}
               title="Get Paid"
-              href="https://procomponents.ant.design"
-              desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+              desc="Earn revenue on each offer, and withdraw your earnings directly via blockchain."
+              action={<Link to="/company/payouts">View Payouts {'>'}</Link>}
             />
           </div>
         </div>

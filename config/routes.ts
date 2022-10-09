@@ -98,13 +98,13 @@ export default [
         component: './Dashboard/StampPage',
       },
       {
-        name: 'Lootbox Marketing',
+        name: 'Lootbox Stamp',
         path: '/dashboard/stamp/lootbox/id/:lootboxID',
         component: './Dashboard/StampLootbox',
         hideInMenu: true,
       },
       {
-        name: 'Event Marketing',
+        name: 'Event Stamp',
         path: '/dashboard/stamp/event/id/:eventID',
         component: './Dashboard/StampEvent',
         hideInMenu: true,

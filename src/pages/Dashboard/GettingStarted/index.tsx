@@ -1,4 +1,5 @@
 import { PageContainer } from '@ant-design/pro-components';
+import { Link } from '@umijs/max';
 import { Card } from 'antd';
 import React from 'react';
 import styles from './index.less';
@@ -12,8 +13,8 @@ const InfoCard: React.FC<{
   title: string;
   index: number;
   desc: string;
-  href: string;
-}> = ({ title, href, index, desc }) => {
+  action: JSX.Element;
+}> = ({ title, action, index, desc }) => {
   return (
     <div
       style={{
@@ -65,16 +66,14 @@ const InfoCard: React.FC<{
         style={{
           fontSize: '14px',
           color: 'rgba(0,0,0,0.65)',
-          textAlign: 'justify',
+          textAlign: 'left',
           lineHeight: '22px',
           marginBottom: 8,
         }}
       >
         {desc}
       </div>
-      <a href={href} target="_blank" rel="noreferrer">
-        Tutorial {'>'}
-      </a>
+      {action}
     </div>
   );
 };
@@ -106,7 +105,7 @@ const GettingStarted: React.FC = () => {
               color: '#1A1A1A',
             }}
           >
-            {`The Guide to Profitable Esports`}
+            {`Getting Started with LOOTBOX`}
           </div>
           <p
             style={{
@@ -118,10 +117,9 @@ const GettingStarted: React.FC = () => {
               width: '65%',
             }}
           >
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-            dolor in reprehenderit in voluptate
+            Supercharge your gaming competitions with LOOTBOX fan tickets, which rewards viewers
+            with a share of the prize money if their favorite gamer wins. We recommend that you
+            watch the below tutorial video to get started.
           </p>
           <div
             style={{
@@ -131,21 +129,25 @@ const GettingStarted: React.FC = () => {
           >
             <InfoCard
               index={1}
-              href="https://umijs.org/docs/introduce/introduce"
-              title="The Problem"
-              desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+              title="Create an Event"
+              desc="Lootbox is compatible with any esports management software. Connect an existing event or create a new one."
+              action={<Link to="/dashboard/events">Go To Events {'>'}</Link>}
             />
             <InfoCard
               index={2}
-              title="The Solution"
-              href="https://ant.design"
-              desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+              title="Create a Lootbox"
+              desc="Design and customize your Lootbox to get your first batch of fan tickets printed."
+              action={
+                <a href="" target="_blank" rel="noreferrer">
+                  Watch Tutorial {'>'}
+                </a>
+              }
             />
             <InfoCard
               index={3}
-              title="Your Oppourtunity"
-              href="https://procomponents.ant.design"
-              desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+              title="Create Marketing Graphics"
+              desc="Auto-generate marketing graphics using the Lootbox stamp feature."
+              action={<Link to="/dashboard/stamp">Use Stamp {'>'}</Link>}
             />
           </div>
         </div>
