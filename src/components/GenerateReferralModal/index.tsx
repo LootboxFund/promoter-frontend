@@ -181,8 +181,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <$Vertical style={{ flex: 1, paddingTop: '5px' }}>
           <h3>Share Tickets with Friends</h3>
           <$InfoDescription fontSize="0.7rem" marginBottom="10px">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt
+            Get your FREE LOOTBOX fan ticket and earn a share of the competition prize money if your
+            favorite contestant wins!
           </$InfoDescription>
           <Input.Group compact>
             <Input
@@ -240,8 +240,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <Tabs.TabPane tab="Regular Invite" key={ReferralType.Genesis}>
           <h3>Regular Invite</h3>
           <$InfoDescription fontSize="0.8rem">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore.
+            Regular invites will allow fans to redeem 1 ticket each for this event. Event organizers
+            should use regular invites.
           </$InfoDescription>
           <$Vertical>
             <label
@@ -279,8 +279,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <Tabs.TabPane tab="Viral Invite" key={ReferralType.Viral}>
           <h3>Viral Invite</h3>
           <$InfoDescription fontSize="0.8rem">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore.
+            Viral Invites act like regular invites, but will also reward a bonus ticket to the
+            person who shared the invite link. Only fans should use viral invite links.
           </$InfoDescription>
           <$Vertical>
             <label
@@ -329,8 +329,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <Tabs.TabPane tab="Participation Rewards" key={ReferralType.OneTime}>
           <h3>Participation Rewards</h3>
           <$InfoDescription fontSize="0.8rem">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore.
+            Participation rewards are tickets that can be given to anyone, even if they already got
+            their 1 free ticket. Learn more by <a>watching this tutorial.</a>
           </$InfoDescription>
           <$Vertical>
             <label
@@ -378,7 +378,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
                 }}
                 type="primary"
               >
-                Generate Invites
+                Generate Participation Rewards
               </Button>
             </$Horizontal>
           )}

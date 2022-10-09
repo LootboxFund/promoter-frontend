@@ -7,9 +7,9 @@ import type {
 } from '@/api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
-import { $ColumnGap, $Horizontal, placeholderImage } from '@/components/generics';
+import { $ColumnGap, $Horizontal, $InfoDescription, placeholderImage } from '@/components/generics';
 import { PageContainer } from '@ant-design/pro-components';
-import { Button, Card, Col, Image, Row } from 'antd';
+import { Button, Card, Col, Empty, Image, Row } from 'antd';
 import { useQuery } from '@apollo/client';
 import { Link, useParams } from '@umijs/max';
 import { AdvertiserID, AffiliateID, OfferID } from '@wormgraph/helpers';
@@ -81,7 +81,14 @@ const OfferPage: React.FC = () => {
           <BreadCrumbDynamic breadLine={breadLine} />
 
           <h1>{offer.title}</h1>
-          <br />
+          <$InfoDescription>
+            You are viewing an in-depth breakdown of this affiliate revenue stream. Only the
+            advertiser can change these details. To learn more,{' '}
+            <span>
+              <a>click here for a tutorial.</a>
+            </span>
+          </$InfoDescription>
+
           <$Horizontal>
             <CreateOfferForm
               offer={{
@@ -104,59 +111,81 @@ const OfferPage: React.FC = () => {
           </$Horizontal>
           <br />
           <h2>Activation Funnel</h2>
-          <br />
-          <Card>
-            {activationsSorted.map((activation, i) => {
-              return (
-                <Card.Grid key={activation.activationID} style={gridStyle}>
-                  <Row>
-                    <Col
-                      span={4}
-                      className={styles.verticalCenter}
-                      style={{ alignItems: 'flex-end' }}
-                    >
-                      ${activation.pricing}
-                    </Col>
-                    <Col span={6} className={styles.verticalCenter}>
-                      {activation.activationName}{' '}
-                    </Col>
-                    <Col span={14} className={styles.verticalCenter}>
-                      {activation.description}{' '}
-                    </Col>
-                  </Row>
-                </Card.Grid>
-              );
-            })}
-          </Card>
+          <$InfoDescription maxWidth={maxWidth}>
+            These are the exact actions that the advertiser is paying for.
+          </$InfoDescription>
+
+          {activationsSorted.length > 0 ? (
+            <Card>
+              {activationsSorted.map((activation, i) => {
+                return (
+                  <Card.Grid key={activation.activationID} style={gridStyle}>
+                    <Row>
+                      <Col
+                        span={4}
+                        className={styles.verticalCenter}
+                        style={{ alignItems: 'flex-end' }}
+                      >
+                        ${activation.pricing}
+                      </Col>
+                      <Col span={6} className={styles.verticalCenter}>
+                        {activation.activationName}{' '}
+                      </Col>
+                      <Col span={14} className={styles.verticalCenter}>
+                        {activation.description}{' '}
+                      </Col>
+                    </Row>
+                  </Card.Grid>
+                );
+              })}
+            </Card>
+          ) : (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="This Advertiser has not added any activations yet."
+              style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
+            />
+          )}
+
           <br />
           <br />
           <h2>Ad Sets</h2>
-          <br />
-          <div className={styles.adSetGrid}>
-            {offer.adSetPreviews.map((adSet) => {
-              const imageToDisplay = adSet.thumbnail || placeholderImage;
-              return (
-                <Card
-                  key={adSet.id}
-                  hoverable
-                  className={styles.card}
-                  cover={<img alt="example" src={imageToDisplay} className={styles.cardImage} />}
-                  actions={[
-                    <Button
-                      key={`${adSet.id}-add-to-event`}
-                      onClick={() => setSelectedAdSet(adSet)}
-                      type="primary"
-                      style={{ width: '90%' }}
-                    >
-                      Add To Event
-                    </Button>,
-                  ]}
-                >
-                  <Meta title={adSet.name} description={adSet.placement} />
-                </Card>
-              );
-            })}
-          </div>
+          <$InfoDescription maxWidth={maxWidth}>
+            These are the video ads the advertiser has made available for you to use in your events.
+          </$InfoDescription>
+          {offer.adSetPreviews.length > 0 ? (
+            <div className={styles.adSetGrid}>
+              {offer.adSetPreviews.map((adSet) => {
+                const imageToDisplay = adSet.thumbnail || placeholderImage;
+                return (
+                  <Card
+                    key={adSet.id}
+                    hoverable
+                    className={styles.card}
+                    cover={<img alt="example" src={imageToDisplay} className={styles.cardImage} />}
+                    actions={[
+                      <Button
+                        key={`${adSet.id}-add-to-event`}
+                        onClick={() => setSelectedAdSet(adSet)}
+                        type="primary"
+                        style={{ width: '90%' }}
+                      >
+                        Add To Event
+                      </Button>,
+                    ]}
+                  >
+                    <Meta title={adSet.name} description={adSet.placement} />
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="This Advertiser has not added any Ad Sets yet."
+              style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
+            />
+          )}
           <br />
           <AdSetToTournamentModal
             offerID={offer.id as OfferID}

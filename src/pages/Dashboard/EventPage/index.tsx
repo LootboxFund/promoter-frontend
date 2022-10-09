@@ -39,7 +39,7 @@ import {
   parsePaginatedLootboxEventSnapshots,
 } from './api.gql';
 import styles from './index.less';
-import { $Horizontal, $Vertical, $ColumnGap } from '@/components/generics';
+import { $Horizontal, $Vertical, $ColumnGap, $InfoDescription } from '@/components/generics';
 import {
   Affix,
   Anchor,
@@ -235,6 +235,20 @@ const EventPage: React.FC = () => {
     );
   };
 
+  const renderHelpText = () => {
+    return (
+      <$InfoDescription>
+        {`This is the Event Control Panel for ${
+          tournament?.title || 'your event'
+        }. You can manage partners, revenue & Lootboxes as well as view analytics.`}{' '}
+        To learn more,{' '}
+        <span>
+          <a>click here for a tutorial.</a>
+        </span>
+      </$InfoDescription>
+    );
+  };
+  const maxWidth = '1000px';
   return (
     <div>
       {loading || !tournament ? (
@@ -242,7 +256,7 @@ const EventPage: React.FC = () => {
           <Spin />
         </div>
       ) : (
-        <div id="breadcrumbs" style={{ maxWidth: '1000px' }}>
+        <div id="breadcrumbs" style={{ maxWidth }}>
           <BreadCrumbDynamic breadLine={breadLine} />
           <$Horizontal justifyContent="space-between">
             <h1>{tournament.title}</h1>
@@ -254,7 +268,8 @@ const EventPage: React.FC = () => {
               <Button type="primary">View Event</Button>
             </a>
           </$Horizontal>
-          <br />
+          {renderHelpText()}
+
           <$Horizontal justifyContent="flex-end" style={{ width: '100%' }}>
             <CreateEventForm
               onSubmitEdit={editTournament}
@@ -308,12 +323,13 @@ const EventPage: React.FC = () => {
             <h2 id="lootbox-gallery">Lootbox Gallery</h2>
             <$Horizontal>
               <Popconfirm
-                title={`Inviting a team means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it.`}
+                title={`Coming soon - Inviting a team means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it.`}
                 onConfirm={() => {
-                  navigator.clipboard.writeText('magic_link');
-                  message.success('Copied Lootbox Invite Link to clipboard');
+                  message.info('Feature coming soon.');
+                  // navigator.clipboard.writeText('magic_link');
+                  // message.success('Copied Lootbox Invite Link to clipboard');
                 }}
-                okText="Copy Invite Link"
+                okText="Copy Invite Link - Coming Soon"
                 cancelText={'Cancel'}
                 style={{ maxWidth: '500px' }}
               >
@@ -332,7 +348,10 @@ const EventPage: React.FC = () => {
               </Popconfirm>
             </$Horizontal>
           </$Horizontal>
-          <br />
+          <$InfoDescription maxWidth={maxWidth}>
+            Each Lootbox represents a team competiting in the event.
+          </$InfoDescription>
+
           {!lootboxTournamentSnapshots || lootboxTournamentSnapshots.length === 0 ? (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -356,6 +375,9 @@ const EventPage: React.FC = () => {
           <br />
           <br />
           <h2 id="ticket-analytics">Ticket Analytics</h2>
+          <$InfoDescription maxWidth={maxWidth}>
+            {`Lootbox tickets are distributed to fans & audience members.`}
+          </$InfoDescription>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="Analytics Coming Soon"
@@ -374,7 +396,9 @@ const EventPage: React.FC = () => {
               <Button type="primary">Add Revenue</Button>
             </Popconfirm>
           </$Horizontal>
-          <br />
+          <$InfoDescription maxWidth={maxWidth}>
+            {`Video ads play on Lootbox tickets and earn you revenue.`}
+          </$InfoDescription>
           {!tournament.dealConfigs || tournament.dealConfigs.length === 0 ? (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
