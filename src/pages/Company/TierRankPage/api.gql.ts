@@ -11,6 +11,7 @@ export const GET_AFFILIATE = gql`
           avatar
           audienceSize
           website
+          rank
         }
       }
       ... on ResponseError {

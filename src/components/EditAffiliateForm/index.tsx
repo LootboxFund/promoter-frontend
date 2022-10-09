@@ -92,21 +92,44 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
       disabled: pending,
       initialValues: affiliateInfo,
       fields: [
-        { key: 'name', label: 'Name', required: true },
-        { key: 'publicContactEmail', label: 'Public Contact Email' },
-        { key: 'website', label: 'Website' },
-        { key: 'audienceSize', label: 'Audience Size', widget: 'number' },
+        {
+          key: 'name',
+          label: 'Name',
+          required: true,
+          tooltip:
+            'Your name that will appear in the marketplace for advertisers and fellow promoters.',
+        },
+        {
+          key: 'publicContactEmail',
+          label: 'Public Contact Email',
+          tooltip: 'The main contact channel for advertisers and promoters to reach out to you.',
+        },
+        {
+          key: 'website',
+          label: 'Website',
+          tooltip:
+            'How advertisers and other promoters can learn more about you. Link to your socials. We recommend using LinkTree or LinkInBio.',
+        },
+        {
+          key: 'audienceSize',
+          label: 'Audience Size',
+          widget: 'number',
+          tooltip:
+            'Your estimated total audience size across all socials. Please be honest about this amount because advertisers and promoter partners will inevitably check.',
+        },
         {
           key: 'description',
           label: 'Description',
           widget: 'textarea',
+          tooltip:
+            'A short description of your company and what you specialize in. Advertisers and promoters are interested in knowing about your past experience, your audience, expertise and operating style.',
         },
       ],
     };
     if (!viewMode) {
       meta.fields.push({
         key: 'image',
-        label: 'Image',
+        label: 'Logo',
         // @ts-ignore
         widget: () => (
           <AntUploadFile
@@ -116,10 +139,15 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
             acceptedFileTypes={'image/*'}
           />
         ),
+        tooltip: 'The logo for your company. Please use a square image.',
       });
     }
     if (viewMode) {
-      meta.fields.push({ key: 'id', label: 'Affiliate ID' });
+      meta.fields.push({
+        key: 'id',
+        label: 'Affiliate ID (Promoter ID)',
+        tooltip: 'Your Affiliate ID (aka Promoter ID). In case anyone asks you for it.',
+      });
     }
     return meta;
   };

@@ -80,16 +80,6 @@ const LootboxPage: React.FC = () => {
     // }
   };
 
-  const renderHelpText = () => {
-    return (
-      <$InfoDescription>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-        laboris nisi ut aliquip ex ea commodo consequat.
-      </$InfoDescription>
-    );
-  };
-
   if (loading) {
     return (
       <PageContainer>
@@ -112,6 +102,18 @@ const LootboxPage: React.FC = () => {
     { title: lootbox?.name || '', route: `/dashboard/lootbox/id/${lootboxID}` },
   ];
 
+  const renderHelpText = () => {
+    return (
+      <$InfoDescription>
+        {`This is the Lootbox Control Panel for ${lootbox.name}. You can invite team members, invite fans, generate marketing graphics, deposit rewards and view analytics.`}{' '}
+        To learn more,{' '}
+        <span>
+          <a>click here for a tutorial.</a>
+        </span>
+      </$InfoDescription>
+    );
+  };
+
   const maxWidth = '1000px';
   return (
     <div style={{ maxWidth }}>
@@ -121,7 +123,7 @@ const LootboxPage: React.FC = () => {
         <h1>{lootbox.name}</h1>
         <Button type="primary">View Public Page</Button>
       </$Horizontal>
-      <br />
+
       {renderHelpText()}
       <div style={{ minWidth: '1000px', maxWidth: '1000px' }}>
         <CreateLootboxForm
@@ -150,9 +152,12 @@ const LootboxPage: React.FC = () => {
           onConfirm={() => console.log('confirm')}
           okText="Copy Invite Link"
         >
-          <Button type="primary">Invite Member</Button>
+          <Button type="primary">Invite Team Member</Button>
         </Popconfirm>
       </$Horizontal>
+      <$InfoDescription maxWidth={maxWidth}>
+        The team captain is responsible for inviting team members to their Lootbox.
+      </$InfoDescription>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         imageStyle={{
@@ -178,14 +183,17 @@ const LootboxPage: React.FC = () => {
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Ticket Analytics</h2>
         <$Horizontal justifyContent="space-between">
-          <Button onClick={() => setIsReferralModalOpen(true)} style={{ marginRight: '5px' }}>
-            Generate Invite
-          </Button>
           <Link to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}>
-            <Button type="primary">Generate Stamp</Button>
+            <Button style={{ marginRight: '5px' }}>Generate Stamp</Button>
           </Link>
+          <Button type="primary" onClick={() => setIsReferralModalOpen(true)}>
+            Invite Fans
+          </Button>
         </$Horizontal>
       </$Horizontal>
+      <$InfoDescription maxWidth={maxWidth}>
+        View who helped distribute tickets for this team.
+      </$InfoDescription>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description="Analytics Coming Soon"
@@ -197,20 +205,18 @@ const LootboxPage: React.FC = () => {
         <h2 id="team-members">Payout Rewards</h2>
         <Button type="primary">Deposit Payout</Button>
       </$Horizontal>
+
+      <$InfoDescription maxWidth={maxWidth}>
+        Reward ticket holders with payouts of tokens or NFTs.
+      </$InfoDescription>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         imageStyle={{
           height: 60,
         }}
-        description={
-          <span style={{ maxWidth: '200px' }}>
-            {`There are no team members for this LOOTBOX. Invite some to start generating marketing graphics & social media posts.`}
-          </span>
-        }
+        description={<span style={{ maxWidth: '200px' }}>{`Coming soon`}</span>}
         style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
-      >
-        <Button>Payout Rewards</Button>
-      </Empty>
+      />
       <GenerateReferralModal
         isOpen={isReferralModalOpen}
         setIsOpen={setIsReferralModalOpen}

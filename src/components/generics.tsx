@@ -81,12 +81,16 @@ export const $ColumnGap = styled.div<{
   ${(props) => (props.width ? `width: ${props.width};` : `width: 10px`)};
 `;
 
-export const $InfoDescription = styled.div<{ fontSize?: string; marginBottom?: string }>`
+export const $InfoDescription = styled.div<{
+  fontSize?: string;
+  marginBottom?: string;
+  maxWidth?: string;
+}>`
   ${(props) => (props.fontSize ? `font-size: ${props.fontSize};` : `font-size: 1rem;`)}
   ${(props) =>
     props.marginBottom ? `margin-bottom: ${props.marginBottom};` : `margin-bottom: 30px;`}
+    ${(props) => (props.maxWidth ? `max-width: ${props.maxWidth};` : `max-width: 800px;`)}
   color: gray;
-  max-width: 800px;
   font-weight: light;
 `;
 
