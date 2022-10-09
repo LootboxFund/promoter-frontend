@@ -22,7 +22,7 @@ import {
   UpdateAffiliateDetailsResponseSuccess,
   Affiliate,
 } from '../../../api/graphql/generated/types';
-import { $Horizontal, $InfoDescription } from '@/components/generics';
+import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics';
 import EditAffiliateForm from '@/components/EditAffiliateForm';
 import { AffiliateID } from '@wormgraph/helpers';
 import { Image } from 'antd';
@@ -54,7 +54,14 @@ const AccountPage: React.FC = () => {
   if (error) {
     return <span>{error?.message || ''}</span>;
   } else if (data?.affiliateAdminView.__typename === 'ResponseError') {
-    return <span>{data?.affiliateAdminView.error?.message || ''}</span>;
+    return (
+      <$Vertical>
+        <span>{data?.affiliateAdminView.error?.message || ''}</span>
+        <Link to="/user/logout">
+          <Button style={{ marginTop: '20px' }}>Log Out</Button>
+        </Link>
+      </$Vertical>
+    );
   } else if (!data) {
     return null;
   }
