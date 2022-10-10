@@ -8,7 +8,7 @@ import { Button, Empty, Image, Modal, Popconfirm } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useMutation, useQuery } from '@apollo/client';
 import Spin from 'antd/lib/spin';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { EDIT_LOOTBOX, GET_LOOTBOX, GetLootboxFE, LootboxFE } from './api.gql';
 import styles from './index.less';
 import { useParams } from 'react-router-dom';
@@ -19,6 +19,9 @@ import CreateLootboxForm from '@/components/CreateLootboxForm';
 import { LootboxID, TournamentID } from '@wormgraph/helpers';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { Link } from '@umijs/max';
+import DepositRewardForm, { RewardSponsorsPayload } from '@/components/DepositRewardForm';
+import { useLootbox } from '@/hooks/useLootbox';
+import { ethers } from 'ethers';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -45,8 +48,6 @@ const LootboxPage: React.FC = () => {
   );
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
-  //   const [lootbox, setLootbox] = useState<LootboxFE>();
-
   // VIEW Lootbox
   const { data, loading, error } = useQuery<
     { getLootboxByID: GetLootboxFE | ResponseError },
@@ -54,6 +55,13 @@ const LootboxPage: React.FC = () => {
   >(GET_LOOTBOX, {
     variables: { id: lootboxID || '' },
   });
+
+  const lootbox: LootboxFE | undefined = useMemo(() => {
+    return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
+  }, [data]);
+
+  const { depositERC20, depositNative } = useLootbox({ address: lootbox?.address });
+
   // EDIT Lootbox
   //   const [editAdMutation] = useMutation<
   //     { editAd: ResponseError | EditAdResponseSuccess },
@@ -90,6 +98,46 @@ const LootboxPage: React.FC = () => {
     );
   };
 
+  const renderDepositHelpText = () => {
+    return (
+      <$InfoDescription>
+        Reward your sponsors by depositing native or ERC20 tokens back into this Lootbox. Rewards
+        can only be redeemed if they own an NFT ticket minted from your Lootbox.
+      </$InfoDescription>
+    );
+  };
+
+  const rewardSponsors = async (payload: RewardSponsorsPayload) => {
+    console.log('reward sponsors', payload);
+    if (payload.tokenAddress) {
+      // ERC 20
+      if (!ethers.utils.isAddress(payload.tokenAddress)) {
+        throw new Error('Invalid token address');
+      }
+
+      // Check if within allowance
+
+      // Ask for allowance
+
+      // Do transaction
+      const tx = await depositERC20(payload.amount, payload.tokenAddress);
+    } else {
+      // Native
+
+      // Do transaction
+      const tx = await depositNative(payload.amount);
+      console.log('tx', tx);
+    }
+  };
+
+  const breadLine = [
+    { title: 'Dashboard', route: '/dashboard' },
+    { title: 'Event', route: `/dashboard/events/id/${magicLinkParams.tournamentID}` },
+    { title: lootbox?.name || '', route: `/dashboard/lootbox/id/${lootboxID}` },
+  ];
+
+  const maxWidth = '1000px';
+
   if (loading) {
     return (
       <PageContainer>
@@ -104,15 +152,6 @@ const LootboxPage: React.FC = () => {
     return <span>{data?.getLootboxByID?.error?.message || ''}</span>;
   }
 
-  const lootbox = (data?.getLootboxByID as GetLootboxFE).lootbox;
-
-  const breadLine = [
-    { title: 'Dashboard', route: '/dashboard' },
-    { title: 'Event', route: `/dashboard/events/id/${magicLinkParams.tournamentID}` },
-    { title: lootbox?.name || '', route: `/dashboard/lootbox/id/${lootboxID}` },
-  ];
-
-  const maxWidth = '1000px';
   return (
     <div style={{ maxWidth }}>
       <BreadCrumbDynamic breadLine={breadLine} />
@@ -197,6 +236,9 @@ const LootboxPage: React.FC = () => {
         <h2 id="team-members">Payout Rewards</h2>
         <Button type="primary">Deposit Payout</Button>
       </$Horizontal>
+      <br />
+      {renderDepositHelpText()}
+      <DepositRewardForm chainIDHex={lootbox.chainIdHex} onSubmitReward={rewardSponsors} />
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         imageStyle={{
