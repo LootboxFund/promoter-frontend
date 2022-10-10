@@ -234,7 +234,6 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         onChange={(key) => {
           setCreatedReferral(null);
           setActiveTab(key as ReferralType);
-          console.log(`Now on key = ${key}`);
           setCsvFile('');
         }}
       >
