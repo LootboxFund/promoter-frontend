@@ -198,30 +198,33 @@ const RateCardEditorModal: React.FC<RateCardEditorModalProps> = ({
       onOk={confirmAndExecute}
       footer={
         <$Horizontal justifyContent="space-between">
-          <Popconfirm
-            title="Are you want to kick out this promoter from your event?"
-            onConfirm={async () => {
-              if (rateCard && rateCard.promoterID && eventID) {
-                setLoading(true);
-                await kickOutPromoter({
-                  variables: {
-                    payload: {
-                      tournamentID: eventID,
-                      promoterID: rateCard?.promoterID,
+          <$Horizontal verticalCenter>
+            <Popconfirm
+              title="Are you want to kick out this promoter from your event?"
+              onConfirm={async () => {
+                if (rateCard && rateCard.promoterID && eventID) {
+                  setLoading(true);
+                  await kickOutPromoter({
+                    variables: {
+                      payload: {
+                        tournamentID: eventID,
+                        promoterID: rateCard?.promoterID,
+                      },
                     },
-                  },
-                });
-                setLoading(false);
-                message.success(
-                  `${rateCard?.promoterName || 'Promoter'} was kicked out of your Event`,
-                );
-                closeModal();
-              }
-            }}
-            okText="Confirm"
-          >
-            <Button>Kick Out</Button>
-          </Popconfirm>
+                  });
+                  setLoading(false);
+                  message.success(
+                    `${rateCard?.promoterName || 'Promoter'} was kicked out of your Event`,
+                  );
+                  closeModal();
+                }
+              }}
+              okText="Confirm"
+            >
+              <Button>Kick Out</Button>
+            </Popconfirm>
+            <span style={{ marginLeft: '10px' }}>Promoter ID {rateCard?.promoterID}</span>
+          </$Horizontal>
           <$Horizontal>
             <Button key="cancel" onClick={closeModal}>
               Cancel

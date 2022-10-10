@@ -110,9 +110,8 @@ const StampPage: React.FC = () => {
   const renderHelpText = () => {
     return (
       <$InfoDescription>
-        This is the Stamp Feature of Lootbox. You can use this to auto-generate marketing graphics
-        to be shared on social media, which will help you distribute more tickets and earn more
-        affiliate revenue. To learn more,{' '}
+        Auto-generate marketing graphics to be shared on social media, which will help you
+        distribute more tickets and earn more affiliate revenue. To learn more,{' '}
         <span>
           <a>click here for a tutorial.</a>
         </span>

@@ -103,7 +103,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             lootboxID: lootboxID,
             tournamentId: tournamentID,
             type: activeTab,
-            referrerId: !!attributedTo ? attributedTo : undefined,
+            promoterId: !!attributedTo ? attributedTo : undefined,
           },
         },
       });
@@ -151,6 +151,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             tournamentId: tournamentID,
             type: ReferralType.OneTime,
             numReferrals: quantityTickets,
+            promoterId: !!attributedTo ? attributedTo : undefined,
           },
         },
       });
@@ -233,7 +234,6 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         onChange={(key) => {
           setCreatedReferral(null);
           setActiveTab(key as ReferralType);
-          console.log(`Now on key = ${key}`);
           setCsvFile('');
         }}
       >
@@ -251,6 +251,16 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
               value={campaignName}
               onChange={(e) => setCampaignName(e.target.value)}
               placeholder="Campaign Name"
+            />
+          </$Vertical>
+          <$Vertical style={{ marginTop: '10px' }}>
+            <label
+              style={{ marginBottom: '5px', color: 'gray' }}
+            >{`Attributed To (optional)`}</label>
+            <Input
+              value={attributedTo}
+              onChange={(e) => setAttributedTo(e.target.value)}
+              placeholder="Someone Else's Promoter ID"
             />
           </$Vertical>
           <br />
@@ -300,7 +310,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             <Input
               value={attributedTo}
               onChange={(e) => setAttributedTo(e.target.value)}
-              placeholder="Someone Else's User ID"
+              placeholder="Someone Else's Promoter ID"
             />
           </$Vertical>
           <br />
@@ -349,7 +359,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             <Input
               value={attributedTo}
               onChange={(e) => setAttributedTo(e.target.value)}
-              placeholder="Someone Else's User ID"
+              placeholder="Someone Else's Promoter ID"
             />
           </$Vertical>
           <$Vertical style={{ marginTop: '10px' }}>

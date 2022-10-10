@@ -8,6 +8,7 @@ export const CREATE_REFERRAL = gql`
         referral {
           id
           slug
+          promoterId
           seedLootboxID
           nConversions
           campaignName
