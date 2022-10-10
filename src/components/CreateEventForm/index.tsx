@@ -190,27 +190,44 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       disabled: pending,
       initialValues: tournamentInfo,
       fields: [
-        { key: 'title', label: 'Title', required: true },
+        { key: 'title', label: 'Title', required: true, tooltip: 'Shown publically on tickets' },
         {
           key: 'tournamentDate',
           label: 'Estimated Date',
           widget: 'date-picker',
           viewWidget: DateView,
           required: true,
+          tooltip: 'Shown publically as the last date that tickets can be claimed',
         },
         {
           key: 'tournamentLink',
           label: 'Link to Tournament',
           rules: [{ type: 'url' } as Rule],
+          tooltip:
+            'Link to an external event page such as EventBrite, CommunityGaming, Facebook Events, Twitch, Discord, or your website.',
         },
-        { key: 'communityURL', label: 'Link to Community', rules: [{ type: 'url' } as Rule] },
-        { key: 'prize', label: 'Prize' },
-        { key: 'description', label: 'Description', widget: 'textarea', required: true },
+        {
+          key: 'communityURL',
+          label: 'Link to Community',
+          rules: [{ type: 'url' } as Rule],
+          tooltip:
+            'Link to where you want to funnel audience members. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
+        },
+        {
+          key: 'prize',
+          label: 'Prize',
+          tooltip:
+            'The total prize pool for fan ticket holders, shown publically on marketing materials',
+        },
+        {
+          key: 'description',
+          label: 'Description',
+          widget: 'textarea',
+          required: true,
+          tooltip: 'Additional information shown publically on your Lootbox event page',
+        },
       ],
     };
-    if (mode === 'view-edit') {
-      meta.fields.push({ key: 'magicLink', label: 'Magic Link', rules: [{ type: 'url' } as Rule] });
-    }
     if (!viewMode) {
       meta.fields.push({
         key: 'coverPhoto',
@@ -239,6 +256,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
             acceptedFileTypes={'image/*'}
           />
         ),
+        tooltip: 'Shown as the banner photo for your event',
       });
     }
     return meta;

@@ -1,11 +1,12 @@
 import type { Affiliate, AffiliateAdminViewResponse } from '@/api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
-import { $InfoDescription } from '@/components/generics';
+import { $InfoDescription, $Horizontal } from '@/components/generics';
 import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
 import { SmileOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
-import { Timeline } from 'antd';
+import { OrganizerRank, rankInfoTable } from '@wormgraph/helpers';
+import { Tag, Timeline } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import Spin from 'antd/lib/spin';
 import React, { useState } from 'react';
@@ -252,12 +253,18 @@ const TierRankPage: React.FC = () => {
   const renderHelpText = () => {
     return (
       <$InfoDescription>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-        laboris nisi ut aliquip ex ea commodo consequat.
+        Many advertisers only want to work with reputable professional event organizers. In
+        addition, affiliate fraud is a common issue in the advertising industry. Thus we maintain a
+        tier ranking system for good organizers to get access to the best affiliate offers, and to
+        prevent bad actors from tainting the marketplace. Trust is earned by doing a good job. To
+        learn more,{' '}
+        <span>
+          <a>click here for a tutorial.</a>
+        </span>
       </$InfoDescription>
     );
   };
+  console.log(affiliate);
   return (
     <PageContainer>
       {loading ? (
@@ -267,6 +274,13 @@ const TierRankPage: React.FC = () => {
       ) : (
         <div style={{ maxWidth: '800px' }}>
           <div className={styles.content}>
+            <$Horizontal style={{ marginBottom: '10px' }}>
+              <b>You are currently</b>
+              <Tag color="gold" style={{ marginLeft: '5px' }}>
+                {rankInfoTable[affiliate?.rank || OrganizerRank.ClayRank1].name}
+              </Tag>
+            </$Horizontal>
+
             {renderHelpText()}
             <br />
             <br />

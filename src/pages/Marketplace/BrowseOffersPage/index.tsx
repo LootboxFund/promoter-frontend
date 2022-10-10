@@ -143,9 +143,12 @@ const BrowseOffersPage: React.FC = () => {
   const renderHelpText = () => {
     return (
       <$InfoDescription>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-        laboris nisi ut aliquip ex ea commodo consequat.
+        This is where you can find affiliate products and services to promote. Advertisers list
+        their offers and pay you on a performance basis. It is similar to how YouTubers & Twitch
+        streamers get paid, available for anyone without needing connections. To learn more,{' '}
+        <span>
+          <a>click here for a tutorial.</a>
+        </span>
       </$InfoDescription>
     );
   };

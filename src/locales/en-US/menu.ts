@@ -61,6 +61,7 @@ export default {
   'menu.Dashboard.Offer': 'Offer',
   'menu.Dashboard.Partners': 'Partners',
   'menu.Dashboard.Partner': 'Partner',
+  'menu.Dashboard.Marketing': 'Marketing',
   'menu.Marketplace': 'Marketplace',
   'menu.Marketplace.Welcome': 'Welcome',
   'menu.Marketplace.Browse': 'Browse',

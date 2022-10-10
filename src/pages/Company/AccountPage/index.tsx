@@ -22,7 +22,7 @@ import {
   UpdateAffiliateDetailsResponseSuccess,
   Affiliate,
 } from '../../../api/graphql/generated/types';
-import { $Horizontal, $InfoDescription } from '@/components/generics';
+import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics';
 import EditAffiliateForm from '@/components/EditAffiliateForm';
 import { AffiliateID } from '@wormgraph/helpers';
 import { Image } from 'antd';
@@ -54,7 +54,14 @@ const AccountPage: React.FC = () => {
   if (error) {
     return <span>{error?.message || ''}</span>;
   } else if (data?.affiliateAdminView.__typename === 'ResponseError') {
-    return <span>{data?.affiliateAdminView.error?.message || ''}</span>;
+    return (
+      <$Vertical>
+        <span>{data?.affiliateAdminView.error?.message || ''}</span>
+        <Link to="/user/logout">
+          <Button style={{ marginTop: '20px' }}>Log Out</Button>
+        </Link>
+      </$Vertical>
+    );
   } else if (!data) {
     return null;
   }
@@ -96,9 +103,12 @@ const AccountPage: React.FC = () => {
   const renderHelpText = () => {
     return (
       <$InfoDescription>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-        labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-        laboris nisi ut aliquip ex ea commodo consequat.
+        This is your company profile page. Be sure to fill out all your details so that you appear
+        in the recruitment marketplace for advertisers to give you access to good offers. To learn
+        more,{' '}
+        <span>
+          <a>click here for a tutorial.</a>
+        </span>
       </$InfoDescription>
     );
   };

@@ -1,9 +1,10 @@
 import { useLazyQuery } from '@apollo/client';
+import { Link } from '@umijs/max';
 import { AffiliateID } from '@wormgraph/helpers';
 import { Button, Card, Input, Modal, Spin } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import { useState } from 'react';
-import { $Horizontal } from '../generics';
+import { $Horizontal, $InfoDescription } from '../generics';
 import { GET_AFFILIATE } from './index.gql';
 
 export type AddPromoterToTournamentModalProps = {
@@ -41,6 +42,10 @@ const AddPromoterToTournamentModal: React.FC<AddPromoterToTournamentModalProps> 
         </Button>,
       ]}
     >
+      <$InfoDescription>
+        Invite a player or influencer to help your distribute tickets and earn affiliate revenue. To
+        find the ID of a partner, <Link to="/marketplace/recruit">visit the marketplace.</Link>
+      </$InfoDescription>
       <Input.Search
         placeholder="Search Partner by ID"
         onSearch={(value: string) => {

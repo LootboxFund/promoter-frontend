@@ -7,7 +7,7 @@ import {
   TournamentID,
 } from '@wormgraph/helpers';
 import { Avatar, Button, InputNumber, message, Modal, Popconfirm, Table } from 'antd';
-import { $Horizontal } from '@/components/generics';
+import { $Horizontal, $InfoDescription } from '@/components/generics';
 import type { ColumnsType } from 'antd/lib/table';
 import { useEffect, useState } from 'react';
 import { useMutation } from '@apollo/client';
@@ -23,6 +23,7 @@ import {
   REMOVE_PROMOTER_FROM_TOURNAMENT,
 } from './index.gql';
 import { VIEW_TOURNAMENT_AS_ORGANIZER } from '@/pages/Dashboard/EventPage/api.gql';
+import { Link } from '@umijs/max';
 
 export type RateCardEditorModalProps = {
   isOpen: boolean;
@@ -197,30 +198,33 @@ const RateCardEditorModal: React.FC<RateCardEditorModalProps> = ({
       onOk={confirmAndExecute}
       footer={
         <$Horizontal justifyContent="space-between">
-          <Popconfirm
-            title="Are you want to kick out this promoter from your event?"
-            onConfirm={async () => {
-              if (rateCard && rateCard.promoterID && eventID) {
-                setLoading(true);
-                await kickOutPromoter({
-                  variables: {
-                    payload: {
-                      tournamentID: eventID,
-                      promoterID: rateCard?.promoterID,
+          <$Horizontal verticalCenter>
+            <Popconfirm
+              title="Are you want to kick out this promoter from your event?"
+              onConfirm={async () => {
+                if (rateCard && rateCard.promoterID && eventID) {
+                  setLoading(true);
+                  await kickOutPromoter({
+                    variables: {
+                      payload: {
+                        tournamentID: eventID,
+                        promoterID: rateCard?.promoterID,
+                      },
                     },
-                  },
-                });
-                setLoading(false);
-                message.success(
-                  `${rateCard?.promoterName || 'Promoter'} was kicked out of your Event`,
-                );
-                closeModal();
-              }
-            }}
-            okText="Confirm"
-          >
-            <Button>Kick Out</Button>
-          </Popconfirm>
+                  });
+                  setLoading(false);
+                  message.success(
+                    `${rateCard?.promoterName || 'Promoter'} was kicked out of your Event`,
+                  );
+                  closeModal();
+                }
+              }}
+              okText="Confirm"
+            >
+              <Button>Kick Out</Button>
+            </Popconfirm>
+            <span style={{ marginLeft: '10px' }}>Promoter ID {rateCard?.promoterID}</span>
+          </$Horizontal>
           <$Horizontal>
             <Button key="cancel" onClick={closeModal}>
               Cancel
@@ -238,6 +242,10 @@ const RateCardEditorModal: React.FC<RateCardEditorModalProps> = ({
         minWidth: '800px',
       }}
     >
+      <$InfoDescription>
+        As the event organizer, you can granularly decide how much revenue you want to share with
+        this partner for this event. To learn more, <a>watch this tutorial.</a>
+      </$InfoDescription>
       <div
         style={{
           maxHeight: '50vh',

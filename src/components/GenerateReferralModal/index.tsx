@@ -103,7 +103,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             lootboxID: lootboxID,
             tournamentId: tournamentID,
             type: activeTab,
-            referrerId: !!attributedTo ? attributedTo : undefined,
+            promoterId: !!attributedTo ? attributedTo : undefined,
           },
         },
       });
@@ -151,6 +151,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             tournamentId: tournamentID,
             type: ReferralType.OneTime,
             numReferrals: quantityTickets,
+            promoterId: !!attributedTo ? attributedTo : undefined,
           },
         },
       });
@@ -181,8 +182,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <$Vertical style={{ flex: 1, paddingTop: '5px' }}>
           <h3>Share Tickets with Friends</h3>
           <$InfoDescription fontSize="0.7rem" marginBottom="10px">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt
+            Get your FREE LOOTBOX fan ticket and earn a share of the competition prize money if your
+            favorite contestant wins!
           </$InfoDescription>
           <Input.Group compact>
             <Input
@@ -233,15 +234,14 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         onChange={(key) => {
           setCreatedReferral(null);
           setActiveTab(key as ReferralType);
-          console.log(`Now on key = ${key}`);
           setCsvFile('');
         }}
       >
         <Tabs.TabPane tab="Regular Invite" key={ReferralType.Genesis}>
           <h3>Regular Invite</h3>
           <$InfoDescription fontSize="0.8rem">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore.
+            Regular invites will allow fans to redeem 1 ticket each for this event. Event organizers
+            should use regular invites.
           </$InfoDescription>
           <$Vertical>
             <label
@@ -251,6 +251,16 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
               value={campaignName}
               onChange={(e) => setCampaignName(e.target.value)}
               placeholder="Campaign Name"
+            />
+          </$Vertical>
+          <$Vertical style={{ marginTop: '10px' }}>
+            <label
+              style={{ marginBottom: '5px', color: 'gray' }}
+            >{`Attributed To (optional)`}</label>
+            <Input
+              value={attributedTo}
+              onChange={(e) => setAttributedTo(e.target.value)}
+              placeholder="Someone Else's Promoter ID"
             />
           </$Vertical>
           <br />
@@ -279,8 +289,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <Tabs.TabPane tab="Viral Invite" key={ReferralType.Viral}>
           <h3>Viral Invite</h3>
           <$InfoDescription fontSize="0.8rem">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore.
+            Viral Invites act like regular invites, but will also reward a bonus ticket to the
+            person who shared the invite link. Only fans should use viral invite links.
           </$InfoDescription>
           <$Vertical>
             <label
@@ -300,7 +310,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             <Input
               value={attributedTo}
               onChange={(e) => setAttributedTo(e.target.value)}
-              placeholder="Someone Else's User ID"
+              placeholder="Someone Else's Promoter ID"
             />
           </$Vertical>
           <br />
@@ -329,8 +339,8 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <Tabs.TabPane tab="Participation Rewards" key={ReferralType.OneTime}>
           <h3>Participation Rewards</h3>
           <$InfoDescription fontSize="0.8rem">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-            incididunt ut labore.
+            Participation rewards are tickets that can be given to anyone, even if they already got
+            their 1 free ticket. Learn more by <a>watching this tutorial.</a>
           </$InfoDescription>
           <$Vertical>
             <label
@@ -349,7 +359,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             <Input
               value={attributedTo}
               onChange={(e) => setAttributedTo(e.target.value)}
-              placeholder="Someone Else's User ID"
+              placeholder="Someone Else's Promoter ID"
             />
           </$Vertical>
           <$Vertical style={{ marginTop: '10px' }}>
@@ -378,7 +388,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
                 }}
                 type="primary"
               >
-                Generate Invites
+                Generate Participation Rewards
               </Button>
             </$Horizontal>
           )}

@@ -105,7 +105,7 @@ const Welcome: React.FC = () => {
               color: '#1A1A1A',
             }}
           >
-            欢迎使用 🎁 LOOTBOX
+            🎁 LOOTBOX
           </div>
           <p
             style={{
@@ -117,8 +117,7 @@ const Welcome: React.FC = () => {
               width: '65%',
             }}
           >
-            🎁 LOOTBOX 是一个整合了 umi，LOOTBOX 和 ProComponents
-            的脚手架方案。致力于在设计规范和基础组件的基础上，继续向上构建，提炼出典型模板/业务组件/配套设计资源，进一步提升企业级中后台产品设计研发过程中的『用户』和『设计者』的体验。
+            🎁 LOOTBOX
           </p>
           <div
             style={{
@@ -126,24 +125,9 @@ const Welcome: React.FC = () => {
               gap: 16,
             }}
           >
-            <InfoCard
-              index={1}
-              href="https://umijs.org/docs/introduce/introduce"
-              title="了解 umi"
-              desc="umi 是一个可扩展的企业级前端应用框架,umi 以路由为基础的，同时支持配置式路由和约定式路由，保证路由的功能完备，并以此进行功能扩展。"
-            />
-            <InfoCard
-              index={2}
-              title="了解 LOOTBOX"
-              href="https://ant.design"
-              desc="antd 是基于 LOOTBOX 设计体系的 React UI 组件库，主要用于研发企业级中后台产品。"
-            />
-            <InfoCard
-              index={3}
-              title="了解 Pro Components"
-              href="https://procomponents.ant.design"
-              desc="ProComponents 是一个基于 LOOTBOX 做了更高抽象的模板组件，以 一个组件就是一个页面为开发理念，为中后台开发带来更好的体验。"
-            />
+            <InfoCard index={1} href="https://lootbox.fund" title="Lootbox" desc="Lootbox" />
+            <InfoCard index={2} title="LOOTBOX" href="https://lootbox.fund" desc="Lootbox" />
+            <InfoCard index={3} title="Lootbox" href="https://lootbox.fund" desc="Lootbox" />
           </div>
         </div>
       </Card>
