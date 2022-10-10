@@ -254,6 +254,16 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
               placeholder="Campaign Name"
             />
           </$Vertical>
+          <$Vertical style={{ marginTop: '10px' }}>
+            <label
+              style={{ marginBottom: '5px', color: 'gray' }}
+            >{`Attributed To (optional)`}</label>
+            <Input
+              value={attributedTo}
+              onChange={(e) => setAttributedTo(e.target.value)}
+              placeholder="Someone Else's Promoter ID"
+            />
+          </$Vertical>
           <br />
           <br />
           <br />
