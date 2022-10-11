@@ -5,13 +5,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { EditLootboxPayload } from '@/api/graphql/generated/types';
 import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
 import { $Horizontal, $ColumnGap } from '@/components/generics';
-import { placeholderBackground, placeholderImage, placeholderGif } from '../generics';
+import { placeholderBackground, placeholderImage } from '../generics';
 import ConnectWalletButton from '../ConnectWalletButton';
 import { SelectChain } from './SelectChain';
 import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { useWeb3 } from '@/hooks/useWeb3';
 import LootboxPreview from '../LootboxPreview';
+
+// const DEFAULT_THEME_COLOR = '#00B0FB'
+const DEFAULT_THEME_COLOR = '#000000';
 
 export interface CreateLootboxRequest {
   payload: Omit<LootboxBodyPayload, 'address'>;
@@ -42,7 +45,7 @@ const LOOTBOX_INFO: LootboxBodyPayload = {
   description: '',
   backgroundImage: placeholderBackground,
   logoImage: placeholderImage,
-  themeColor: '#000000',
+  themeColor: DEFAULT_THEME_COLOR,
   nftBountyValue: '',
   joinCommunityUrl: '',
   name: '',
@@ -110,7 +113,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           description: values.description,
           backgroundImage: newMediaDestinationBackground.current,
           logoImage: newMediaDestinationLogo.current,
-          themeColor: values.themeColor,
+          themeColor: newThemeColor.current || DEFAULT_THEME_COLOR,
           nftBountyValue: values.nftBountyValue,
           joinCommunityUrl: values.joinCommunityUrl,
           maxTickets: values.maxTickets,
