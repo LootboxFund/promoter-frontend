@@ -58,7 +58,7 @@ export default [
         component: './Dashboard/EventCreatePage',
       },
       {
-        name: 'Offers',
+        name: 'My Offers',
         path: '/dashboard/offers',
         component: './Dashboard/OffersPage',
       },
