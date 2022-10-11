@@ -238,9 +238,9 @@ const EventPage: React.FC = () => {
   const renderHelpText = () => {
     return (
       <$InfoDescription>
-        {`This is the Event Control Panel for ${
+        {`This is the Event Control Panel for "${
           tournament?.title || 'your event'
-        }. You can manage partners, revenue & Lootboxes as well as view analytics.`}{' '}
+        }". You can manage partners, revenue & Lootboxes as well as view analytics.`}{' '}
         To learn more,{' '}
         <span>
           <a>click here for a tutorial.</a>
