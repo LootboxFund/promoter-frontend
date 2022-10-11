@@ -8,7 +8,7 @@ import { Button, Empty, Image, Modal, Popconfirm } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useMutation, useQuery } from '@apollo/client';
 import Spin from 'antd/lib/spin';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { EDIT_LOOTBOX, GET_LOOTBOX, GetLootboxFE, LootboxFE } from './api.gql';
 import styles from './index.less';
 import { useParams } from 'react-router-dom';
@@ -16,9 +16,17 @@ import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
 import { $ColumnGap, $Horizontal, $InfoDescription } from '@/components/generics';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import CreateLootboxForm from '@/components/CreateLootboxForm';
-import { LootboxID, TournamentID } from '@wormgraph/helpers';
+import { Address, LootboxID, TournamentID } from '@wormgraph/helpers';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { Link } from '@umijs/max';
+import DepositRewardForm, {
+  CheckAllowancePayload,
+  RewardSponsorsPayload,
+} from '@/components/DepositRewardForm';
+import { useLootbox } from '@/hooks/useLootbox';
+import { ContractTransaction, ethers } from 'ethers';
+import useERC20 from '@/hooks/useERC20';
+import useWeb3 from '@/hooks/useWeb3';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -44,9 +52,7 @@ const LootboxPage: React.FC = () => {
     extractURLState_LootboxPage(),
   );
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
-
-  //   const [lootbox, setLootbox] = useState<LootboxFE>();
-
+  const { currentAccount } = useWeb3();
   // VIEW Lootbox
   const { data, loading, error } = useQuery<
     { getLootboxByID: GetLootboxFE | ResponseError },
@@ -54,6 +60,14 @@ const LootboxPage: React.FC = () => {
   >(GET_LOOTBOX, {
     variables: { id: lootboxID || '' },
   });
+
+  const lootbox: LootboxFE | undefined = useMemo(() => {
+    return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
+  }, [data]);
+
+  const { depositERC20, depositNative } = useLootbox({ address: lootbox?.address });
+  const { getAllowance, approveTokenAmount } = useERC20({ chainIDHex: lootbox?.chainIdHex });
+
   // EDIT Lootbox
   //   const [editAdMutation] = useMutation<
   //     { editAd: ResponseError | EditAdResponseSuccess },
@@ -80,21 +94,69 @@ const LootboxPage: React.FC = () => {
     // }
   };
 
-  if (loading) {
+  const renderDepositHelpText = () => {
     return (
-      <PageContainer>
-        <div className={styles.loading_container}>
-          <Spin />
-        </div>
-      </PageContainer>
+      <$InfoDescription>
+        Reward your sponsors by depositing native or ERC20 tokens back into this Lootbox. Rewards
+        can only be redeemed if they own an NFT ticket minted from your Lootbox.
+      </$InfoDescription>
     );
-  } else if (error || !data?.getLootboxByID) {
-    return <span>{error?.message || ''}</span>;
-  } else if (data?.getLootboxByID.__typename === 'ResponseError') {
-    return <span>{data?.getLootboxByID?.error?.message || ''}</span>;
-  }
+  };
 
-  const lootbox = (data?.getLootboxByID as GetLootboxFE).lootbox;
+  const rewardSponsors = async (payload: RewardSponsorsPayload): Promise<ContractTransaction> => {
+    let tx: ContractTransaction;
+    if (payload.rewardType === 'Native') {
+      // Do transaction
+      tx = await depositNative(payload.amount);
+    } else {
+      // ERC20
+      if (!payload.tokenAddress || !ethers.utils.isAddress(payload.tokenAddress)) {
+        throw new Error('Invalid token address');
+      }
+      tx = await depositERC20(payload.amount, payload.tokenAddress);
+    }
+    return tx;
+  };
+
+  const isWithinAllowance = async ({
+    amount,
+    tokenAddress,
+  }: CheckAllowancePayload): Promise<boolean> => {
+    if (!currentAccount) {
+      throw new Error('Connect your Wallet');
+    }
+
+    if (!ethers.utils.isAddress(tokenAddress)) {
+      throw new Error('Invalid token address');
+    }
+
+    const approvedAmount = await getAllowance(currentAccount, lootbox.address, tokenAddress);
+
+    return approvedAmount.gte(amount);
+  };
+
+  const approveAllowance = async (payload: RewardSponsorsPayload): Promise<ContractTransaction> => {
+    if (payload.rewardType === 'Native') {
+      // Dont need to approve these
+      throw new Error('Native tokens do not need approval');
+    }
+
+    if (!payload.tokenAddress || !ethers.utils.isAddress(payload.tokenAddress)) {
+      throw new Error('Invalid token address');
+    }
+
+    if (!currentAccount) {
+      throw new Error('Connect your Wallet');
+    }
+
+    const tx = await approveTokenAmount(
+      currentAccount,
+      lootbox.address,
+      payload.tokenAddress,
+      payload.amount,
+    );
+    return tx;
+  };
 
   const breadLine = [
     { title: 'Dashboard', route: '/dashboard' },
@@ -113,6 +175,20 @@ const LootboxPage: React.FC = () => {
       </$InfoDescription>
     );
   };
+
+  if (loading) {
+    return (
+      <PageContainer>
+        <div className={styles.loading_container}>
+          <Spin />
+        </div>
+      </PageContainer>
+    );
+  } else if (error || !data?.getLootboxByID) {
+    return <span>{error?.message || ''}</span>;
+  } else if (data?.getLootboxByID.__typename === 'ResponseError') {
+    return <span>{data?.getLootboxByID?.error?.message || ''}</span>;
+  }
 
   const maxWidth = '1000px';
   return (
@@ -203,19 +279,15 @@ const LootboxPage: React.FC = () => {
       <br />
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Payout Rewards</h2>
-        <Button type="primary">Deposit Payout</Button>
+        {/* <Button type="primary">Deposit Payout</Button> */}
       </$Horizontal>
-
-      <$InfoDescription maxWidth={maxWidth}>
-        Reward ticket holders with payouts of tokens or NFTs.
-      </$InfoDescription>
-      <Empty
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-        imageStyle={{
-          height: 60,
-        }}
-        description={<span style={{ maxWidth: '200px' }}>{`Coming soon`}</span>}
-        style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
+      <br />
+      {renderDepositHelpText()}
+      <DepositRewardForm
+        chainIDHex={lootbox.chainIdHex}
+        onSubmitReward={rewardSponsors}
+        onTokenApprove={approveAllowance}
+        onCheckAllowance={isWithinAllowance}
       />
       <GenerateReferralModal
         isOpen={isReferralModalOpen}
