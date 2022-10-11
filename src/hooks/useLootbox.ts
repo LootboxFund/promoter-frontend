@@ -1,6 +1,6 @@
 import { Address } from '@wormgraph/helpers';
 import LootboxABI from '@wormgraph/helpers/lib/abi/LootboxCosmic.json';
-import { Contract, ethers } from 'ethers';
+import { Contract, ContractTransaction, ethers } from 'ethers';
 import { useWeb3 } from './useWeb3';
 
 interface UseLootboxProps {
@@ -17,25 +17,31 @@ interface UseLootboxResult {
 }
 
 export const useLootbox = ({ address }: UseLootboxProps): UseLootboxResult => {
-  const { library } = useWeb3();
+  const { currentAccount, library } = useWeb3();
   const lootbox = address ? new Contract(address, LootboxABI, library?.getSigner()) : null;
 
-  const depositNative = async (amount: ethers.BigNumber) => {
-    if (!lootbox) {
+  const depositNative = async (amount: ethers.BigNumber): Promise<ContractTransaction> => {
+    const signer = library?.getSigner(currentAccount);
+    if (!lootbox || !signer) {
       throw new Error('Connect MetaMask');
     }
+
     return lootbox.depositEarningsNative({
       value: amount,
     }) as Promise<ethers.ContractTransaction>;
   };
 
-  const depositERC20 = async (amount: ethers.BigNumber, tokenAddress: Address) => {
-    if (!lootbox) {
+  const depositERC20 = async (
+    amount: ethers.BigNumber,
+    tokenAddress: Address,
+  ): Promise<ContractTransaction> => {
+    const signer = library?.getSigner(currentAccount);
+    if (!lootbox || !signer) {
       throw new Error('Connect MetaMask');
     }
     return lootbox.depositEarningsErc20(
       tokenAddress,
-      amount,
+      amount.toString(),
     ) as Promise<ethers.ContractTransaction>;
   };
 

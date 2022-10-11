@@ -1,31 +1,42 @@
 import { Address, ChainIDHex, chainIdHexToName } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Empty, Form, Modal } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
-import { $Horizontal } from '@/components/generics';
+import { Button, Card, Empty, Form, Modal, Spin } from 'antd';
+import { useCallback, useState } from 'react';
+import { $Horizontal, $Vertical } from '@/components/generics';
 import ConnectWalletButton from '../ConnectWalletButton';
 import { useWeb3 } from '@/hooks/useWeb3';
-import { ethers } from 'ethers';
+import { ContractTransaction, ethers } from 'ethers';
 import { chainIdToHex } from '@/lib/chain';
+import { shortenAddress } from '@/lib/address';
+import styles from './index.less';
+
+type RewardType = 'Native' | 'ERC20';
 
 export interface RewardSponsorsPayload {
+  rewardType: RewardType;
   amount: ethers.BigNumber;
   tokenAddress?: Address; // undefined == native
 }
 
+export interface CheckAllowancePayload {
+  amount: ethers.BigNumber;
+  tokenAddress: Address;
+}
+
 export type DepositRewardForm = {
   chainIDHex: ChainIDHex;
-  onSubmitReward?: (payload: RewardSponsorsPayload) => Promise<void>;
-  onTokenApprove?: (tokenAddress: Address) => Promise<void>;
+  onSubmitReward: (payload: RewardSponsorsPayload) => Promise<ContractTransaction>;
+  onTokenApprove: (payload: RewardSponsorsPayload) => Promise<ContractTransaction | null>;
+  onCheckAllowance: (payload: CheckAllowancePayload) => Promise<boolean>;
 };
 
 const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   chainIDHex,
   onSubmitReward,
   onTokenApprove,
+  onCheckAllowance,
 }) => {
-  const { library, network, switchNetwork } = useWeb3();
-  const { currentAccount } = useWeb3();
+  const { currentAccount, library, network, switchNetwork } = useWeb3();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   // @ts-ignore
@@ -33,48 +44,143 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
 
   const userChainIDHex = network?.chainId ? chainIdToHex(network.chainId) : null;
 
-  const handleTokenApproval = useCallback(async () => {
-    if (!onTokenApprove) {
-      return;
+  const parseAmount = async (amount: string, tokenAddress?: Address): Promise<ethers.BigNumber> => {
+    // get decimals
+    let decimals;
+    if (!!tokenAddress) {
+      const erc20Contract = new ethers.Contract(
+        tokenAddress,
+        ['function decimals() view returns (uint8)'],
+        library,
+      );
+      decimals = await erc20Contract.decimals();
+    } else {
+      decimals = 18;
     }
-    console.log('approve');
-  }, [onTokenApprove]);
+    const amountBN = ethers.utils.parseUnits(`${amount}`, decimals);
+    return amountBN;
+  };
 
   const handleOnRewardSubmit = useCallback(
     async (values) => {
-      if (!onSubmitReward) return;
+      console.log('reward submit: ', values);
       if (!library) {
         console.error('no web3 library available');
         return;
       }
 
       setLoading(true);
+      let controlledModal = undefined;
       try {
-        // get decimals
-        let decimals;
-        if (values.rewardType === 'Native') {
-          decimals = 18;
-        } else {
-          const erc20Contract = new ethers.Contract(
-            values.tokenAddress,
-            ['function decimals() view returns (uint8)'],
-            library,
-          );
-          decimals = await erc20Contract.decimals();
-        }
-        const amount = ethers.utils.parseUnits(`${values.amount}`, decimals);
+        const amount = await parseAmount(
+          values.amount,
+          (values.rewardType as RewardType) === 'Native' ? undefined : values.tokenAddress,
+        );
         console.log('amount', amount.toString());
         const payload: RewardSponsorsPayload = {
+          rewardType: values.rewardType as RewardType,
           amount,
-          tokenAddress: values.tokenAddress,
+          tokenAddress:
+            (values.rewardType as RewardType) === 'ERC20' ? values.tokenAddress : undefined,
         };
 
-        await onSubmitReward(payload);
-        Modal.success({
+        if ((values.rewardType as RewardType) === 'ERC20') {
+          // Check if within allowance:
+          const isWithinAllowance = await onCheckAllowance({
+            amount,
+            tokenAddress: values.tokenAddress,
+          });
+
+          if (!isWithinAllowance) {
+            const closeLoadingModal = Modal.info({
+              title: 'Approving Transaction',
+              content: (
+                <span>
+                  You must give Lootbox permission to transfer your tokens.{' '}
+                  <b>Please approve Lootbox in your wallet.</b>
+                  <br />
+                  <br />
+                  <i>
+                    There is a one-time cost associated to this transaction to pay for gas. Lootbox
+                    does not receive or control this fee.
+                  </i>
+                </span>
+              ),
+              okButtonProps: { style: { display: 'none' } },
+              okCancel: true,
+            });
+
+            try {
+              // We approve MaxUint256 so that we only need to do it once
+              const tx = await onTokenApprove({ ...payload, amount: ethers.constants.MaxUint256 });
+
+              if (tx) {
+                closeLoadingModal.update({
+                  content: (
+                    <$Vertical spacing={4}>
+                      <span>Waiting for transaction confirmation...</span>
+                      <Spin className={styles.spin} />
+                    </$Vertical>
+                  ),
+                  okButtonProps: { style: { display: 'none' } },
+                  okCancel: false,
+                });
+
+                await tx.wait();
+                controlledModal = Modal.success({
+                  title: 'Deposit Approved',
+                  content: (
+                    <span>
+                      Almost done...&nbsp;<b>Please complete the transaction in your wallet.</b>
+                    </span>
+                  ),
+                  okButtonProps: { style: { display: 'none' } },
+                  okCancel: true,
+                });
+              }
+            } catch (err) {
+              throw err;
+            } finally {
+              closeLoadingModal?.destroy();
+            }
+          }
+        }
+
+        // Native
+        const tx = await onSubmitReward(payload);
+        const modalConfig = {
+          title: 'Depositing Rewards',
+          content: (
+            <$Vertical spacing={4}>
+              <span>
+                Depositing your funds...&nbsp;
+                <b>Please wait while we confirm your transaction.</b>
+              </span>
+              <Spin className={styles.spin} />
+            </$Vertical>
+          ),
+          okButtonProps: { style: { display: 'none' } },
+          okCancel: false,
+        };
+        if (controlledModal === undefined) {
+          controlledModal = Modal.info(modalConfig);
+        } else {
+          controlledModal.update(modalConfig);
+        }
+        await tx.wait();
+        controlledModal.update({
+          type: 'success',
           title: 'Success',
           content: 'Deposit received',
+          okButtonProps: { style: { display: 'initial' } },
+          okCancel: false,
         });
       } catch (e: any) {
+        if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
+          // code === 4001 = user denied signature
+          return;
+        }
+
         Modal.error({
           title: 'Failure',
           content: `${e.message}`,
@@ -83,11 +189,11 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         setLoading(false);
       }
     },
-    [onSubmitReward],
+    [onSubmitReward, onTokenApprove],
   );
 
   const getMeta = () => {
-    const meta = {
+    const infoMeta = {
       columns: 1,
       disabled: loading,
       initialValues: { amount: '0', tokenAddress: undefined },
@@ -96,14 +202,16 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           key: 'rewardType',
           label: 'Pick a Reward Method',
           widget: 'radio-group',
-          options: ['Native', 'ERC20'],
+          options: ['Native', 'ERC20'] as RewardType[],
           initialValue: 'Native',
+          preserving: true,
         },
         {
           key: 'amount',
           label: 'Amount',
           widget: 'number',
           required: true,
+          preserving: true,
           rules: [
             {
               validator: (_rule: any, value: any, _callback: any) => {
@@ -123,12 +231,15 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
       ],
     };
 
-    if (!!form.getFieldValue('rewardType') && form.getFieldValue('rewardType') === 'ERC20') {
-      meta.fields.push({
-        key: 'address',
+    const rewardType = form.getFieldValue('rewardType') as RewardType;
+
+    if (!!form.getFieldValue('rewardType') && rewardType === 'ERC20') {
+      infoMeta.fields.push({
+        key: 'tokenAddress',
         label: 'ERC20 Contract Address',
         required: true,
         widget: 'input',
+        preserving: true,
         rules: [
           {
             validator: (_rule: any, value: any, _callback: any) => {
@@ -146,13 +257,10 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         ],
       });
     }
-
-    return meta;
+    return infoMeta;
   };
 
-  //   const needsApproval = form.getFieldValue('rewardType') !== 'Native';
-
-  console.log(form.getFieldValue('rewardType'));
+  const meta = getMeta();
 
   return (
     <Card style={{ flex: 1 }}>
@@ -209,24 +317,24 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
             >
               <fieldset>
                 <legend>{`Reward Sponsors`}</legend>
-                <FormBuilder form={form} meta={getMeta()} />
+                <FormBuilder form={form} meta={meta} />
               </fieldset>
               <fieldset>
-                <$Horizontal justifyContent="flex-end">
-                  <Form.Item className="form-footer" style={{ width: 'auto' }}>
-                    {!currentAccount ? (
-                      <ConnectWalletButton />
-                    ) : (
-                      // ) : needsApproval ? (
-                      //   <Button type="primary" onClick={handleTokenApproval} disabled={loading}>
-                      //     {loading ? 'Approving...' : 'Approve Transfer'}
-                      //   </Button>
+                <Form.Item className="form-footer" style={{ textAlign: 'right' }}>
+                  {!currentAccount ? (
+                    <ConnectWalletButton />
+                  ) : (
+                    <span>
+                      <span className={styles.walletText}>
+                        {currentAccount && `${shortenAddress(currentAccount)}`}
+                      </span>
+                      &nbsp;
                       <Button htmlType="submit" type="primary" disabled={loading}>
-                        {loading ? 'Depositing...' : 'Deposit'}
+                        {loading ? 'Loading...' : 'Deposit'}
                       </Button>
-                    )}
-                  </Form.Item>
-                </$Horizontal>
+                    </span>
+                  )}
+                </Form.Item>
               </fieldset>
             </Form>
           </div>
