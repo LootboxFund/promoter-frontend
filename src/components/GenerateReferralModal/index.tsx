@@ -152,6 +152,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             type: ReferralType.OneTime,
             numReferrals: quantityTickets,
             promoterId: !!attributedTo ? attributedTo : undefined,
+            lootboxID: lootboxID,
           },
         },
       });
@@ -366,7 +367,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
             <label style={{ marginBottom: '5px', color: 'gray' }}>{`Quantity of Tickets`}</label>
             <InputNumber
               value={quantityTickets}
-              onChange={(e) => setQuantityTickets(e)}
+              onChange={(e) => setQuantityTickets(e || 0)}
               min={1}
               style={{ width: '100%' }}
             />
