@@ -87,7 +87,7 @@ const RegisterAccount: React.FC<RegisterAccountProps> = ({
         <Result
           status="success"
           title="Congratulations!"
-          subTitle="You have upgraded to an Affiliate Account and can now start earning with LOOTBOX. Login to get started!"
+          subTitle="You have upgraded to an Affiliate Account and can now start earning with LOOTBOX!"
           extra={[
             <Button
               onClick={async () => {

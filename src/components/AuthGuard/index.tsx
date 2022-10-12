@@ -36,8 +36,6 @@ const AuthGuard = ({ children, strict, ...props }: AuthGuardProps) => {
   );
 
   if (user && !cookies[AFFILIATE_ID_COOKIE]) {
-    console.log(user);
-    console.log(cookies[AFFILIATE_ID_COOKIE]);
     if (window.location.pathname !== `/user/login`) {
       return (
         <$Horizontal
@@ -45,13 +43,11 @@ const AuthGuard = ({ children, strict, ...props }: AuthGuardProps) => {
           verticalCenter
           style={{ width: '100vw', height: '100vh' }}
         >
-          <a href="/user/login">
-            <RegisterAccount
-              isModalOpen={true}
-              setIsModalOpen={() => {}}
-              initialView="confirm_upgrade"
-            />
-          </a>
+          <RegisterAccount
+            isModalOpen={true}
+            setIsModalOpen={() => {}}
+            initialView="confirm_upgrade"
+          />
         </$Horizontal>
       );
     }

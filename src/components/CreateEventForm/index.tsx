@@ -196,7 +196,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           label: 'Estimated Date',
           widget: 'date-picker',
           viewWidget: DateView,
-          required: true,
           tooltip: 'Shown publically as the last date that tickets can be claimed',
         },
         {
@@ -223,7 +222,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           key: 'description',
           label: 'Description',
           widget: 'textarea',
-          required: true,
           tooltip: 'Additional information shown publically on your Lootbox event page',
         },
       ],
@@ -232,21 +230,21 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       meta.fields.push({
         key: 'coverPhoto',
         label: 'Cover Photo',
-        rules: [
-          {
-            validator: (rule: any, value: any, callback: any) => {
-              // Do async validation to check if username already exists
-              // Use setTimeout to emulate api call
-              return new Promise((resolve, reject) => {
-                if (mode === 'create' && !newMediaDestination.current) {
-                  reject(new Error(`Upload a file`));
-                } else {
-                  resolve(newMediaDestination.current);
-                }
-              });
-            },
-          },
-        ],
+        // rules: [
+        //   {
+        //     validator: (rule: any, value: any, callback: any) => {
+        //       // Do async validation to check if username already exists
+        //       // Use setTimeout to emulate api call
+        //       return new Promise((resolve, reject) => {
+        //         if (mode === 'create' && !newMediaDestination.current) {
+        //           reject(new Error(`Upload a file`));
+        //         } else {
+        //           resolve(newMediaDestination.current);
+        //         }
+        //       });
+        //     },
+        //   },
+        // ],
         // @ts-ignore
         widget: () => (
           <AntUploadFile
