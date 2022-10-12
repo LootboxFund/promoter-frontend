@@ -1,9 +1,10 @@
-import type {
+import {
   ViewOfferDetailsAsEventAffiliateResponse,
   QueryViewOfferDetailsAsAffiliateArgs,
   OfferAffiliateView,
   ViewOfferDetailsAsEventAffiliatePayload,
   AdSetPreview,
+  AdSetStatus,
 } from '@/api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
@@ -21,6 +22,7 @@ import styles from './index.less';
 import Meta from 'antd/lib/card/Meta';
 import AdSetToTournamentModal from '@/components/AdSetToTournamentModal';
 import CreateOfferForm from '@/components/CreateOfferForm';
+import { OfferStatus } from '../../../api/graphql/generated/types';
 
 const OfferPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();
@@ -157,6 +159,7 @@ const OfferPage: React.FC = () => {
             <div className={styles.adSetGrid}>
               {offer.adSetPreviews.map((adSet) => {
                 const imageToDisplay = adSet.thumbnail || placeholderImage;
+                console.log(adSet);
                 return (
                   <Card
                     key={adSet.id}
@@ -168,9 +171,14 @@ const OfferPage: React.FC = () => {
                         key={`${adSet.id}-add-to-event`}
                         onClick={() => setSelectedAdSet(adSet)}
                         type="primary"
+                        disabled={
+                          adSet.status !== AdSetStatus.Active || offer.status !== OfferStatus.Active
+                        }
                         style={{ width: '90%' }}
                       >
-                        Add To Event
+                        {adSet.status === AdSetStatus.Active && offer.status === OfferStatus.Active
+                          ? `Add To Event`
+                          : `Not Active Yet`}
                       </Button>,
                     ]}
                   >

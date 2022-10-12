@@ -104,11 +104,12 @@ const OffersPage: React.FC = () => {
           )}
           <div className={styles.content}>
             {offers.filter(filterBySearchString).map((offer) => {
-              const minEarn = offer.activationsForAffiliate
-                .slice()
-                .sort((a, b) => a.pricing - b.pricing)[0].pricing;
+              const minEarn =
+                offer.activationsForAffiliate
+                  .slice()
+                  .sort((a, b) => (a?.pricing || 0) - (b?.pricing || 0))[0]?.pricing || 0;
               const maxEarn = offer.activationsForAffiliate.reduce((acc, curr) => {
-                return acc + curr.pricing;
+                return acc + curr?.pricing || 0;
               }, 0);
               return (
                 <Link key={offer.id} to={`/dashboard/offers/id/${offer.id}`}>

@@ -1,6 +1,6 @@
 import { useLazyQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
-import { AffiliateID } from '@wormgraph/helpers';
+import { AffiliateID, formatBigNumber } from '@wormgraph/helpers';
 import { Button, Card, Input, Modal, Spin } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import { useState } from 'react';
@@ -92,6 +92,7 @@ const AddPromoterToTournamentModal: React.FC<AddPromoterToTournamentModalProps> 
               <Meta
                 title={searchedPartner.name}
                 style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}
+                description={`${formatBigNumber(searchedPartner.audienceSize, 1)} Audience`}
               />
             </Card>
           </div>
