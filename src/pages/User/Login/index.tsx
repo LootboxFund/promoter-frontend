@@ -271,7 +271,11 @@ const Login: React.FC = () => {
       </div>
       <Footer />
       <div id="recaptcha-container" />
-      <RegisterAccount isModalOpen={registrationModal} setIsModalOpen={setRegistrationModal} />
+      <RegisterAccount
+        isModalOpen={registrationModal}
+        setIsModalOpen={setRegistrationModal}
+        initialView="initial_registration"
+      />
     </div>
   );
 };

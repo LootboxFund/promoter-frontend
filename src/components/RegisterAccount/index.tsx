@@ -7,27 +7,28 @@ import { UserID } from '@wormgraph/helpers';
 export type RegisterAccountProps = {
   isModalOpen: boolean;
   setIsModalOpen: (bool: boolean) => void;
+  initialView: 'initial_registration' | 'confirm_upgrade';
 };
 
-const RegisterAccount: React.FC<RegisterAccountProps> = ({ isModalOpen, setIsModalOpen }) => {
-  const { signUpWithEmailAndPassword, upgradeToAffiliate } = useAuth();
+const RegisterAccount: React.FC<RegisterAccountProps> = ({
+  isModalOpen,
+  setIsModalOpen,
+  initialView,
+}) => {
+  const { signUpWithEmailAndPassword, upgradeToAffiliate, logout } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [newUserID, setNewUserID] = useState<UserID>();
   const [upgradeStatus, setUpgradeStatus] = useState<
-    'confirm_upgrade' | 'successful_upgrade' | 'initial_registration'
-  >('initial_registration');
+    'confirm_upgrade' | 'successful_upgrade' | 'initial_registration' | 'can_login_now'
+  >(initialView);
 
   const handleSignUpWithEmailAndPassword = async () => {
     setLoading(true);
     try {
-      const userID = await signUpWithEmailAndPassword(email, password, password);
-      message.success(
-        'Registered account! You must now request to be upgraded to an advertiser or affiliate.',
-      );
-      setUpgradeStatus('confirm_upgrade');
-      setNewUserID(userID as UserID);
+      await logout();
+      await signUpWithEmailAndPassword(email, password, password);
+      setUpgradeStatus('can_login_now');
     } catch (err: any) {
       message.error(err.message);
     } finally {
@@ -35,7 +36,25 @@ const RegisterAccount: React.FC<RegisterAccountProps> = ({ isModalOpen, setIsMod
     }
   };
   const renderContent = () => {
-    if (upgradeStatus === 'confirm_upgrade') {
+    if (upgradeStatus === 'can_login_now') {
+      return (
+        <Result
+          title="Successfully Registered"
+          subTitle="You can login now"
+          status="success"
+          extra={[
+            <Button
+              onClick={() => setIsModalOpen(false)}
+              type="primary"
+              loading={loading}
+              key="close"
+            >
+              Proceed to Login
+            </Button>,
+          ]}
+        />
+      );
+    } else if (upgradeStatus === 'confirm_upgrade') {
       return (
         <Result
           title="Upgrade Your Account"
@@ -43,17 +62,15 @@ const RegisterAccount: React.FC<RegisterAccountProps> = ({ isModalOpen, setIsMod
           extra={[
             <Button
               onClick={async () => {
-                if (newUserID) {
-                  setLoading(true);
-                  try {
-                    await upgradeToAffiliate(newUserID);
-                    setUpgradeStatus('successful_upgrade');
-                    setLoading(false);
-                  } catch (e) {
-                    console.log(e);
-                    message.error('You do not have permission to do this');
-                    setLoading(false);
-                  }
+                setLoading(true);
+                try {
+                  await upgradeToAffiliate();
+                  setUpgradeStatus('successful_upgrade');
+                  setLoading(false);
+                } catch (e) {
+                  console.log(e);
+                  message.error('You do not have permission to do this');
+                  setLoading(false);
                 }
               }}
               type="primary"
@@ -70,16 +87,16 @@ const RegisterAccount: React.FC<RegisterAccountProps> = ({ isModalOpen, setIsMod
         <Result
           status="success"
           title="Congratulations!"
-          subTitle="You have upgraded to an Affiliate Account and can now start running ads with offers. Login to get started!"
+          subTitle="You have upgraded to an Affiliate Account and can now start earning with LOOTBOX. Login to get started!"
           extra={[
             <Button
               onClick={async () => {
-                setIsModalOpen(false);
+                window.location.reload();
               }}
               type="primary"
               key="closemodal"
             >
-              Login
+              Proceed to Dashboard
             </Button>,
           ]}
         />

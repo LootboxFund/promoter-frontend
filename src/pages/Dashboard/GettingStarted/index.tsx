@@ -146,7 +146,7 @@ const GettingStarted: React.FC = () => {
             <InfoCard
               index={3}
               title="Create Marketing Graphics"
-              desc="Auto-generate marketing graphics using the Lootbox stamp feature."
+              desc="Auto-generate marketing graphics to help distribute your Lootbox fan tickets."
               action={<Link to="/dashboard/stamp">Use Stamp {'>'}</Link>}
             />
           </div>
