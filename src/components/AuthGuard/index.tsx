@@ -36,7 +36,7 @@ const AuthGuard = ({ children, strict, ...props }: AuthGuardProps) => {
   );
 
   if (user && !cookies[AFFILIATE_ID_COOKIE]) {
-    if (window.location.pathname !== `/user/login`) {
+    if (window.location.pathname !== `/user/login` && window.location.pathname !== `/user/logout`) {
       return (
         <$Horizontal
           justifyContent="center"
