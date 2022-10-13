@@ -1,7 +1,7 @@
 import type { Affiliate, AffiliateAdminViewResponse } from '@/api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import { $InfoDescription, $Horizontal } from '@/components/generics';
-import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/components/LoginAccount/api.gql';
 import { SmileOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';

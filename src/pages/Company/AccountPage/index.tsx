@@ -12,11 +12,10 @@ import {
   AffiliateAdminViewResponse,
   AffiliateAdminViewResponseSuccess,
   MutationUpdateAffiliateDetailsArgs,
-  MutationUpgradeToAffiliateArgs,
   ResponseError,
   UpdateAffiliateDetailsPayload,
 } from '@/api/graphql/generated/types';
-import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/components/LoginAccount/api.gql';
 import { UPDATE_AFFILIATE } from './api.gql';
 import {
   UpdateAffiliateDetailsResponseSuccess,

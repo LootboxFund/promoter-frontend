@@ -26,7 +26,7 @@ import type { UserID } from '@wormgraph/helpers';
 
 import { AFFILIATE_ID_COOKIE } from '@/api/constants';
 import { useCookies } from 'react-cookie';
-import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/components/LoginAccount/api.gql';
 import { message } from 'antd';
 
 interface FrontendUser {
@@ -72,7 +72,12 @@ export const useAuth = () => {
     useLazyQuery(GET_AFFILIATE_ADMIN_VIEW);
 
   useEffect(() => {
-    if (!loadingAffiliate && !errorAffiliate && dataAffiliate) {
+    if (
+      !loadingAffiliate &&
+      !errorAffiliate &&
+      dataAffiliate &&
+      dataAffiliate.affiliateAdminView.affiliate
+    ) {
       setCookie(AFFILIATE_ID_COOKIE, dataAffiliate.affiliateAdminView.affiliate.id, { path: '/' });
     }
   }, [dataAffiliate]);

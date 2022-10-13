@@ -42,6 +42,10 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
       loginOut();
       return;
     }
+    if (key === 'account') {
+      history.push(`/company/account`);
+      return;
+    }
     history.push(`/account/${key}`);
   }, []);
 
@@ -83,6 +87,11 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
           },
         ]
       : []),
+    {
+      key: 'account',
+      icon: <UserOutlined />,
+      label: 'Account',
+    },
     {
       key: 'logout',
       icon: <LogoutOutlined />,

@@ -8,6 +8,7 @@ import type { UpdateAffiliateDetailsPayload } from '@/api/graphql/generated/type
 import { AntUploadFile } from '../AntFormBuilder';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { $Horizontal } from '@/components/generics';
+import { useAuth } from '@/api/firebase/useAuth';
 
 export type EditAffiliateFormProps = {
   affiliate: {
@@ -29,11 +30,13 @@ const AFFILIATE_INFO = {
   description: '',
   avatar: '',
   publicContactEmail: '',
+  privateLoginEmail: '',
   website: '',
   audienceSize: 0,
 };
 
 const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubmit, mode }) => {
+  const { user } = useAuth();
   const [form] = Form.useForm();
   const [viewMode, setViewMode] = useState(true);
   const [pending, setPending] = useState(false);
@@ -45,11 +48,18 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
       name: affiliate.name,
       description: affiliate.description || '',
       avatar: affiliate.avatar || '',
+      privateLoginEmail: affiliateInfo.privateLoginEmail || '',
       publicContactEmail: affiliate.publicContactEmail || '',
       website: affiliate.website || '',
       audienceSize: affiliate.audienceSize || 0,
     });
   }, [affiliate]);
+  useEffect(() => {
+    setAffiliateInfo({
+      ...affiliateInfo,
+      privateLoginEmail: user?.email || '',
+    });
+  }, [user]);
   const handleFinish = useCallback(async (values) => {
     const payload = {} as Omit<UpdateAffiliateDetailsPayload, 'id'>;
     if (values.name) {
@@ -98,6 +108,16 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
           required: true,
           tooltip:
             'Your name that will appear in the marketplace for advertisers and fellow promoters.',
+        },
+        {
+          key: 'privateLoginEmail',
+          label: 'Private Login Email',
+          tooltip: 'Used for login to LOOTBOX. Not shown publically.',
+          widget: () => (
+            <span style={{ color: 'gray', marginLeft: '10px' }}>
+              {`${affiliateInfo.privateLoginEmail} (Locked)`}
+            </span>
+          ),
         },
         {
           key: 'publicContactEmail',

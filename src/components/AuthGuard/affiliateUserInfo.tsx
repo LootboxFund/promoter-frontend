@@ -4,7 +4,7 @@ import {
   AffiliateAdminViewResponse,
   AffiliateAdminViewResponseSuccess,
 } from '@/api/graphql/generated/types';
-import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/components/LoginAccount/api.gql';
 import { useQuery } from '@apollo/client';
 import { useState } from 'react';
 import { useCookies } from 'react-cookie';

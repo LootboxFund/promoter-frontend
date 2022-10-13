@@ -87,7 +87,7 @@ const Welcome: React.FC = () => {
         }}
         bodyStyle={{
           backgroundImage:
-            'radial-gradient(circle at 97% 10%, #EBF2FF 0%, #F5F8FF 28%, #EBF1FF 124%)',
+            'radial-gradient(circle at 97% 10%, #fbeada 0%, #fdebc9 28%, #f1dbb7 124%)',
         }}
       >
         <div
