@@ -22,3 +22,19 @@ export const GET_AFFILIATE = gql`
     }
   }
 `;
+
+export const REPORT_TOTAL_EARNINGS = gql`
+  query ReportTotalEarningsForAffiliate {
+    reportTotalEarningsForAffiliate {
+      ... on ReportTotalEarningsForAffiliateResponseSuccess {
+        sum
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
