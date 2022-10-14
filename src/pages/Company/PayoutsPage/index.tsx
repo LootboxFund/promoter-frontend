@@ -47,7 +47,7 @@ const PayoutsPage: React.FC = () => {
     <PageContainer>
       {renderHelpText()}
       {!earningsLoading && (
-        <b style={{ color: 'gray' }}>{`Total $${earningsSum.toFixed(2)} Earned`}</b>
+        <b style={{ color: 'gray' }}>{`Total $${earningsSum.toFixed(2)} USD Earned`}</b>
       )}
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}

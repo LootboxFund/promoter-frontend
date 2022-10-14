@@ -22,6 +22,7 @@ import { Link, useParams } from '@umijs/max';
 import type {
   ActivationID,
   AffiliateID,
+  LootboxID,
   OfferID,
   RateQuoteID,
   TournamentID,
@@ -72,6 +73,7 @@ import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import DeviceSimulator, { DeviceSimulatorProps } from '@/components/DeviceSimulator';
 import CreateEventForm from '@/components/CreateEventForm';
 import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
+import GenerateReferralModal from '@/components/GenerateReferralModal';
 
 interface DataType {
   rateQuoteID: string;
@@ -98,6 +100,7 @@ const EventPage: React.FC = () => {
   const [tournament, setTournament] = useState<Tournament>();
   const [showTableOfContents, setShowTableOfContents] = useState(true);
   const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
   // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
@@ -366,7 +369,16 @@ const EventPage: React.FC = () => {
           )}
           <br />
           <br />
-          <h2 id="ticket-analytics">Ticket Analytics</h2>
+          <$Horizontal justifyContent="space-between">
+            <h2 id="ticket-analytics">Ticket Analytics</h2>
+            <Button
+              type="primary"
+              onClick={() => setIsReferralModalOpen(true)}
+              disabled={lootboxTournamentSnapshots.length === 0}
+            >
+              Invite Fans
+            </Button>
+          </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
             {`Lootbox tickets are distributed to fans & audience members.`}
           </$InfoDescription>
@@ -717,6 +729,14 @@ const EventPage: React.FC = () => {
         >
           {simulatedAd && <DeviceSimulator creative={simulatedAd.creative} />}
         </Modal>
+      )}
+      {lootboxTournamentSnapshots.length > 0 && (
+        <GenerateReferralModal
+          isOpen={isReferralModalOpen}
+          setIsOpen={setIsReferralModalOpen}
+          lootboxID={(lootboxTournamentSnapshots[0].lootboxID || '') as LootboxID}
+          tournamentID={(eventID || '') as TournamentID}
+        />
       )}
     </div>
   );

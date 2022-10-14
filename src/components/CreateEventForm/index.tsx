@@ -190,13 +190,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       disabled: pending,
       initialValues: tournamentInfo,
       fields: [
-        { key: 'title', label: 'Title', required: true, tooltip: 'Shown publically on tickets' },
         {
-          key: 'tournamentDate',
-          label: 'Estimated Date',
-          widget: 'date-picker',
-          viewWidget: DateView,
-          tooltip: 'Shown publically as the last date that tickets can be claimed',
+          key: 'title',
+          label: 'Title',
+          required: true,
+          tooltip: 'The title of the tournament shown publically on tickets',
         },
         {
           key: 'tournamentLink',
@@ -205,57 +203,72 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           tooltip:
             'Link to an external event page such as EventBrite, CommunityGaming, Facebook Events, Twitch, Discord, or your website.',
         },
-        {
-          key: 'communityURL',
-          label: 'Link to Community',
-          rules: [{ type: 'url' } as Rule],
-          tooltip:
-            'Link to where you want to funnel audience members. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
-        },
-        {
-          key: 'prize',
-          label: 'Prize',
-          tooltip:
-            'The total prize pool for fan ticket holders, shown publically on marketing materials',
-        },
-        {
-          key: 'description',
-          label: 'Description',
-          widget: 'textarea',
-          tooltip: 'Additional information shown publically on your Lootbox event page',
-        },
       ],
     };
-    if (!viewMode) {
+    if (mode !== 'create') {
+      // @ts-ignore
       meta.fields.push({
-        key: 'coverPhoto',
-        label: 'Cover Photo',
-        // rules: [
-        //   {
-        //     validator: (rule: any, value: any, callback: any) => {
-        //       // Do async validation to check if username already exists
-        //       // Use setTimeout to emulate api call
-        //       return new Promise((resolve, reject) => {
-        //         if (mode === 'create' && !newMediaDestination.current) {
-        //           reject(new Error(`Upload a file`));
-        //         } else {
-        //           resolve(newMediaDestination.current);
-        //         }
-        //       });
-        //     },
-        //   },
-        // ],
+        key: 'description',
+        label: 'Description',
         // @ts-ignore
-        widget: () => (
-          <AntUploadFile
-            affiliateID={affiliateID}
-            folderName={AffiliateStorageFolder.TOURNAMENT}
-            newMediaDestination={newMediaDestination}
-            acceptedFileTypes={'image/*'}
-          />
-        ),
-        tooltip: 'Shown as the banner photo for your event',
+        widget: 'textarea',
+        tooltip: 'Additional information shown publically on your Lootbox event page',
       });
+      // @ts-ignore
+      meta.fields.push({
+        key: 'tournamentDate',
+        label: 'Estimated Date',
+        // @ts-ignore
+        widget: 'date-picker',
+        viewWidget: DateView,
+        tooltip: 'Shown publically as the last date that tickets can be claimed',
+      });
+      // @ts-ignore
+      meta.fields.push({
+        key: 'communityURL',
+        label: 'Link to Community',
+        rules: [{ type: 'url' } as Rule],
+        tooltip:
+          'Link to where you want to funnel audience members. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
+      });
+      // @ts-ignore
+      meta.fields.push({
+        key: 'prize',
+        label: 'Prize',
+        tooltip:
+          'The total prize pool for fan ticket holders, shown publically on marketing materials',
+      });
+      if (!viewMode) {
+        meta.fields.push({
+          key: 'coverPhoto',
+          label: 'Cover Photo',
+          // rules: [
+          //   {
+          //     validator: (rule: any, value: any, callback: any) => {
+          //       // Do async validation to check if username already exists
+          //       // Use setTimeout to emulate api call
+          //       return new Promise((resolve, reject) => {
+          //         if (mode === 'create' && !newMediaDestination.current) {
+          //           reject(new Error(`Upload a file`));
+          //         } else {
+          //           resolve(newMediaDestination.current);
+          //         }
+          //       });
+          //     },
+          //   },
+          // ],
+          // @ts-ignore
+          widget: () => (
+            <AntUploadFile
+              affiliateID={affiliateID}
+              folderName={AffiliateStorageFolder.TOURNAMENT}
+              newMediaDestination={newMediaDestination}
+              acceptedFileTypes={'image/*'}
+            />
+          ),
+          tooltip: 'Shown as the banner photo for your event',
+        });
+      }
     }
     return meta;
   };
