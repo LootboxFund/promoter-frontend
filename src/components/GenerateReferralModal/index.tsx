@@ -23,7 +23,7 @@ import { manifest } from '../../manifest';
 export type GenerateReferralModalProps = {
   isOpen: boolean;
   setIsOpen: (bool: boolean) => void;
-  lootboxID: LootboxID;
+  lootboxID?: LootboxID;
   tournamentID: TournamentID;
 };
 const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
@@ -90,9 +90,10 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
     setLoading(true);
     setErrorMessage('');
     try {
-      if (!lootboxID) {
-        throw new Error('A Lootbox is required to generated a referral invite link');
-      } else if (!tournamentID) {
+      // if (!lootboxID) {
+      //   throw new Error('A Lootbox is required to generated a referral invite link');
+      // } else
+      if (!tournamentID) {
         throw new Error('Tournament is required to generate a referral invite link');
       }
 
@@ -136,9 +137,10 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
     setLoading(true);
     setErrorMessage('');
     try {
-      if (!lootboxID) {
-        throw new Error('A Lootbox is required to generated a referral invite link');
-      } else if (!tournamentID) {
+      // if (!lootboxID) {
+      //   throw new Error('A Lootbox is required to generated a referral invite link');
+      // } else
+      if (!tournamentID) {
         throw new Error('Tournament is required to generate a referral invite link');
       } else if (quantityTickets <= 0) {
         throw new Error('Must bulk participation rewards more than 0');

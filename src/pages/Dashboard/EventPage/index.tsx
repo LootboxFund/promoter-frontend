@@ -735,7 +735,7 @@ const EventPage: React.FC = () => {
         <GenerateReferralModal
           isOpen={isReferralModalOpen}
           setIsOpen={setIsReferralModalOpen}
-          lootboxID={(lootboxTournamentSnapshots[0].lootboxID || '') as LootboxID}
+          // lootboxID={(lootboxTournamentSnapshots[0].lootboxID || '') as LootboxID}
           tournamentID={(eventID || '') as TournamentID}
         />
       )}
