@@ -335,17 +335,9 @@ const EventPage: React.FC = () => {
               >
                 <Button style={{ marginRight: '5px' }}>Invite Team</Button>
               </Popconfirm>
-              <Popconfirm
-                title={`You are about to create a Lootbox on behalf of a team. Your other option is to invite the team to create their own. Would you like to proceed with creating the LOOTBOX on behalf of a team?`}
-                onConfirm={() => {
-                  history.push(`/dashboard/lootbox/create?tid=${eventID}`);
-                }}
-                okText="Proceed"
-                cancelText={'Cancel'}
-                style={{ maxWidth: '500px' }}
-              >
+              <Link to={`/dashboard/lootbox/create?tid=${eventID}`}>
                 <Button type="primary">Create Lootbox</Button>
-              </Popconfirm>
+              </Link>
             </$Horizontal>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
