@@ -40,7 +40,7 @@ const LootboxPreview: FunctionComponent<LootboxPreviewProps> = ({
           target="_blank"
           rel="noreferrer"
         >
-          Details at https://lootbox.fund/t?t=0x3580942sdfn289h43530854h5
+          {`Details at https://lootbox.fund/t?t=0x3580942sdfn289h43530854h5`}
         </a>
       </div>
       <div className={styles.groupDiv2} id="fan-rewards-banner">

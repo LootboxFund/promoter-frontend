@@ -12,12 +12,11 @@ import {
   AffiliateAdminViewResponse,
   AffiliateAdminViewResponseSuccess,
   MutationUpdateAffiliateDetailsArgs,
-  MutationUpgradeToAffiliateArgs,
+  ReportTotalEarningsForAffiliateResponse,
   ResponseError,
   UpdateAffiliateDetailsPayload,
 } from '@/api/graphql/generated/types';
-import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
-import { UPDATE_AFFILIATE } from './api.gql';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/components/LoginAccount/api.gql';
 import {
   UpdateAffiliateDetailsResponseSuccess,
   Affiliate,
@@ -26,6 +25,7 @@ import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics'
 import EditAffiliateForm from '@/components/EditAffiliateForm';
 import { AffiliateID } from '@wormgraph/helpers';
 import { Image } from 'antd';
+import { UPDATE_AFFILIATE } from './api.gql';
 
 const AccountPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();

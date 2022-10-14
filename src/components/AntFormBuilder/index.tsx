@@ -26,6 +26,12 @@ export const AntUploadFile: React.FC<AntUploadFileProps> = ({
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const customUploadImage = async ({ file, onSuccess }: any) => {
+    if (file.type.indexOf('image') > -1) {
+      if (file.size > 10000000) {
+        message.error('Image must be under 10MB');
+        return;
+      }
+    }
     const destination = await uploadImageToFirestore({
       folderName,
       file: file,

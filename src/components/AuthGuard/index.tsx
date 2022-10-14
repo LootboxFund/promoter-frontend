@@ -8,10 +8,11 @@ import {
   AffiliateAdminViewResponse,
   AffiliateAdminViewResponseSuccess,
 } from '@/api/graphql/generated/types';
-import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/components/LoginAccount/api.gql';
 import { $Horizontal, $Vertical } from '../generics';
 import { AFFILIATE_ID_COOKIE } from '@/api/constants';
 import { useCookies } from 'react-cookie';
+import RegisterAccount from '../RegisterAccount';
 
 /**
  * strict = forces login
@@ -34,10 +35,14 @@ const AuthGuard = ({ children, strict, ...props }: AuthGuardProps) => {
     },
   );
 
-  if (!user && !cookies[AFFILIATE_ID_COOKIE]) {
+  const shouldRedirectToLogin =
+    (user === undefined && cookies[AFFILIATE_ID_COOKIE] === undefined) ||
+    (!user && !cookies[AFFILIATE_ID_COOKIE]);
+
+  if (shouldRedirectToLogin) {
     if (window.location.pathname !== `/user/login`) {
       window.location.href = '/user/login';
-      return;
+      return null;
     }
   }
   if (!user && cookies[AFFILIATE_ID_COOKIE]) {

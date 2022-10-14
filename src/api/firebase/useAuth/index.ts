@@ -1,7 +1,6 @@
 import type {
   CreateUserResponse,
   MutationCreateUserWithPasswordArgs,
-  MutationUpgradeToAffiliateArgs,
   ResponseError,
   UpgradeToAffiliateResponse,
 } from '../../graphql/generated/types';
@@ -27,7 +26,8 @@ import type { UserID } from '@wormgraph/helpers';
 
 import { AFFILIATE_ID_COOKIE } from '@/api/constants';
 import { useCookies } from 'react-cookie';
-import { GET_AFFILIATE_ADMIN_VIEW } from '@/pages/User/Login/api.gql';
+import { GET_AFFILIATE_ADMIN_VIEW } from '@/components/LoginAccount/api.gql';
+import { message } from 'antd';
 
 interface FrontendUser {
   id: UserID;
@@ -72,15 +72,18 @@ export const useAuth = () => {
     useLazyQuery(GET_AFFILIATE_ADMIN_VIEW);
 
   useEffect(() => {
-    if (!loadingAffiliate && !errorAffiliate && dataAffiliate) {
+    if (
+      !loadingAffiliate &&
+      !errorAffiliate &&
+      dataAffiliate &&
+      dataAffiliate.affiliateAdminView.affiliate
+    ) {
       setCookie(AFFILIATE_ID_COOKIE, dataAffiliate.affiliateAdminView.affiliate.id, { path: '/' });
     }
   }, [dataAffiliate]);
 
-  const [upgradeToAffiliateMutation] = useMutation<
-    { upgradeToAffiliate: UpgradeToAffiliateResponse },
-    MutationUpgradeToAffiliateArgs
-  >(UPGRADE_TO_AFFILIATE);
+  const [upgradeToAffiliateMutation] =
+    useMutation<{ upgradeToAffiliate: UpgradeToAffiliateResponse }>(UPGRADE_TO_AFFILIATE);
 
   const setCaptcha = () => {
     const el = document.getElementById('recaptcha-container');
@@ -266,20 +269,16 @@ export const useAuth = () => {
     removeCookie(AFFILIATE_ID_COOKIE, { path: '/' });
   };
 
-  const upgradeToAffiliate = async (userID: UserID) => {
-    if (!userID) {
-      throw new Error('User ID is required');
-    }
-    const { data } = await upgradeToAffiliateMutation({
-      variables: {
-        userID,
-      },
-    });
+  const upgradeToAffiliate = async () => {
+    const { data } = await upgradeToAffiliateMutation();
 
     if (!data) {
       throw new Error('An error occurred');
     } else if (data?.upgradeToAffiliate?.__typename === 'ResponseError') {
       throw new Error(data.upgradeToAffiliate.error.message);
+    } else if (data?.upgradeToAffiliate?.__typename === 'UpgradeToAffiliateResponseSuccess') {
+      message.success('Successfully registered as an affiliate!');
+      setCookie(AFFILIATE_ID_COOKIE, data.upgradeToAffiliate.affiliate.id, { path: '/' });
     }
     return data.upgradeToAffiliate;
   };

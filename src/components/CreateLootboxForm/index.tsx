@@ -1,10 +1,10 @@
-import { Address, AffiliateID, TournamentID } from '@wormgraph/helpers';
+import { Address, AffiliateID, LootboxID, TournamentID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Affix, Button, Card, Empty, Form, Modal } from 'antd';
+import { Affix, Button, Card, Empty, Form, Modal, notification, Typography } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EditLootboxPayload } from '@/api/graphql/generated/types';
 import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
-import { $Horizontal, $ColumnGap } from '@/components/generics';
+import { $Horizontal, $ColumnGap, $Vertical } from '@/components/generics';
 import { placeholderBackground, placeholderImage } from '../generics';
 import ConnectWalletButton from '../ConnectWalletButton';
 import { SelectChain } from './SelectChain';
@@ -12,6 +12,9 @@ import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { useWeb3 } from '@/hooks/useWeb3';
 import LootboxPreview from '../LootboxPreview';
+import { ContractTransaction } from 'ethers';
+import { Link } from '@umijs/max';
+import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
 
 // const DEFAULT_THEME_COLOR = '#00B0FB'
 const DEFAULT_THEME_COLOR = '#000000';
@@ -34,9 +37,14 @@ interface LootboxBodyPayload {
   address?: Address;
 }
 
+interface OnSubmitCreateResponse {
+  tx: ContractTransaction;
+  lootboxID: LootboxID;
+}
+
 export type CreateLootboxFormProps = {
   lootbox?: LootboxBodyPayload;
-  onSubmitCreate?: (payload: CreateLootboxRequest) => void;
+  onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
   onSubmitEdit?: (payload: EditLootboxPayload) => void;
   mode: 'create' | 'edit-only' | 'view-edit' | 'view-only';
 };
@@ -62,8 +70,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const {
     affiliateUser: { id: affiliateUserID },
   } = useAffiliateUser();
-  const { currentAccount } = useWeb3();
-  // const { connected, currentAccount, chainId } = useAccount();
+  const { currentAccount, network } = useWeb3();
   const newMediaDestinationLogo = useRef('');
   const newMediaDestinationBackground = useRef('');
   const newThemeColor = useRef<string>();
@@ -105,7 +112,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
   const handleCreateFinish = useCallback(
     async (values) => {
-      if (!onSubmitCreate) return;
+      if (!onSubmitCreate || !network) return;
 
       const payload: CreateLootboxRequest = {
         payload: {
@@ -124,21 +131,48 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
       setPending(true);
       try {
-        await onSubmitCreate(payload);
-        setPending(false);
+        const { tx, lootboxID: createdLootboxID } = await onSubmitCreate(payload);
+
         if (!lockedToEdit) {
           setViewMode(true);
         }
+        const chainIDHex = chainIdToHex(network.chainId);
+        const explorerURL = getBlockExplorerUrl(chainIDHex);
+
         Modal.success({
           title: 'Success',
-          content: mode === 'create' ? 'Lootbox created' : 'Lootbox updated',
+          content: (
+            <$Vertical>
+              <Typography.Text>
+                {mode === 'create' ? 'Lootbox created' : 'Lootbox updated'}
+              </Typography.Text>
+              <br />
+              <Typography.Text>
+                <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank">
+                  View transaction on Block Explorer
+                </a>
+              </Typography.Text>
+              <br />
+              <Typography.Text>Transaction Hash:</Typography.Text>
+              <Typography.Text copyable>{tx.hash}</Typography.Text>
+            </$Vertical>
+          ),
+          okText: 'Go to Lootbox',
+          onOk: () => {
+            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}`;
+          },
         });
-        setPending(false);
       } catch (e: any) {
+        if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
+          return;
+        }
         Modal.error({
           title: 'Failure',
           content: `${e.message}`,
         });
+      } finally {
+        notification.close('metamask');
+        notification.close('pending-creation');
         setPending(false);
       }
     },
