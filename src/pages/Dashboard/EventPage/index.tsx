@@ -335,8 +335,7 @@ const EventPage: React.FC = () => {
               >
                 <Button style={{ marginRight: '5px' }}>Invite Team</Button>
               </Popconfirm>
-
-              <Link to={`/dashboard/lootbox/create?tid=${eventID}`} target="_blank">
+              <Link to={`/dashboard/lootbox/create?tid=${eventID}`}>
                 <Button type="primary">Create Lootbox</Button>
               </Link>
             </$Horizontal>
