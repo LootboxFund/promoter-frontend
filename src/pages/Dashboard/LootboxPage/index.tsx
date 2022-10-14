@@ -27,6 +27,7 @@ import { useLootbox } from '@/hooks/useLootbox';
 import { ContractTransaction, ethers } from 'ethers';
 import useERC20 from '@/hooks/useERC20';
 import useWeb3 from '@/hooks/useWeb3';
+import { manifest } from '@/manifest';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -197,7 +198,13 @@ const LootboxPage: React.FC = () => {
 
       <$Horizontal justifyContent="space-between">
         <h1>{lootbox.name}</h1>
-        <Button type="primary">View Public Page</Button>
+        <a
+          href={`${manifest.microfrontends.webflow.cosmicLootboxPage}?lid=${lootboxID}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Button type="primary">View Public Page</Button>
+        </a>
       </$Horizontal>
 
       {renderHelpText()}

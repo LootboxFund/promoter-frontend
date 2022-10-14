@@ -74,6 +74,7 @@ import DeviceSimulator, { DeviceSimulatorProps } from '@/components/DeviceSimula
 import CreateEventForm from '@/components/CreateEventForm';
 import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
+import { manifest } from '@/manifest';
 
 interface DataType {
   rateQuoteID: string;
@@ -264,7 +265,7 @@ const EventPage: React.FC = () => {
           <$Horizontal justifyContent="space-between">
             <h1>{tournament.title}</h1>
             <a
-              href={`https://www.lootbox.fund/watch?tournament=${tournament.id}`}
+              href={`${manifest.microfrontends.webflow.battlePage}?tournament=${tournament.id}`}
               target="_blank"
               rel="noreferrer"
             >
