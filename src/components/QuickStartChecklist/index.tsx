@@ -18,7 +18,6 @@ const data = [
     title: 'Watch the Getting Started Video',
     description: 'Get a quick overview of the platform and learn how to get started.',
     tutorial: 'https://lootbox.fund',
-    action: '/dashboard/getting-started',
     isAdvanced: false,
     key: 'watch-getting-started-video',
   },
@@ -28,7 +27,7 @@ const data = [
       'Customize your profile to help advertisers and partners find you and learn more about you.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/getting-started',
+    action: '/company/account',
     isAdvanced: true,
     key: 'fill-out-profile',
   },
@@ -37,7 +36,7 @@ const data = [
     description:
       'Connect your wallet to start earning revenue from the Marketplace and withdraw your earnings.',
     tutorial: 'https://lootbox.fund',
-    action: '/dashboard/getting-started',
+    action: '/company/account',
     isAdvanced: true,
     key: 'connect-wallet',
   },
@@ -46,7 +45,7 @@ const data = [
     description: 'Import your existing tournaments or create a new event.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/getting-started',
+    action: '/dashboard/events/create',
     isAdvanced: false,
     key: 'host-first-event',
   },
@@ -56,7 +55,7 @@ const data = [
       'Add affiliate offers from the Marketplace to start earning from each Lootbox ticket distributed.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/getting-started',
+    action: '/marketplace/browse',
     isAdvanced: true,
     key: 'add-revenue-streams',
   },
@@ -66,7 +65,7 @@ const data = [
       'Recruit influencers & partners to help promote your events and share the revenue.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/getting-started',
+    action: '/marketplace/recruit',
     isAdvanced: true,
     key: 'recruit-promoters',
   },
@@ -75,7 +74,7 @@ const data = [
     description: 'Customize a Lootbox using the branding of your favorite team.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/getting-started',
+    action: '/dashboard/lootbox/create',
     isAdvanced: false,
     key: 'create-first-lootbox',
   },
@@ -85,7 +84,6 @@ const data = [
       'Share 10 tickets of your Lootbox with your followers to start building your community.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/getting-started',
     isAdvanced: false,
     key: 'share-free-tickets',
   },
@@ -94,7 +92,6 @@ const data = [
     description: 'Deposit rewards into the Lootbox for ticket holders to redeem their winnings.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/getting-started',
     isAdvanced: true,
     key: 'reward-fans',
   },
@@ -103,14 +100,13 @@ const data = [
     description:
       'View the affiliate revenue earned from ticket distribution and withdraw to your wallet.',
     tutorial: 'https://lootbox.fund',
-    action: '/dashboard/getting-started',
+    action: '/dashboard/payouts',
     isAdvanced: true,
     key: 'view-earnings',
   },
   {
     title: 'Meet the LOOTBOX Team',
     description: 'Schedule a call with the LOOTBOX team to get bonus perks.',
-    action: '/dashboard/getting-started',
     isAdvanced: true,
     key: 'meet-lootbox-team',
   },
@@ -235,7 +231,7 @@ const QuickStartChecklist: React.FC<QuickStartChecklistProps> = ({}) => {
                   />
                 )
               }
-              title={<a href={item.action}>{item.title}</a>}
+              title={item.action ? <a href={item.action}>{item.title}</a> : <a>{item.title}</a>}
               description={item.description}
             />
             <$Horizontal style={{ width: '250px' }}>
