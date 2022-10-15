@@ -26,6 +26,7 @@ interface StampLootbox_Classic_Props {
   gameGraphic?: string;
   headshot?: string;
   additionalLogo?: string;
+  inviteLink: string;
 }
 
 const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
@@ -41,6 +42,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
   gameGraphic,
   headshot,
   additionalLogo,
+  inviteLink,
 }) => {
   return (
     <article
@@ -182,14 +184,14 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
 
           <div className={styles.groupDiv5}>
             <div className={styles.groupDiv6}>
+              <div id="qrcode" style={{ width: '100%', height: '100%', zIndex: 99 }} />
               <div className={styles.rectangleDiv3} />
-              <div id="qrcode" />
             </div>
             <a className={styles.groupA} href="invite-link">
               <div className={styles.linkDiv}>
                 <div className={styles.rectangleDiv4} />
                 <b className={styles.golootboxfundrrmm23QP4lYO}>
-                  🔒 go.lootbox.fund/r?r=mm23QP4lYO
+                  🔒 {inviteLink.replace('https://', '')}
                 </b>
               </div>
             </a>

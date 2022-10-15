@@ -100,11 +100,13 @@ const StampLootbox: React.FC = () => {
 
   useEffect(() => {
     if (createdReferral) {
+      console.log('Generating QR Code...');
+      console.log(inviteLink);
       const options_object = {
         // ====== Basic
         text: inviteLink,
-        width: 120,
-        height: 120,
+        width: 300,
+        height: 300,
         colorDark: '#000000',
         colorLight: '#ffffff',
         correctLevel: QRCodeComponent.CorrectLevel.H, // L, M, Q, <H></H>
@@ -118,13 +120,17 @@ const StampLootbox: React.FC = () => {
             titleTop: 25, // draws y coordinates. default is 30
         */
       };
-      const el = document.getElementById('qrcode');
-      if (el) {
-        if (el.firstChild) {
-          el.removeChild(el.firstChild);
+      setTimeout(() => {
+        const el = document.getElementById('qrcode');
+        console.log('trying to find id#qrcode');
+        console.log(el);
+        if (el) {
+          if (el.firstChild) {
+            el.removeChild(el.firstChild);
+          }
+          new QRCodeComponent(el, options_object);
         }
-        new QRCodeComponent(el, options_object);
-      }
+      }, 1000);
     }
   }, [createdReferral]);
 
@@ -162,6 +168,8 @@ const StampLootbox: React.FC = () => {
     };
     initReferral();
   }, []);
+
+  console.log(createdReferral);
 
   useEffect(() => {
     if (lootbox) {
@@ -296,6 +304,7 @@ const StampLootbox: React.FC = () => {
                     gameGraphic={gameGraphic.current}
                     headshot={headshotGraphic.current}
                     additionalLogo={additionalLogo.current}
+                    inviteLink={inviteLink}
                     scale={{
                       scale: 0.3,
                       height: 270,
