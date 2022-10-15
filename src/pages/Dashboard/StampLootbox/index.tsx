@@ -8,7 +8,7 @@ import StampLootbox_Classic from '@/components/StampLootbox/StampLootbox_Classic
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import Spin from 'antd/lib/spin';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { GET_AFFILIATE } from './api.gql';
 import styles from './index.less';
 import { $Horizontal, $Vertical } from '@/components/generics';
@@ -18,6 +18,7 @@ const StampLootbox: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();
   const [teamName, setTeamName] = useState('Team Rayster');
   const { id: affiliateID } = affiliateUser;
+
   const { data, loading, error } = useQuery<
     { affiliatePublicView: AffiliatePublicViewResponse },
     QueryAffiliatePublicViewArgs
@@ -49,7 +50,7 @@ const StampLootbox: React.FC = () => {
               <Input value={teamName} onChange={(e) => setTeamName(e.target.value)} />
             </$Vertical>
             <$Vertical style={{ flex: 3 }}>
-              <StampLootbox_Classic teamName={teamName} />
+              <StampLootbox_Classic />
             </$Vertical>
           </$Horizontal>
         </div>
