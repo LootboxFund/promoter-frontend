@@ -46,11 +46,17 @@ const StampLootbox: React.FC = () => {
       ) : (
         <div className={styles.content}>
           <$Horizontal>
-            <$Vertical style={{ flex: 2 }}>
+            <$Vertical style={{ flex: 3, paddingRight: '30px' }}>
               <Input value={teamName} onChange={(e) => setTeamName(e.target.value)} />
             </$Vertical>
-            <$Vertical style={{ flex: 3 }}>
-              <StampLootbox_Classic />
+            <$Vertical style={{ flex: 3, alignItems: 'center' }}>
+              <StampLootbox_Classic teamName={teamName} />
+              <br />
+              <br />
+              <StampLootbox_Classic teamName={teamName} />
+              <br />
+              <br />
+              <StampLootbox_Classic teamName={teamName} />
             </$Vertical>
           </$Horizontal>
         </div>
