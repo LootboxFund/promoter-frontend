@@ -1,27 +1,49 @@
-import { forwardRef, FunctionComponent, MutableRefObject, useRef } from 'react';
+import {
+  forwardRef,
+  FunctionComponent,
+  MutableRefObject,
+  useCallback,
+  useRef,
+  useState,
+} from 'react';
 import styles from './index.module.css';
-import { exportComponentAsJPEG } from 'react-component-export-image';
 import React from 'react';
-import html2canvas from 'html2canvas';
 
 interface StampLootbox_Classic_Props {
-  height?: string;
-  scale?: string;
+  scale: {
+    height?: number;
+    width?: number;
+    scale?: number;
+  };
   teamName: string;
+  themeColor: string;
+  lootboxImage: string;
+  nftBountyValue: string;
+  gameName?: string;
+  tentativeDate?: string;
+  tournamentTitle?: string;
+  tentativeTime?: string;
 }
 
 const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
   scale,
-  height,
+  lootboxImage,
   teamName,
+  themeColor,
+  nftBountyValue,
+  gameName,
+  tentativeDate,
+  tournamentTitle,
+  tentativeTime,
 }) => {
   return (
     <article
       className={styles.bCSRRGMSRaysterG}
-      id="invite-graphic"
+      id={`invite-graphic-${teamName}`}
       style={{
-        transform: scale ? scale : `scale(0.3)`,
-        height: height ? height : '300px',
+        transform: scale.scale ? `scale(${scale.scale})` : `scale(0.3)`,
+        height: scale.height ? `${scale.height}px` : '270px',
+        width: scale.width ? `${scale.width}px` : '460px',
         transformOrigin: 'top left',
       }}
     >
@@ -52,7 +74,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
               />
               <div className={styles.rectangleDiv1} />
               <div className={styles.lOOTBOXDiv}>LOOTBOX</div>
-              <div className={styles.cABANATUANTOURNAMENTDiv}>CABANATUAN TOURNAMENT</div>
+              <div className={styles.cABANATUANTOURNAMENTDiv}>{tournamentTitle}</div>
               <div className={styles.fANPRIZE500PHP}>
                 <span className={styles.fANPRIZE500Container}>
                   <p className={styles.fANPRIZE}>
@@ -62,7 +84,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                   </p>
                   <p className={styles.pHP}>
                     <span className={styles.pHPSpan}>
-                      <span>{`500 PHP `}</span>
+                      <span>{nftBountyValue}</span>
                     </span>
                   </p>
                 </span>
@@ -70,9 +92,9 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
               <div className={styles.fanLOOTBOXTicket}>Fan LOOTBOX Ticket</div>
               <div className={styles.gameAxieInfinityDateOcto}>
                 <span className={styles.fANPRIZE500Container}>
-                  <p className={styles.fANPRIZE}>Game: Axie Infinity</p>
-                  <p className={styles.fANPRIZE}>{`Date: October 22, 2022 `}</p>
-                  <p className={styles.at12NN}>at 12 NN - 6PM</p>
+                  <p className={styles.fANPRIZE}>Game: {gameName}</p>
+                  <p className={styles.fANPRIZE}>{`Date: ${tentativeDate} `}</p>
+                  <p className={styles.at12NN}>{tentativeTime}</p>
                 </span>
               </div>
               <div className={styles.audienceMembersCanWinAPor}>
@@ -89,8 +111,8 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                   <span> 3PG MLBB Tournament</span>
                 </p>
                 <p className={styles.at12NN}>
-                  <b className={styles.eventB}>{`Date: `}</b>
-                  <span>7:30pm Wednesday August 3rd 2022</span>
+                  <b className={styles.eventB}>{`Date: ${tentativeDate}`}</b>
+                  <span>{tentativeTime}</span>
                 </p>
               </span>
             </div>
@@ -113,13 +135,13 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
               <span className={styles.gameDateSpan} id="game-date">
                 <span className={styles.fANPRIZE500Container}>
                   <p className={styles.fANPRIZE}>&nbsp;</p>
-                  <p className={styles.fANPRIZE}>{`Date: October 22, 2022 `}</p>
-                  <p className={styles.at12NN}>at 12 NN - 6PM</p>
+                  <p className={styles.fANPRIZE}>{`Date: ${tentativeDate} `}</p>
+                  <p className={styles.at12NN}>{tentativeTime}</p>
                 </span>
               </span>
               <div className={styles.lOOTBOXDiv1}>LOOTBOX</div>
               <span className={styles.subtitleSpan} id="sub-title">
-                CABANATUAN TOURNAMENT
+                {tournamentTitle}
               </span>
               <div className={styles.fANPRIZEDiv}>
                 <span className={styles.pHPSpan}>
@@ -129,7 +151,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
               </div>
               <div className={styles.fanLOOTBOXTicket1}>Fan LOOTBOX Ticket</div>
               <span className={styles.gameNameSpan} id="game-name">
-                Game: Axie Infinity
+                Game: {gameName}
               </span>
               <div className={styles.audienceMembersCanWinAPor}>
                 <b>Audience</b>
@@ -145,8 +167,8 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                   <span> 3PG MLBB Tournament</span>
                 </p>
                 <p className={styles.at12NN}>
-                  <b className={styles.eventB}>{`Date: `}</b>
-                  <span>7:30pm Wednesday August 3rd 2022</span>
+                  <b className={styles.eventB}>{`Date: ${tentativeDate}`}</b>
+                  <span>{tentativeTime}</span>
                 </p>
               </span>
             </div>
@@ -203,7 +225,10 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
       <img
         className={styles.lootboxImageIcon}
         alt=""
-        src="https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2FStampLootbox_Classic%2Flootbox-image%402x.png?alt=media&token=02af931c-039b-4b7b-a215-0ece3a4e936d"
+        src={lootboxImage}
+        style={{
+          filter: `drop-shadow(0px 4px 75px ${themeColor})`,
+        }}
       />
       <div className={styles.theLogoSoloPerfected1} />
       <img
@@ -212,7 +237,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
         src="https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2FStampLootbox_Classic%2Fheadshot-photo%402x.png?alt=media&token=7ee12bf7-0efe-47cc-b2da-87e915249dee"
       />
       <h1 className={styles.prizeAmountH1} id="prize-amount">
-        <span className={styles.pHPSpan}>500 PHP</span>
+        <span className={styles.pHPSpan}>{nftBountyValue}</span>
       </h1>
     </article>
   );

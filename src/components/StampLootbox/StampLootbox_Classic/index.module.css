@@ -442,10 +442,10 @@ body {
 }
 .lootboxImageIcon {
   position: absolute;
-  top: 35px;
-  left: 44px;
-  width: 572px;
-  height: 741px;
+  top: 110px;
+  left: 100px;
+  width: 430px;
+  height: 580px;
   object-fit: cover;
 }
 .headshotIcon,
