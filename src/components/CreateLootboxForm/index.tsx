@@ -148,7 +148,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               </Typography.Text>
               <br />
               <Typography.Text>
-                <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank">
+                <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank" rel="noreferrer">
                   View transaction on Block Explorer
                 </a>
               </Typography.Text>

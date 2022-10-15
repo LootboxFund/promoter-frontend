@@ -290,13 +290,12 @@ body {
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
 }
-.axieLogo1,
-.be9b8049574612Bda87d391c40Icon {
+.gameGraphic {
   position: absolute;
   top: 22px;
   left: 0;
-  width: 413px;
-  height: 244px;
+  width: 400px;
+  height: 500px;
   object-fit: cover;
 }
 .be9b8049574612Bda87d391c40Icon {

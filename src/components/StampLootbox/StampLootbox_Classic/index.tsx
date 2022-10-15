@@ -23,6 +23,9 @@ interface StampLootbox_Classic_Props {
   tentativeDate?: string;
   tournamentTitle?: string;
   tentativeTime?: string;
+  gameGraphic?: string;
+  headshot?: string;
+  additionalLogo?: string;
 }
 
 const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
@@ -35,6 +38,9 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
   tentativeDate,
   tournamentTitle,
   tentativeTime,
+  gameGraphic,
+  headshot,
+  additionalLogo,
 }) => {
   return (
     <article
@@ -54,11 +60,8 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
           src="https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2FStampLootbox_Classic%2Frectangle-97%402x.png?alt=media&token=84b8959e-86d1-46d8-aa43-67ccc20089cf"
         />
         <div className={styles.rectangleDiv} />
-        <img
-          className={styles.sponsorIcon}
-          alt=""
-          src="https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2FStampLootbox_Classic%2Fsponsor%402x.png?alt=media&token=53578be4-4031-413f-b17a-ef353986478e"
-        />
+        {additionalLogo && <img className={styles.sponsorIcon} alt="" src={additionalLogo} />}
+
         <div className={styles.maskGroupDiv}>
           <div className={styles.groupDiv1}>
             <div className={styles.groupDiv2}>
@@ -89,7 +92,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                   </p>
                 </span>
               </div>
-              <div className={styles.fanLOOTBOXTicket}>Fan LOOTBOX Ticket</div>
+              <div className={styles.fanLOOTBOXTicket}>LOOTBOX Fan Ticket</div>
               <div className={styles.gameAxieInfinityDateOcto}>
                 <span className={styles.fANPRIZE500Container}>
                   <p className={styles.fANPRIZE}>Game: {gameName}</p>
@@ -149,7 +152,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                   <span className={styles.span}>{` `}</span>
                 </span>
               </div>
-              <div className={styles.fanLOOTBOXTicket1}>Fan LOOTBOX Ticket</div>
+              <div className={styles.fanLOOTBOXTicket1}>LOOTBOX Fan Ticket</div>
               <span className={styles.gameNameSpan} id="game-name">
                 Game: {gameName}
               </span>
@@ -175,24 +178,12 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
           </div>
         </div>
         <div className={styles.maskGroupDiv2}>
-          <img
-            className={styles.axieLogo1}
-            alt=""
-            src="https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2FStampLootbox_Classic%2Fgame-logo%402x.png?alt=media&token=d7f91904-7401-422c-b405-2f48ad7d072b"
-          />
-          <img
-            className={styles.be9b8049574612Bda87d391c40Icon}
-            alt=""
-            src="https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2FStampLootbox_Classic%2Fgame-asset%402x.png?alt=media&token=367def89-ff4b-4e35-a7b3-511c70d08347"
-          />
+          {gameGraphic && <img className={styles.gameGraphic} alt="" src={gameGraphic} />}
+
           <div className={styles.groupDiv5}>
             <div className={styles.groupDiv6}>
               <div className={styles.rectangleDiv3} />
-              <img
-                className={styles.qRCodeIcon}
-                alt=""
-                src="https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2FStampLootbox_Classic%2Fqr-code%402x.png?alt=media&token=2938548b-8aee-4241-aa40-cdc1467d3481"
-              />
+              <div id="qrcode" />
             </div>
             <a className={styles.groupA} href="invite-link">
               <div className={styles.linkDiv}>
@@ -210,7 +201,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
         </div>
         <div className={styles.groupDiv8}>
           <div className={styles.sharesTheTournamentCashPri}>
-            Shares the tournament cash prize with the holder of this fan LOOTBOX ticket
+            Shares the tournament cash prize with the holder of this LOOTBOX fan ticket
           </div>
           <h2 className={styles.teamNamE} id="team-name">
             {teamName}
@@ -231,11 +222,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
         }}
       />
       <div className={styles.theLogoSoloPerfected1} />
-      <img
-        className={styles.headshotIcon}
-        alt=""
-        src="https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2FStampLootbox_Classic%2Fheadshot-photo%402x.png?alt=media&token=7ee12bf7-0efe-47cc-b2da-87e915249dee"
-      />
+      <img className={styles.headshotIcon} alt="" src={headshot} />
       <h1 className={styles.prizeAmountH1} id="prize-amount">
         <span className={styles.pHPSpan}>{nftBountyValue}</span>
       </h1>
