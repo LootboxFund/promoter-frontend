@@ -221,6 +221,18 @@ const EventPage: React.FC = () => {
               cover={
                 <img alt="example" src={snapshot.stampImage || ''} className={styles.cardImage} />
               }
+              actions={[
+                <Button key={`view-${snapshot.lootboxID}`} style={{ width: '90%' }}>
+                  View
+                </Button>,
+                <Link
+                  key={`stamp-${snapshot.lootboxID}`}
+                  to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
+                  target="_blank"
+                >
+                  <Button style={{ width: '90%' }}>Stamp</Button>
+                </Link>,
+              ]}
             >
               <Meta
                 title={snapshot.name}
