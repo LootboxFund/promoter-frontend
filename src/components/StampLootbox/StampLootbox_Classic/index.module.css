@@ -290,13 +290,12 @@ body {
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
 }
-.axieLogo1,
-.be9b8049574612Bda87d391c40Icon {
+.gameGraphic {
   position: absolute;
   top: 22px;
   left: 0;
-  width: 413px;
-  height: 244px;
+  width: 400px;
+  height: 500px;
   object-fit: cover;
 }
 .be9b8049574612Bda87d391c40Icon {
@@ -442,10 +441,10 @@ body {
 }
 .lootboxImageIcon {
   position: absolute;
-  top: 35px;
-  left: 44px;
-  width: 572px;
-  height: 741px;
+  top: 110px;
+  left: 100px;
+  width: 430px;
+  height: 580px;
   object-fit: cover;
 }
 .headshotIcon,
@@ -484,5 +483,4 @@ body {
   font-size: var(--font-size-2xl);
   color: var(--color-white);
   font-family: var(--font-open-sans);
-  transform: scale(0.3)
 }
