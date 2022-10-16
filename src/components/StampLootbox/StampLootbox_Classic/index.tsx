@@ -109,7 +109,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                 <span className={styles.membersCanWin}> if this team wins the tournament.</span>
               </div>
             </div>
-            <div className={styles.event3PGMLBBTournamentDat}>
+            {/* <div className={styles.event3PGMLBBTournamentDat}>
               <span className={styles.fANPRIZE500Container}>
                 <p className={styles.fANPRIZE}>
                   <b className={styles.eventB}>Event:</b>
@@ -120,7 +120,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                   <span>{tentativeTime}</span>
                 </p>
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
         <div className={styles.maskGroupDiv1}>
@@ -165,7 +165,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                 <span className={styles.membersCanWin}> if this team wins the tournament.</span>
               </div>
             </div>
-            <div className={styles.event3PGMLBBTournamentDat1}>
+            {/* <div className={styles.event3PGMLBBTournamentDat1}>
               <span className={styles.fANPRIZE500Container}>
                 <p className={styles.fANPRIZE}>
                   <b className={styles.eventB}>Event:</b>
@@ -176,7 +176,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                   <span>{tentativeTime}</span>
                 </p>
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
         <div className={styles.maskGroupDiv2}>
@@ -184,8 +184,7 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
 
           <div className={styles.groupDiv5}>
             <div className={styles.groupDiv6}>
-              <div id="qrcode" style={{ width: '100%', height: '100%', zIndex: 99 }} />
-              <div className={styles.rectangleDiv3} />
+              <div id="qrcode" style={{ width: '100%', height: '100%' }} />
             </div>
             <a className={styles.groupA} href="invite-link">
               <div className={styles.linkDiv}>
