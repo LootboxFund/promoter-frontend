@@ -35,7 +35,7 @@ const StampLootbox_Classic: React.FC<StampWrapper> = ({
       .catch((err) => {
         console.log(err);
       });
-  }, [ref]);
+  }, [ref, fileName]);
   return (
     <div>
       <div ref={ref}>{stampTemplate()}</div>

@@ -31,6 +31,7 @@ import {
 } from '@/components/GenerateReferralModal/api.gql';
 import { manifest } from '@/manifest';
 import { DownOutlined } from '@ant-design/icons';
+import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
 
 const placeholderHeadshot =
   'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2F2x3_Placeholder_Headshot.png?alt=media';
@@ -57,6 +58,20 @@ export const extractURLState_StampLootboxPage = (): MagicLinkParams => {
   return params;
 };
 
+const defaultTicketInviteStampPreConfig = {
+  nftBountyValue: '',
+  gamePlayed: 'Game TBD',
+  tentativeDate: 'To Be Determined',
+  tentativeTime: 'To Be Determined',
+  tournamentTitle: 'Tournament Name',
+  attributedTo: '',
+  referralType: ReferralType.Genesis,
+  socialType: StampSocialTypes.Facebook,
+  hashtagsText: '',
+  gameGraphic: '',
+  additionalLogo: '',
+};
+
 const StampLootbox: React.FC = () => {
   const { lootboxID } = useParams();
   const { affiliateUser } = useAffiliateUser();
@@ -65,31 +80,48 @@ const StampLootbox: React.FC = () => {
   const [magicLinkParams, setMagicLinkParams] = useState<MagicLinkParams>(
     extractURLState_StampLootboxPage(),
   );
-  const [referralType, setReferralType] = useState<ReferralType>(ReferralType.Genesis);
-  const [socialType, setSocialType] = useState<StampSocialTypes>(StampSocialTypes.Facebook);
+
+  const TICKET_INVITE_STAMP = `ticket-invite-stamp-event-${magicLinkParams.tournamentID}`;
+  const [ticketInviteStampPreConfig, setTicketInviteStampPreConfig] = useState(
+    defaultTicketInviteStampPreConfig,
+  );
+
   const [errorMessage, setErrorMessage] = useState('');
   const [socialMediaBodyText, setSocialMediaBodyText] = useState('');
-  const [hashtagsText, setHashtagsText] = useState('');
 
   const fullSocialCopy = `${socialMediaBodyText}
-${socialType === StampSocialTypes.DirectMessage ? '' : hashtagsText}`;
+${
+  ticketInviteStampPreConfig.socialType === StampSocialTypes.DirectMessage
+    ? ''
+    : ticketInviteStampPreConfig.hashtagsText
+}`;
 
   const gameGraphic = useRef(placeholderGameGraphic);
   const headshotGraphic = useRef(placeholderHeadshot);
   const additionalLogo = useRef('');
 
   const [teamName, setTeamName] = useState('');
-  const [nftBountyValue, setNftBountyValue] = useState('');
-  const [gamePlayed, setGamePlayed] = useState('Game TBD');
-  const [tentativeDate, setTentativeDate] = useState('To Be Determined');
-  const [tentativeTime, setTentativeTime] = useState('Hour TBD');
-  const [tournamentTitle, setTournamentTitle] = useState('Gaming Competition');
   const [refreshPing, triggerRefreshPing] = useState(0);
 
   const [campaignName, setCampaignName] = useState('');
-  const [attributedTo, setAttributedTo] = useState('');
   const [createdReferral, setCreatedReferral] = useState<CreateReferralFE | null>(null);
+
   const inviteLink = `${manifest.microfrontends.webflow.referral}?r=${createdReferral?.slug}`;
+  const stampFileName = `ticket-invite-${teamName}-ref-${createdReferral?.slug}`;
+
+  useEffect(() => {
+    // @ts-ignore
+    const preconfig = JSON.parse(localStorage.getItem(TICKET_INVITE_STAMP));
+    if (preconfig) {
+      setTicketInviteStampPreConfig(preconfig);
+      gameGraphic.current = preconfig.gameGraphic;
+      additionalLogo.current = preconfig.additionalLogo;
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(TICKET_INVITE_STAMP, JSON.stringify(ticketInviteStampPreConfig));
+  }, [ticketInviteStampPreConfig]);
 
   // VIEW Lootbox
   const {
@@ -154,9 +186,9 @@ ${socialType === StampSocialTypes.DirectMessage ? '' : hashtagsText}`;
       key: StampSocialTypes.Facebook,
       getTextCopy: () => `Hello Everyone! 📣
 
-Vote to earn ${nftBountyValue} at ${tournamentTitle}! ${teamName} is competing to win the grand prize and we need your help! 🏆
+Vote to earn ${ticketInviteStampPreConfig.nftBountyValue} at ${ticketInviteStampPreConfig.tournamentTitle}! ${teamName} is competing to win the grand prize and we need your help! 🏆
 
-It's free - just vote for us and you'll get a LOOTBOX ticket to win up to ${nftBountyValue} per ticket if we win the competition. Multiple votes are allowed if you:
+It's free - just vote for us and you'll get a LOOTBOX ticket to win up to ${ticketInviteStampPreConfig.nftBountyValue} per ticket if we win the competition. Multiple votes are allowed if you:
 
 1. Share this post
 2. Vote at ${inviteLink}
@@ -167,14 +199,14 @@ Vote now 👉 ${inviteLink}
 
 ---------------------
 
-Winners announced after ${tentativeDate}.
+Winners announced after ${ticketInviteStampPreConfig.tentativeDate}.
 Hosted by ${affiliateUser.name}, Powered by Lootbox Fund`,
     },
     {
       label: 'Twitter',
       key: StampSocialTypes.Twitter,
       getTextCopy:
-        () => `Vote to earn ${nftBountyValue} if ${teamName} wins prize $$ at ${tournamentTitle}! 🏆
+        () => `Vote to earn ${ticketInviteStampPreConfig.nftBountyValue} if ${teamName} wins prize $$ at ${ticketInviteStampPreConfig.tournamentTitle}! 🏆
 
 Multiple votes allowed if you:
 1. Retweet
@@ -188,10 +220,10 @@ Hosted by ${teamName}`,
       key: StampSocialTypes.DirectMessage,
       getTextCopy: () => `Hi! Is this ok?
 
-Our team ${teamName} is competing to win the grand prize at ${tournamentTitle} and we need the support of friends.
-Vote for us and you'll get a free LOOTBOX ticket to win up to ${nftBountyValue} per ticket if we win the competition.
+Our team ${teamName} is competing to win the grand prize at ${ticketInviteStampPreConfig.tournamentTitle} and we need the support of friends.
+Vote for us and you'll get a free LOOTBOX ticket to win up to ${ticketInviteStampPreConfig.nftBountyValue} per ticket if we win the competition.
 
-The winners will be announced after ${tentativeDate}. It's free, and multiple winning tickets are allowed 😄
+The winners will be announced after ${ticketInviteStampPreConfig.tentativeDate}. It's free, and multiple winning tickets are allowed 😄
 
 If you feel like supporting us, please vote here 👉 ${inviteLink}
 
@@ -208,8 +240,10 @@ Thanks so much!
             campaignName,
             lootboxID: lootboxID,
             tournamentId: magicLinkParams.tournamentID || '',
-            type: referralType,
-            promoterId: !!attributedTo ? attributedTo : undefined,
+            type: ticketInviteStampPreConfig.referralType,
+            promoterId: !!ticketInviteStampPreConfig.attributedTo
+              ? ticketInviteStampPreConfig.attributedTo
+              : undefined,
           },
         },
       });
@@ -240,15 +274,29 @@ Thanks so much!
   useEffect(() => {
     if (lootbox) {
       setTeamName(lootbox.name);
-      setNftBountyValue(lootbox.nftBountyValue);
+      if (!ticketInviteStampPreConfig.nftBountyValue) {
+        setTicketInviteStampPreConfig({
+          ...ticketInviteStampPreConfig,
+          nftBountyValue: lootbox.nftBountyValue,
+        });
+      }
     }
   }, [lootbox]);
 
   useEffect(() => {
     if (lootbox) {
-      setSocialMediaBodyText(socialOptions.find((s) => s.key === socialType)?.getTextCopy() || '');
+      setSocialMediaBodyText(
+        socialOptions.find((s) => s.key === ticketInviteStampPreConfig.socialType)?.getTextCopy() ||
+          '',
+      );
     }
-  }, [lootbox?.name, lootbox?.nftBountyValue, tournamentTitle, inviteLink, socialType]);
+  }, [
+    lootbox?.name,
+    lootbox?.nftBountyValue,
+    ticketInviteStampPreConfig.tournamentTitle,
+    inviteLink,
+    ticketInviteStampPreConfig.socialType,
+  ]);
 
   const generateReferral = async () => {
     setLoading(true);
@@ -267,8 +315,10 @@ Thanks so much!
             campaignName,
             lootboxID: lootboxID,
             tournamentId: magicLinkParams.tournamentID,
-            type: referralType,
-            promoterId: !!attributedTo ? attributedTo : undefined,
+            type: ticketInviteStampPreConfig.referralType,
+            promoterId: !!ticketInviteStampPreConfig.attributedTo
+              ? ticketInviteStampPreConfig.attributedTo
+              : undefined,
           },
         },
       });
@@ -299,7 +349,12 @@ Thanks so much!
   };
   const referralMenu = (
     <Menu
-      onClick={(e) => setReferralType(e.key as ReferralType)}
+      onClick={(e) => {
+        setTicketInviteStampPreConfig({
+          ...ticketInviteStampPreConfig,
+          referralType: e.key as ReferralType,
+        });
+      }}
       items={[
         {
           label: 'Regular Invite',
@@ -314,19 +369,50 @@ Thanks so much!
   );
   const socialMenu = (
     <Menu
-      onClick={(e) => setSocialType(e.key as StampSocialTypes)}
+      onClick={(e) => {
+        setTicketInviteStampPreConfig({
+          ...ticketInviteStampPreConfig,
+          socialType: e.key as StampSocialTypes,
+        });
+      }}
       items={socialOptions.map((s) => ({ label: s.label, key: s.key }))}
     />
   );
 
+  const breadLine = [
+    { title: 'Dashboard', route: '/dashboard' },
+    { title: 'Event', route: `/dashboard/events/id/${magicLinkParams.tournamentID}` },
+    { title: 'Stamp', route: '/dashboard/stamp' },
+    {
+      title: teamName,
+      route: `/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`,
+    },
+  ];
+  const renderHelpText = () => {
+    return (
+      <$InfoDescription>
+        {`Auto-generate social media posts to help ${teamName} distribute tickets to fans. Customize it to your social media strategy.`}{' '}
+        To learn more,{' '}
+        <span>
+          <a>click here for a tutorial.</a>
+        </span>
+      </$InfoDescription>
+    );
+  };
+
   return (
-    <PageContainer>
+    <div style={{ maxWidth: '1000px' }}>
       {loadingLootbox ? (
         <div className={styles.loading_container}>
           <Spin />
         </div>
       ) : (
         <div className={styles.content}>
+          <BreadCrumbDynamic breadLine={breadLine} />
+          <br />
+          <h1>{`${teamName} Invite Stamp`}</h1>
+          {renderHelpText()}
+          <br />
           <$Horizontal>
             <$Vertical style={{ flex: 3, paddingRight: '30px' }}>
               <Card>
@@ -344,27 +430,61 @@ Thanks so much!
                     Advertised Ticket Value
                   </label>
                   <Input
-                    value={nftBountyValue}
-                    onChange={(e) => setNftBountyValue(e.target.value)}
+                    value={ticketInviteStampPreConfig.nftBountyValue}
+                    onChange={(e) => {
+                      setTicketInviteStampPreConfig({
+                        ...ticketInviteStampPreConfig,
+                        nftBountyValue: e.target.value,
+                      });
+                    }}
                   />
                 </$Vertical>
                 <$Vertical style={{ marginBottom: '15px' }}>
                   <label style={{ color: 'gray', marginBottom: '5px' }}>Game Played</label>
-                  <Input value={gamePlayed} onChange={(e) => setGamePlayed(e.target.value)} />
+                  <Input
+                    value={ticketInviteStampPreConfig.gamePlayed}
+                    onChange={(e) => {
+                      setTicketInviteStampPreConfig({
+                        ...ticketInviteStampPreConfig,
+                        gamePlayed: e.target.value,
+                      });
+                    }}
+                  />
                 </$Vertical>
                 <$Vertical style={{ marginBottom: '15px' }}>
                   <label style={{ color: 'gray', marginBottom: '5px' }}>Tentative Date</label>
-                  <Input value={tentativeDate} onChange={(e) => setTentativeDate(e.target.value)} />
+                  <Input
+                    value={ticketInviteStampPreConfig.tentativeDate}
+                    onChange={(e) => {
+                      setTicketInviteStampPreConfig({
+                        ...ticketInviteStampPreConfig,
+                        tentativeDate: e.target.value,
+                      });
+                    }}
+                  />
                 </$Vertical>
                 <$Vertical style={{ marginBottom: '15px' }}>
                   <label style={{ color: 'gray', marginBottom: '5px' }}>Tentative Time</label>
-                  <Input value={tentativeTime} onChange={(e) => setTentativeTime(e.target.value)} />
+                  <Input
+                    value={ticketInviteStampPreConfig.tentativeTime}
+                    onChange={(e) => {
+                      setTicketInviteStampPreConfig({
+                        ...ticketInviteStampPreConfig,
+                        tentativeTime: e.target.value,
+                      });
+                    }}
+                  />
                 </$Vertical>
                 <$Vertical style={{ marginBottom: '15px' }}>
                   <label style={{ color: 'gray', marginBottom: '5px' }}>Event Title</label>
                   <Input
-                    value={tournamentTitle}
-                    onChange={(e) => setTournamentTitle(e.target.value)}
+                    value={ticketInviteStampPreConfig.tournamentTitle}
+                    onChange={(e) => {
+                      setTicketInviteStampPreConfig({
+                        ...ticketInviteStampPreConfig,
+                        tournamentTitle: e.target.value,
+                      });
+                    }}
                   />
                 </$Vertical>
                 <$Vertical style={{ marginBottom: '15px' }}>
@@ -377,7 +497,12 @@ Thanks so much!
                         affiliateID={affiliateID as AffiliateID}
                         folderName={AffiliateStorageFolder.LOOTBOX}
                         newMediaDestination={gameGraphic}
-                        forceRefresh={() => triggerRefreshPing(refreshPing + 1)}
+                        forceRefresh={() => {
+                          setTicketInviteStampPreConfig({
+                            ...ticketInviteStampPreConfig,
+                            gameGraphic: gameGraphic.current,
+                          });
+                        }}
                         acceptedFileTypes={'image/*'}
                       />
                     </div>
@@ -420,7 +545,12 @@ Thanks so much!
                         affiliateID={affiliateID as AffiliateID}
                         folderName={AffiliateStorageFolder.LOOTBOX}
                         newMediaDestination={additionalLogo}
-                        forceRefresh={() => triggerRefreshPing(refreshPing + 1)}
+                        forceRefresh={() => {
+                          setTicketInviteStampPreConfig({
+                            ...ticketInviteStampPreConfig,
+                            additionalLogo: additionalLogo.current,
+                          });
+                        }}
                         acceptedFileTypes={'image/*'}
                       />
                     </div>
@@ -456,8 +586,13 @@ Thanks so much!
                     style={{ marginBottom: '5px', color: 'gray' }}
                   >{`Attributed To (optional)`}</label>
                   <Input
-                    value={attributedTo}
-                    onChange={(e) => setAttributedTo(e.target.value)}
+                    value={ticketInviteStampPreConfig.attributedTo}
+                    onChange={(e) => {
+                      setTicketInviteStampPreConfig({
+                        ...ticketInviteStampPreConfig,
+                        attributedTo: e.target.value,
+                      });
+                    }}
                     placeholder="Someone Else's Promoter ID"
                   />
                 </$Vertical>
@@ -466,7 +601,9 @@ Thanks so much!
                   <Dropdown overlay={referralMenu}>
                     <Button style={{ width: '200px' }}>
                       <Space>
-                        {referralType === ReferralType.Genesis ? 'Regular Invite' : 'Viral Invite'}
+                        {ticketInviteStampPreConfig.referralType === ReferralType.Genesis
+                          ? 'Regular Invite'
+                          : 'Viral Invite'}
                         <DownOutlined />
                       </Space>
                     </Button>
@@ -490,17 +627,17 @@ Thanks so much!
               <StampWrapper
                 primaryDownload
                 inviteLink={inviteLink}
-                fileName={`ticket-invite-${teamName}-ref-${createdReferral?.slug}`}
+                fileName={stampFileName}
                 stampTemplate={() => (
                   <StampLootbox_Classic
                     teamName={teamName}
                     lootboxImage={lootbox.stampImage}
                     themeColor={lootbox.themeColor}
-                    nftBountyValue={nftBountyValue}
-                    gameName={gamePlayed}
-                    tentativeDate={tentativeDate}
-                    tentativeTime={tentativeTime}
-                    tournamentTitle={tournamentTitle}
+                    nftBountyValue={ticketInviteStampPreConfig.nftBountyValue}
+                    gameName={ticketInviteStampPreConfig.gamePlayed}
+                    tentativeDate={ticketInviteStampPreConfig.tentativeDate}
+                    tentativeTime={ticketInviteStampPreConfig.tentativeTime}
+                    tournamentTitle={ticketInviteStampPreConfig.tournamentTitle}
                     gameGraphic={gameGraphic.current}
                     headshot={headshotGraphic.current}
                     additionalLogo={additionalLogo.current}
@@ -538,7 +675,11 @@ Thanks so much!
                     <Dropdown overlay={socialMenu}>
                       <Button size="small" style={{ width: '150px' }}>
                         <Space>
-                          {socialOptions.find((i) => i.key === socialType)?.label}
+                          {
+                            socialOptions.find(
+                              (i) => i.key === ticketInviteStampPreConfig.socialType,
+                            )?.label
+                          }
                           <DownOutlined />
                         </Space>
                       </Button>
@@ -554,16 +695,21 @@ Thanks so much!
                     rows={4}
                   />
                 </$Vertical>
-                {socialType !== StampSocialTypes.DirectMessage && (
+                {ticketInviteStampPreConfig.socialType !== StampSocialTypes.DirectMessage && (
                   <$Vertical style={{ marginTop: '10px' }}>
                     <label style={{ marginBottom: '5px', color: 'gray' }}>{`Hashtags`}</label>
                     <Input
-                      value={hashtagsText}
-                      onChange={(e) => setHashtagsText(e.target.value)}
-                      placeholder={`#${affiliateUser.name.replace(' ', '')} #${gamePlayed.replace(
+                      value={ticketInviteStampPreConfig.hashtagsText}
+                      onChange={(e) => {
+                        setTicketInviteStampPreConfig({
+                          ...ticketInviteStampPreConfig,
+                          hashtagsText: e.target.value,
+                        });
+                      }}
+                      placeholder={`#${affiliateUser.name.replace(
                         ' ',
                         '',
-                      )}`}
+                      )} #${ticketInviteStampPreConfig.gamePlayed.replace(' ', '')}`}
                     />
                   </$Vertical>
                 )}
@@ -597,7 +743,7 @@ Thanks so much!
           </$Horizontal>
         </div>
       )}
-    </PageContainer>
+    </div>
   );
 };
 
