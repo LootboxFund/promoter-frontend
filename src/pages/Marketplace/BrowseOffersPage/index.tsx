@@ -26,11 +26,13 @@ import {
   Avatar,
   Popover,
   Popconfirm,
+  Tooltip,
 } from 'antd';
 import { Link } from '@umijs/max';
 import Meta from 'antd/lib/card/Meta';
 import { ColumnsType } from 'antd/lib/table';
 import { AdvertiserID, OfferID } from '@wormgraph/helpers';
+import { InfoCircleOutlined } from '@ant-design/icons';
 
 type DataType = {
   advertiserAvatar: string;
@@ -99,22 +101,36 @@ const BrowseOffersPage: React.FC = () => {
       render: (_, record) => {
         return (
           <Popover content={record.description} title={record.title}>
-            <span>{record.description.slice(0, 200)}</span>
+            <span>{record.description.slice(0, 100)}</span>
           </Popover>
         );
       },
     },
     {
-      title: 'Low',
+      title: (
+        <Tooltip title="The minimum you can earn per user driven to this offer. This represents a Clay Tier accounts earning if they only achieve the smallest activation in this offer.">
+          <span style={{ marginRight: '10px' }}>Low</span>
+          <InfoCircleOutlined />
+        </Tooltip>
+      ),
       dataIndex: 'lowerEarn',
       key: 'lowerEarn',
-      render: (_, record) => <span>{`$${record.lowerEarn.toFixed(2)}`}</span>,
+      render: (_, record) => {
+        return `$${record.lowerEarn.toFixed(2)}`;
+      },
     },
     {
-      title: 'High',
+      title: (
+        <Tooltip title="The upper limits of how much you can earn per user driven to this offer. Upper limits are for Gold/Platinum/Diamond Tier accounts.">
+          <span style={{ marginRight: '10px' }}>High</span>
+          <InfoCircleOutlined />
+        </Tooltip>
+      ),
       dataIndex: 'upperEarn',
       key: 'upperEarn',
-      render: (_, record) => <span>{`$${record.upperEarn.toFixed(2)}`}</span>,
+      render: (_, record) => {
+        return `$${record.upperEarn.toFixed(2)}`;
+      },
     },
     {
       title: 'Action',

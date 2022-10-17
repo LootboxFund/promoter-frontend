@@ -204,7 +204,11 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
           <div className={styles.sharesTheTournamentCashPri}>
             Shares the tournament cash prize with the holder of this LOOTBOX fan ticket
           </div>
-          <h2 className={styles.teamNamE} id="team-name">
+          <h2
+            className={styles.teamNamE}
+            id="team-name"
+            style={{ fontSize: teamName.length > 12 ? '42px' : '60px' }}
+          >
             {teamName}
           </h2>
         </div>

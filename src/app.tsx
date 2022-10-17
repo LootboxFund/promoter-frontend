@@ -1,4 +1,6 @@
 import Footer from '@/components/Footer';
+import { ConfigProvider } from 'antd';
+import enUS from 'antd/es/locale/en_US';
 import RightContent from '@/components/RightContent';
 import { LinkOutlined } from '@ant-design/icons';
 import { PageLoading, Settings as LayoutSettings } from '@ant-design/pro-components';
@@ -164,7 +166,9 @@ const RootProvider = ({ children, routes }: any) => {
     <ApolloProvider client={client}>
       <Web3Provider>
         <CookiesProvider>
-          <AuthGuard>{newChildren}</AuthGuard>
+          <ConfigProvider locale={enUS}>
+            <AuthGuard>{newChildren}</AuthGuard>
+          </ConfigProvider>
         </CookiesProvider>
       </Web3Provider>
     </ApolloProvider>

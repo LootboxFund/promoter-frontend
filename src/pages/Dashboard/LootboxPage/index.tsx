@@ -266,10 +266,7 @@ const LootboxPage: React.FC = () => {
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Ticket Analytics</h2>
         <$Horizontal justifyContent="space-between">
-          <Link
-            to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}
-            target="_blank"
-          >
+          <Link to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}>
             <Button style={{ marginRight: '5px' }}>Generate Stamp</Button>
           </Link>
           <Button type="primary" onClick={() => setIsReferralModalOpen(true)}>

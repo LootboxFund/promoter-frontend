@@ -159,7 +159,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           ),
           okText: 'Go to Lootbox',
           onOk: () => {
-            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}`;
+            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}tid=${lootbox?.tournamentID}`;
           },
         });
       } catch (e: any) {
