@@ -1,6 +1,6 @@
 import { LootboxStatus } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
-import { Address, ChainIDHex, LootboxStatus_Firestore } from '@wormgraph/helpers';
+import { Address, ChainIDHex, LootboxID, LootboxStatus_Firestore } from '@wormgraph/helpers';
 
 export interface LootboxFE {
   address: Address;
@@ -53,25 +53,19 @@ export const GET_LOOTBOX = gql`
   }
 `;
 
+export interface EditLootboxResponseSuccessFE {
+  __typename: 'EditLootboxResponseSuccess';
+  lootbox: {
+    id: LootboxID;
+  };
+}
+
 export const EDIT_LOOTBOX = gql`
   mutation Mutation($payload: EditLootboxPayload!) {
     editLootbox(payload: $payload) {
       ... on EditLootboxResponseSuccess {
         lootbox {
           id
-          name
-          description
-          status
-          nftBountyValue
-          joinCommunityUrl
-          maxTickets
-          stampImage
-          backgroundImage
-          logo
-          themeColor
-          address
-          chainIdHex
-          symbol
         }
       }
       ... on ResponseError {
