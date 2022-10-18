@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import Web3Modal from 'web3modal';
 import { manifest } from '@/manifest';
+import WalletConnect from '@walletconnect/web3-provider';
 
 interface IWeb3Context {
   library?: ethers.providers.Web3Provider;
@@ -18,11 +19,26 @@ const Web3Context = createContext<IWeb3Context>({
   switchNetwork: async () => {},
 });
 
-const providerOptions = {};
+export const providerOptions = {
+  // coinbasewallet: {
+  //   package: CoinbaseWalletSDK,
+  //   options: {
+  //     appName: "Web 3 Modal Demo",
+  //     infuraId: process.env.INFURA_KEY
+  //   }
+  // },
+  walletconnect: {
+    package: WalletConnect,
+    options: {
+      infuraId: 'dadab9b61b484421a252e7b42c4bde53',
+    },
+  },
+};
 
 const web3Modal = new Web3Modal({
   network: 'mainnet',
   cacheProvider: true,
+  disableInjectedProvider: false,
   providerOptions,
 });
 
