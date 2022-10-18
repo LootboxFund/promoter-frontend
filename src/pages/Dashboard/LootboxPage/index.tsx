@@ -98,6 +98,7 @@ const LootboxPage: React.FC = () => {
           description: payload.payload.description,
           joinCommunityUrl: payload.payload.joinCommunityUrl,
           logo: payload.payload.logoImage,
+          backgroundImage: payload.payload.backgroundImage,
           // maxTickets: payload.payload.maxTickets,
           nftBountyValue: payload.payload.nftBountyValue,
           status: payload.payload.status,
