@@ -1,8 +1,6 @@
-import { AdvertiserID, ConquestStatus, AffiliateID } from '@wormgraph/helpers';
-import moment from 'moment';
-import type { Moment } from 'moment';
+import { AffiliateID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Form, Modal, Upload } from 'antd';
+import { Button, Card, Form, Modal } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { UpdateAffiliateDetailsPayload } from '@/api/graphql/generated/types';
 import { AntUploadFile } from '../AntFormBuilder';
@@ -54,12 +52,14 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
       audienceSize: affiliate.audienceSize || 0,
     });
   }, [affiliate]);
+
   useEffect(() => {
-    setAffiliateInfo({
-      ...affiliateInfo,
+    setAffiliateInfo((info) => ({
+      ...info,
       privateLoginEmail: user?.email || '',
-    });
+    }));
   }, [user]);
+
   const handleFinish = useCallback(async (values) => {
     const payload = {} as Omit<UpdateAffiliateDetailsPayload, 'id'>;
     if (values.name) {

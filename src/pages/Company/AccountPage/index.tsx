@@ -26,6 +26,7 @@ import EditAffiliateForm from '@/components/EditAffiliateForm';
 import { AffiliateID } from '@wormgraph/helpers';
 import { Image } from 'antd';
 import { UPDATE_AFFILIATE } from './api.gql';
+import ConnectWalletButton from '@/components/ConnectWalletButton';
 
 const AccountPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();
@@ -139,9 +140,12 @@ const AccountPage: React.FC = () => {
             <Image width={200} src={affiliate.avatar || ''} />
           </$Horizontal>
           <br />
-          <Button onClick={() => loginOut()} type="ghost">
-            Logout
-          </Button>
+          <$Horizontal spacing={2}>
+            <Button onClick={() => loginOut()} type="ghost">
+              Logout
+            </Button>
+            <ConnectWalletButton />
+          </$Horizontal>
         </div>
       )}
     </PageContainer>

@@ -1,4 +1,4 @@
-import { Button } from 'antd';
+import { Button, Typography } from 'antd';
 import { shortenAddress } from '@/lib/address';
 import { useWeb3 } from '@/hooks/useWeb3';
 
@@ -12,9 +12,9 @@ const ConnectWalletButton = () => {
           Connect Wallet
         </Button>
       ) : (
-        <div>
-          <span>{shortenAddress(currentAccount)}</span>
-        </div>
+        <Typography.Text>
+          <i>You</i>&nbsp;{shortenAddress(currentAccount)}
+        </Typography.Text>
       )}
     </div>
   );
