@@ -63,7 +63,7 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
   };
 
   const disconnect = async () => {
-    // web3Modal.clearCachedProvider();
+    web3Modal.clearCachedProvider();
     refreshState();
   };
 

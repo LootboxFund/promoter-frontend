@@ -76,7 +76,9 @@ const LootboxPage: React.FC = () => {
   }, [data]);
 
   const { depositERC20, depositNative } = useLootbox({ address: lootbox?.address });
-  const { getAllowance, approveTokenAmount } = useERC20({ chainIDHex: lootbox?.chainIdHex });
+  const { getAllowance, approveTokenAmount } = useERC20({
+    chainIDHex: lootbox?.chainIdHex,
+  });
   const editLootbox = async (payload: EditLootboxRequest) => {
     console.log('EDIT LOOTBOX', payload);
 
@@ -238,6 +240,9 @@ const LootboxPage: React.FC = () => {
             tag: lootbox.symbol,
             tournamentID: magicLinkParams.tournamentID as TournamentID | undefined,
             status: lootbox.status,
+            address: lootbox.address,
+            creatorAddress: lootbox.creatorAddress,
+            chainIDHex: lootbox.chainIdHex,
           }}
           mode="view-edit"
           onSubmitEdit={editLootbox}

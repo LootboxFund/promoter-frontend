@@ -16,6 +16,7 @@ export interface LootboxFE {
   symbol: string;
   backgroundImage: string;
   logo: string;
+  creatorAddress: Address;
 }
 
 export interface GetLootboxFE {
@@ -41,6 +42,7 @@ export const GET_LOOTBOX = gql`
           symbol
           backgroundImage
           logo
+          creatorAddress
         }
       }
       ... on ResponseError {

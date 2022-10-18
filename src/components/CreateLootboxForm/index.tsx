@@ -1,4 +1,11 @@
-import { Address, AffiliateID, LootboxID, TournamentID } from '@wormgraph/helpers';
+import {
+  Address,
+  AffiliateID,
+  ChainIDHex,
+  chainIdHexToName,
+  LootboxID,
+  TournamentID,
+} from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
 import { Affix, Button, Card, Empty, Form, Modal, notification, Typography } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -19,7 +26,7 @@ import { LootboxStatus } from '@/api/graphql/generated/types';
 // const DEFAULT_THEME_COLOR = '#00B0FB'
 const DEFAULT_THEME_COLOR = '#000000';
 
-interface LootboxBodyPayload {
+interface LootboxBody {
   description: string;
   backgroundImage: string;
   logoImage: string;
@@ -32,14 +39,16 @@ interface LootboxBodyPayload {
   tournamentID?: TournamentID;
   address?: Address;
   status: LootboxStatus;
+  creatorAddress?: Address;
+  chainIDHex?: ChainIDHex;
 }
 
 export interface CreateLootboxRequest {
-  payload: Omit<LootboxBodyPayload, 'address' | 'status'>;
+  payload: Omit<LootboxBody, 'address' | 'status' | 'chainIDHex' | 'creatorAddress'>;
 }
 
 export interface EditLootboxRequest {
-  payload: Omit<LootboxBodyPayload, 'address' | 'tag'>;
+  payload: Omit<LootboxBody, 'address' | 'tag' | 'chainIDHex' | 'creatorAddress'>;
 }
 
 interface OnSubmitCreateResponse {
@@ -48,13 +57,13 @@ interface OnSubmitCreateResponse {
 }
 
 export type CreateLootboxFormProps = {
-  lootbox?: LootboxBodyPayload;
+  lootbox?: LootboxBody;
   onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
   onSubmitEdit?: (payload: EditLootboxRequest) => Promise<void>;
   mode: 'create' | 'edit-only' | 'view-edit' | 'view-only';
 };
 
-const LOOTBOX_INFO: LootboxBodyPayload = {
+const LOOTBOX_INFO: LootboxBody = {
   description: '',
   backgroundImage: placeholderBackground,
   logoImage: placeholderImage,
@@ -64,7 +73,6 @@ const LOOTBOX_INFO: LootboxBodyPayload = {
   name: '',
   maxTickets: 100,
   tag: '',
-  address: 'missing' as Address,
   status: LootboxStatus.Active,
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
@@ -88,7 +96,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const forceUpdate = FormBuilder.useForceUpdate();
   const [viewMode, setViewMode] = useState(true);
   const [pending, setPending] = useState(false);
-  const [lootboxInfo, setLootboxInfo] = useState<LootboxBodyPayload>(LOOTBOX_INFO);
+  const [lootboxInfo, setLootboxInfo] = useState<LootboxBody>(LOOTBOX_INFO);
   const lockedToEdit = mode === 'create' || mode === 'edit-only';
 
   useEffect(() => {
@@ -111,6 +119,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         tag: lootbox.tag,
         address: lootbox.address,
         status: lootbox.status,
+        creatorAddress: lootbox.creatorAddress,
+        chainIDHex: lootbox.chainIDHex,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -166,7 +176,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           ),
           okText: 'Go to Lootbox',
           onOk: () => {
-            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}tid=${lootbox?.tournamentID}`;
+            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}${
+              lootbox?.tournamentID ? `?tid=${lootbox.tournamentID}` : ''
+            }`;
           },
         });
       } catch (e: any) {
@@ -187,12 +199,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   );
 
   const handleEditFinish = useCallback(async (values) => {
-    console.log(`values = `, values);
-    console.log(`lootboxInfo = `, lootboxInfo);
-    console.log(`newThemeColor = `, newThemeColor.current);
-    console.log(`newMediaDestinationLogo = `, newMediaDestinationLogo.current);
-    console.log(`newMediaDestinationBackground = `, newMediaDestinationBackground.current);
-
     if (!onSubmitEdit) return;
     const request = { payload: {} } as EditLootboxRequest;
 
@@ -249,7 +255,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   }, []);
 
   const metaPublic = () => {
-    console.log('META lootbox info', lootboxInfo);
     const meta = {
       columns: 1,
       disabled: pending,
@@ -424,19 +429,35 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     return meta;
   };
   const metaBlockchain = () => {
+    const explorerURL = lootboxInfo.chainIDHex ? getBlockExplorerUrl(lootboxInfo.chainIDHex) : null;
     const meta = {
       columns: 1,
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
         {
+          key: 'network',
+          label: 'Network',
+          viewWidget: () => (
+            <Typography.Text>
+              {lootboxInfo.chainIDHex ? chainIdHexToName(lootboxInfo.chainIDHex) : 'Unknown'}
+            </Typography.Text>
+          ),
+        },
+        {
           key: 'blockchainExplorer',
           label: 'Lootbox Address',
           // @ts-ignore
           viewWidget: () => (
-            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
+            <Typography.Link
+              href={`${explorerURL}/address/${lootboxInfo.address}`}
+              target="_blank"
+              rel="noreferrer"
+              copyable
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
               {lootboxInfo.address}
-            </a>
+            </Typography.Link>
           ),
         },
         {
@@ -444,19 +465,15 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           label: 'Owner Address',
           // @ts-ignore
           viewWidget: () => (
-            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
-              {lootboxInfo.address}
-            </a>
-          ),
-        },
-        {
-          key: 'lootboxTreasury',
-          label: 'Treasury Address',
-          // @ts-ignore
-          viewWidget: () => (
-            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
-              {lootboxInfo.address}
-            </a>
+            <Typography.Link
+              href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
+              target="_blank"
+              rel="noreferrer"
+              copyable
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {lootboxInfo.creatorAddress}
+            </Typography.Link>
           ),
         },
       ],
