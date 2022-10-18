@@ -317,6 +317,7 @@ const LootboxPage: React.FC = () => {
         onSubmitReward={rewardSponsors}
         onTokenApprove={approveAllowance}
         onCheckAllowance={isWithinAllowance}
+        lootboxID={(lootboxID || '') as LootboxID}
       />
       <GenerateReferralModal
         isOpen={isReferralModalOpen}

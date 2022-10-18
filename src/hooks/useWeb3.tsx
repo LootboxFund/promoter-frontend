@@ -92,8 +92,11 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
   useEffect(() => {
     if (provider?.on) {
       const handleAccountsChanged = (newAccounts: Address[]) => {
-        if (newAccounts) {
+        if (newAccounts.length > 0) {
           setAccounts(newAccounts);
+        } else {
+          // seems like a disconnect
+          handleDisconnect();
         }
       };
 
@@ -103,7 +106,6 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
       };
 
       const handleDisconnect = () => {
-        console.log('disconnect');
         disconnect();
       };
 
