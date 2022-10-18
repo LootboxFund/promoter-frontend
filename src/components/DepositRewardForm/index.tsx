@@ -1,6 +1,6 @@
 import { Address, ChainIDHex, chainIdHexToName } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Empty, Form, Modal, Spin } from 'antd';
+import { Button, Card, Empty, Form, Modal, Spin, Typography } from 'antd';
 import { useCallback, useState } from 'react';
 import { $Horizontal, $Vertical } from '@/components/generics';
 import ConnectWalletButton from '../ConnectWalletButton';
@@ -9,6 +9,7 @@ import { ContractTransaction, ethers } from 'ethers';
 import { chainIdToHex } from '@/lib/chain';
 import { shortenAddress } from '@/lib/address';
 import styles from './index.less';
+import useERC20 from '@/hooks/useERC20';
 
 type RewardType = 'Native' | 'ERC20';
 
@@ -41,29 +42,14 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   const [loading, setLoading] = useState(false);
   // @ts-ignore
   const forceUpdate = FormBuilder.useForceUpdate();
+  const { getBalance, getNativeBalance, parseAmount } = useERC20({
+    chainIDHex,
+  });
 
   const userChainIDHex = network?.chainId ? chainIdToHex(network.chainId) : null;
 
-  const parseAmount = async (amount: string, tokenAddress?: Address): Promise<ethers.BigNumber> => {
-    // get decimals
-    let decimals;
-    if (!!tokenAddress) {
-      const erc20Contract = new ethers.Contract(
-        tokenAddress,
-        ['function decimals() view returns (uint8)'],
-        library,
-      );
-      decimals = await erc20Contract.decimals();
-    } else {
-      decimals = 18;
-    }
-    const amountBN = ethers.utils.parseUnits(`${amount}`, decimals);
-    return amountBN;
-  };
-
   const handleOnRewardSubmit = useCallback(
     async (values) => {
-      console.log('reward submit: ', values);
       if (!library) {
         console.error('no web3 library available');
         return;
@@ -76,7 +62,21 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           values.amount,
           (values.rewardType as RewardType) === 'Native' ? undefined : values.tokenAddress,
         );
-        console.log('amount', amount.toString());
+
+        let balance: ethers.BigNumber;
+        // Make sure user has enough tokens
+        if (values.rewardType === 'ERC20') {
+          // erc20
+          balance = await getBalance(values.tokenAddress, currentAccount);
+        } else {
+          // native
+          balance = await getNativeBalance(currentAccount);
+        }
+
+        if (amount.gt(balance)) {
+          throw new Error('Insufficient balance');
+        }
+
         const payload: RewardSponsorsPayload = {
           rewardType: values.rewardType as RewardType,
           amount,
@@ -201,10 +201,14 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         {
           key: 'rewardType',
           label: 'Pick a Reward Method',
-          widget: 'radio-group',
+          widget: 'select',
           options: ['Native', 'ERC20'] as RewardType[],
           initialValue: 'Native',
+          widgetProps: { style: { width: '120px' } },
           preserving: true,
+          onChange: (evt: any) => {
+            form.setFieldValue('amount', 0);
+          },
         },
         {
           key: 'amount',
@@ -240,6 +244,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         required: true,
         widget: 'input',
         preserving: true,
+        widgetProps: { style: { width: '400px' } } as any,
         rules: [
           {
             validator: (_rule: any, value: any, _callback: any) => {
@@ -293,7 +298,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
             }}
             description={
               <span style={{ maxWidth: '200px' }}>
-                {`Please switch networks to ${chainIdHexToName(chainIDHex)} to create a LOOTBOX`}
+                {`Please switch networks to ${chainIdHexToName(chainIDHex)} to deposit rewards`}
               </span>
             }
             style={{
@@ -308,7 +313,14 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
             </Button>
           </Empty>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '500px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              minWidth: '500px',
+            }}
+          >
             <Form
               layout="horizontal"
               form={form}
@@ -320,19 +332,25 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
                 <FormBuilder form={form} meta={meta} />
               </fieldset>
               <fieldset>
-                <Form.Item className="form-footer" style={{ textAlign: 'right' }}>
+                <Form.Item
+                  wrapperCol={{ span: 16, offset: 8 }}
+                  className="form-footer"
+                  style={{ textAlign: 'right' }}
+                >
                   {!currentAccount ? (
                     <ConnectWalletButton />
                   ) : (
-                    <span>
-                      <span className={styles.walletText}>
-                        {currentAccount && `${shortenAddress(currentAccount)}`}
-                      </span>
-                      &nbsp;
+                    <$Horizontal justifyContent="space-between">
+                      {currentAccount ? (
+                        <Typography.Text copyable>
+                          <span style={{ fontStyle: 'italic' }}>You</span>{' '}
+                          {shortenAddress(currentAccount)}
+                        </Typography.Text>
+                      ) : null}
                       <Button htmlType="submit" type="primary" disabled={loading}>
                         {loading ? 'Loading...' : 'Deposit'}
                       </Button>
-                    </span>
+                    </$Horizontal>
                   )}
                 </Form.Item>
               </fieldset>

@@ -7,6 +7,35 @@ export const useERC20 = ({ chainIDHex }: { chainIDHex: ChainIDHex }) => {
   const { library, currentAccount } = useWeb3();
   const { provider } = useReadOnlyProvider({ chainIDHex });
 
+  const getNativeBalance = async (
+    userAddress?: Address, // if undefined, will use currentAccount
+  ) => {
+    if (!provider) {
+      throw new Error('Unsupported chain');
+    }
+    if (!currentAccount || !userAddress) {
+      return ethers.BigNumber.from('0');
+    }
+    return provider.getBalance(userAddress || currentAccount);
+  };
+
+  const getBalance = async (
+    tokenAddress: Address,
+    userAddress?: Address, // if undefined, will use currentAccount
+  ): Promise<ethers.BigNumber> => {
+    if (!provider) {
+      throw new Error('Unsupported chain');
+    }
+
+    const contract = new ethers.Contract(
+      tokenAddress,
+      ['function balanceOf(address) view returns (uint256)'],
+      provider,
+    );
+    const res = await contract.balanceOf(userAddress || currentAccount);
+    return ethers.BigNumber.from(res);
+  };
+
   const getAllowance = async (
     ownerAddress: Address,
     spenderAddress: Address,
@@ -77,11 +106,32 @@ export const useERC20 = ({ chainIDHex }: { chainIDHex: ChainIDHex }) => {
     return tx;
   };
 
+  // For 18 decimals, amount = 1 will yield 1e18
+  const parseAmount = async (amount: string, tokenAddress?: Address): Promise<ethers.BigNumber> => {
+    // get decimals
+    let decimals;
+    if (!!tokenAddress) {
+      const erc20Contract = new ethers.Contract(
+        tokenAddress,
+        ['function decimals() view returns (uint8)'],
+        library,
+      );
+      decimals = await erc20Contract.decimals();
+    } else {
+      decimals = 18;
+    }
+    const amountBN = ethers.utils.parseUnits(`${amount}`, decimals);
+    return amountBN;
+  };
+
   return {
     getSymbol,
     getDecimals,
     getAllowance,
     approveTokenAmount,
+    getBalance,
+    getNativeBalance,
+    parseAmount,
   };
 };
 
