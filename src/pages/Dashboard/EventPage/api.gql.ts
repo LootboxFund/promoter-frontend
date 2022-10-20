@@ -72,6 +72,7 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
 `;
 
 export interface LootboxTournamentSnapshotFE {
+  id: LootboxTournamentSnapshotID;
   address: Address;
   lootboxID: LootboxID;
   stampImage: string;
@@ -80,15 +81,19 @@ export interface LootboxTournamentSnapshotFE {
 }
 
 export interface PaginateEventLootboxesFE {
-  __resolveType: 'TournamentResponseSuccess';
+  __typename: 'TournamentResponseSuccess';
   tournament: {
     paginateLootboxSnapshots: {
       edges: {
         node: LootboxTournamentSnapshotFE;
-        cursor: LootboxTournamentSnapshotID;
+        cursor: number; // Created at timestamp
       }[];
       pageInfo: {
         hasNextPage: boolean;
+        endCursor: {
+          impression: number;
+          createdAt: number;
+        } | null;
       };
     };
   };
@@ -101,23 +106,31 @@ export const parsePaginatedLootboxEventSnapshots = (
 };
 
 export const PAGINATE_EVENT_LOOTBOXES = gql`
-  query PaginateLootboxSnapshots($tournamentID: ID!, $first: Int!, $after: ID) {
+  query PaginateLootboxSnapshots($tournamentID: ID!, $first: Int!, $after: InputCursor) {
     tournament(id: $tournamentID) {
       ... on TournamentResponseSuccess {
         tournament {
           paginateLootboxSnapshots(first: $first, after: $after) {
             edges {
               node {
+                id
                 address
                 lootboxID
                 stampImage
                 status
                 name
               }
-              cursor
+              cursor {
+                impression
+                createdAt
+              }
             }
             pageInfo {
               hasNextPage
+              endCursor {
+                impression
+                createdAt
+              }
             }
           }
         }

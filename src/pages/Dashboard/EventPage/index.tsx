@@ -6,11 +6,11 @@ import {
   RemoveOfferAdSetFromTournamentResponse,
   MutationRemoveOfferAdSetFromTournamentArgs,
   ResponseError,
-  AdSetStatus,
   EditTournamentResponseSuccess,
   MutationEditTournamentArgs,
   EditTournamentPayload,
-  LootboxTournamentSnapshot,
+  PaginatedLootboxTournamentSnapshotPageInfo,
+  LootboxTournamentSnapshotCursor,
 } from '@/api/graphql/generated/types';
 import { history } from '@umijs/max';
 import * as _ from 'lodash';
@@ -22,7 +22,7 @@ import { Link, useParams } from '@umijs/max';
 import type {
   ActivationID,
   AffiliateID,
-  LootboxID,
+  LootboxTournamentSnapshotID,
   OfferID,
   RateQuoteID,
   TournamentID,
@@ -76,6 +76,8 @@ import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { manifest } from '@/manifest';
 
+const GALLERY_PAGE_SIZE = 12;
+
 interface DataType {
   rateQuoteID: string;
   activationID: string;
@@ -102,6 +104,11 @@ const EventPage: React.FC = () => {
   const [showTableOfContents, setShowTableOfContents] = useState(true);
   const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+  const [lastLootboxCursor, setLastLootboxCursor] =
+    useState<LootboxTournamentSnapshotCursor | null>(null);
+  const [lootboxTournamentSnapshots, setLootboxTournamentSnapshots] = useState<
+    LootboxTournamentSnapshotFE[]
+  >([]);
 
   // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
@@ -117,7 +124,6 @@ const EventPage: React.FC = () => {
       ) {
         const tournament = data.viewTournamentAsOrganizer.tournament;
         setTournament(tournament);
-        console.log(`--- tournament`, tournament);
       }
     },
   });
@@ -130,14 +136,37 @@ const EventPage: React.FC = () => {
   } = useQuery<{ tournament: PaginateEventLootboxesFE | ResponseError }>(PAGINATE_EVENT_LOOTBOXES, {
     variables: {
       tournamentID: eventID || '',
-      first: 30,
+      first: GALLERY_PAGE_SIZE,
+      after: lastLootboxCursor,
+    },
+    onCompleted: (data) => {
+      if (
+        (data?.tournament as PaginateEventLootboxesFE | undefined)?.__typename ===
+        'TournamentResponseSuccess'
+      ) {
+        const paginatedsnapshots = parsePaginatedLootboxEventSnapshots(
+          data?.tournament as PaginateEventLootboxesFE | undefined,
+        );
+
+        setLootboxTournamentSnapshots((prev) => [...prev, ...paginatedsnapshots]);
+      }
     },
   });
 
-  const lootboxTournamentSnapshots: LootboxTournamentSnapshotFE[] = useMemo(() => {
-    return parsePaginatedLootboxEventSnapshots(
-      paginatedLootboxEdges?.tournament as PaginateEventLootboxesFE | undefined,
-    );
+  const {
+    pageEndCursor,
+    hasNextPage,
+  }: {
+    pageEndCursor: LootboxTournamentSnapshotCursor | null; // Created at timestamp
+    hasNextPage: boolean;
+  } = useMemo(() => {
+    const pageEndCursor = (
+      paginatedLootboxEdges?.tournament as PaginateEventLootboxesFE | undefined
+    )?.tournament?.paginateLootboxSnapshots?.pageInfo?.endCursor;
+    const hasNextPage = (paginatedLootboxEdges?.tournament as PaginateEventLootboxesFE | undefined)
+      ?.tournament?.paginateLootboxSnapshots?.pageInfo?.hasNextPage;
+
+    return { pageEndCursor: pageEndCursor || null, hasNextPage: !!hasNextPage };
   }, [paginatedLootboxEdges?.tournament]);
 
   // EDIT TOURNAMENT AS ORGANIZER
@@ -200,54 +229,11 @@ const EventPage: React.FC = () => {
     { title: tournament?.title || '', route: `/dashboard/events/id/${tournament?.id}` },
   ];
 
-  const LootboxGallery = ({
-    snapshots,
-    loading,
-  }: {
-    snapshots: LootboxTournamentSnapshotFE[];
-    loading: boolean;
-  }) => {
-    return (
-      <div className={styles.content}>
-        {snapshots.map((snapshot) => (
-          <Link
-            key={snapshot.lootboxID}
-            to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
-            target="_blank"
-          >
-            <Card
-              hoverable
-              className={styles.card}
-              cover={
-                <img alt="example" src={snapshot.stampImage || ''} className={styles.cardImage} />
-              }
-              actions={[
-                <Button key={`view-${snapshot.lootboxID}`} style={{ width: '90%' }}>
-                  View
-                </Button>,
-                <Link
-                  key={`stamp-${snapshot.lootboxID}`}
-                  to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
-                  target="_blank"
-                >
-                  <Button style={{ width: '90%' }}>Stamp</Button>
-                </Link>,
-              ]}
-            >
-              <Meta
-                title={snapshot.name}
-                description={
-                  snapshot.status === LootboxTournamentStatus.Active ? (
-                    <Tag color="success">Active</Tag>
-                  ) : (
-                    <Tag color="warning">Inactive</Tag>
-                  )
-                }
-              />
-            </Card>
-          </Link>
-        ))}
-      </div>
+  const loadMore = () => {
+    setLastLootboxCursor(
+      pageEndCursor
+        ? { impression: pageEndCursor.impression, createdAt: pageEndCursor.createdAt }
+        : null,
     );
   };
 
@@ -378,7 +364,59 @@ const EventPage: React.FC = () => {
               </Link>
             </Empty>
           ) : (
-            <LootboxGallery loading={loadingLootboxEdges} snapshots={lootboxTournamentSnapshots} />
+            <$Vertical>
+              <div className={styles.content}>
+                {lootboxTournamentSnapshots.map((snapshot) => (
+                  <Link
+                    key={snapshot.lootboxID}
+                    to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
+                    target="_blank"
+                  >
+                    <Card
+                      hoverable
+                      className={styles.card}
+                      cover={
+                        <img
+                          alt="example"
+                          src={snapshot.stampImage || ''}
+                          className={styles.cardImage}
+                        />
+                      }
+                      actions={[
+                        <Button key={`view-${snapshot.lootboxID}`} style={{ width: '90%' }}>
+                          View
+                        </Button>,
+                        <Link
+                          key={`stamp-${snapshot.lootboxID}`}
+                          to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
+                          target="_blank"
+                        >
+                          <Button style={{ width: '90%' }}>Stamp</Button>
+                        </Link>,
+                      ]}
+                    >
+                      <Meta
+                        title={snapshot.name}
+                        description={
+                          snapshot.status === LootboxTournamentStatus.Active ? (
+                            <Tag color="success">Active</Tag>
+                          ) : (
+                            <Tag color="warning">Inactive</Tag>
+                          )
+                        }
+                      />
+                    </Card>
+                  </Link>
+                ))}
+                {loadingLootboxEdges && <Card loading />}
+              </div>
+              <br />
+              {hasNextPage && (
+                <Button onClick={loadMore} style={{ margin: '0 auto' }}>
+                  Load more
+                </Button>
+              )}
+            </$Vertical>
           )}
           <br />
           <br />
