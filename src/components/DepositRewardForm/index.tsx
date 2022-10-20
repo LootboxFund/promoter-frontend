@@ -1,14 +1,16 @@
-import { Address, ChainIDHex, chainIdHexToName } from '@wormgraph/helpers';
+import { Address, ChainIDHex, chainIdHexToName, LootboxID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Empty, Form, Modal, Spin } from 'antd';
+import { Button, Card, Empty, Form, Modal, Spin, Tabs, Typography } from 'antd';
 import { useCallback, useState } from 'react';
 import { $Horizontal, $Vertical } from '@/components/generics';
 import ConnectWalletButton from '../ConnectWalletButton';
 import { useWeb3 } from '@/hooks/useWeb3';
 import { ContractTransaction, ethers } from 'ethers';
-import { chainIdToHex } from '@/lib/chain';
+import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
 import { shortenAddress } from '@/lib/address';
 import styles from './index.less';
+import useERC20 from '@/hooks/useERC20';
+import { manifest } from '@/manifest';
 
 type RewardType = 'Native' | 'ERC20';
 
@@ -25,12 +27,14 @@ export interface CheckAllowancePayload {
 
 export type DepositRewardForm = {
   chainIDHex: ChainIDHex;
+  lootboxID: LootboxID;
   onSubmitReward: (payload: RewardSponsorsPayload) => Promise<ContractTransaction>;
   onTokenApprove: (payload: RewardSponsorsPayload) => Promise<ContractTransaction | null>;
   onCheckAllowance: (payload: CheckAllowancePayload) => Promise<boolean>;
 };
 
 const CreateLootboxForm: React.FC<DepositRewardForm> = ({
+  lootboxID,
   chainIDHex,
   onSubmitReward,
   onTokenApprove,
@@ -41,29 +45,14 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   const [loading, setLoading] = useState(false);
   // @ts-ignore
   const forceUpdate = FormBuilder.useForceUpdate();
+  const { getBalance, getNativeBalance, parseAmount } = useERC20({
+    chainIDHex,
+  });
 
   const userChainIDHex = network?.chainId ? chainIdToHex(network.chainId) : null;
 
-  const parseAmount = async (amount: string, tokenAddress?: Address): Promise<ethers.BigNumber> => {
-    // get decimals
-    let decimals;
-    if (!!tokenAddress) {
-      const erc20Contract = new ethers.Contract(
-        tokenAddress,
-        ['function decimals() view returns (uint8)'],
-        library,
-      );
-      decimals = await erc20Contract.decimals();
-    } else {
-      decimals = 18;
-    }
-    const amountBN = ethers.utils.parseUnits(`${amount}`, decimals);
-    return amountBN;
-  };
-
   const handleOnRewardSubmit = useCallback(
     async (values) => {
-      console.log('reward submit: ', values);
       if (!library) {
         console.error('no web3 library available');
         return;
@@ -76,7 +65,21 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           values.amount,
           (values.rewardType as RewardType) === 'Native' ? undefined : values.tokenAddress,
         );
-        console.log('amount', amount.toString());
+
+        let balance: ethers.BigNumber;
+        // Make sure user has enough tokens
+        if (values.rewardType === 'ERC20') {
+          // erc20
+          balance = await getBalance(values.tokenAddress, currentAccount);
+        } else {
+          // native
+          balance = await getNativeBalance(currentAccount);
+        }
+
+        if (amount.gt(balance)) {
+          throw new Error('Insufficient balance');
+        }
+
         const payload: RewardSponsorsPayload = {
           rewardType: values.rewardType as RewardType,
           amount,
@@ -119,6 +122,8 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
                   content: (
                     <$Vertical spacing={4}>
                       <span>Waiting for transaction confirmation...</span>
+                      <br />
+                      <br />
                       <Spin className={styles.spin} />
                     </$Vertical>
                   ),
@@ -128,10 +133,12 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
 
                 await tx.wait();
                 controlledModal = Modal.success({
+                  maskClosable: false,
                   title: 'Deposit Approved',
                   content: (
                     <span>
-                      Almost done...&nbsp;<b>Please complete the transaction in your wallet.</b>
+                      Almost done...&nbsp;
+                      <b>Please open your MetaMask wallet and complete the transaction.</b>
                     </span>
                   ),
                   okButtonProps: { style: { display: 'none' } },
@@ -156,6 +163,8 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
                 Depositing your funds...&nbsp;
                 <b>Please wait while we confirm your transaction.</b>
               </span>
+              <br />
+              <br />
               <Spin className={styles.spin} />
             </$Vertical>
           ),
@@ -168,10 +177,25 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           controlledModal.update(modalConfig);
         }
         await tx.wait();
+
+        console.log('tx', tx.hash);
+        const explorerURL = getBlockExplorerUrl(chainIDHex);
         controlledModal.update({
           type: 'success',
           title: 'Success',
-          content: 'Deposit received',
+          content: (
+            <$Vertical spacing={4}>
+              Deposit received! View it in explorer:
+              <Typography.Link
+                href={`${explorerURL}/tx/${tx.hash}`}
+                copyable
+                target="_blank"
+                rel="noreferrer"
+              >
+                {tx.hash}
+              </Typography.Link>
+            </$Vertical>
+          ),
           okButtonProps: { style: { display: 'initial' } },
           okCancel: false,
         });
@@ -201,10 +225,14 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         {
           key: 'rewardType',
           label: 'Pick a Reward Method',
-          widget: 'radio-group',
+          widget: 'select',
           options: ['Native', 'ERC20'] as RewardType[],
           initialValue: 'Native',
+          widgetProps: { style: { width: '120px' } },
           preserving: true,
+          onChange: (evt: any) => {
+            form.setFieldValue('amount', 0);
+          },
         },
         {
           key: 'amount',
@@ -240,6 +268,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         required: true,
         widget: 'input',
         preserving: true,
+        widgetProps: { style: { width: '400px' } } as any,
         rules: [
           {
             validator: (_rule: any, value: any, _callback: any) => {
@@ -261,6 +290,71 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   };
 
   const meta = getMeta();
+
+  const tabItems = [
+    {
+      label: 'Reward Sponsors',
+      key: 'deposit-form',
+      children: (
+        <Form
+          layout="horizontal"
+          form={form}
+          onFinish={handleOnRewardSubmit}
+          onValuesChange={forceUpdate}
+        >
+          <fieldset>
+            <br />
+            <FormBuilder form={form} meta={meta} />
+          </fieldset>
+          <fieldset>
+            <Form.Item
+              wrapperCol={{ span: 16, offset: 8 }}
+              className="form-footer"
+              style={{ textAlign: 'right' }}
+            >
+              {!currentAccount ? (
+                <ConnectWalletButton />
+              ) : (
+                <$Horizontal justifyContent="space-between">
+                  {currentAccount ? (
+                    <Typography.Text copyable>
+                      <span style={{ fontStyle: 'italic' }}>You</span>{' '}
+                      {shortenAddress(currentAccount)}
+                    </Typography.Text>
+                  ) : null}
+                  <Button htmlType="submit" type="primary" disabled={loading}>
+                    {loading ? 'Loading...' : 'Deposit'}
+                  </Button>
+                </$Horizontal>
+              )}
+            </Form.Item>
+          </fieldset>
+        </Form>
+      ),
+    }, // remember to pass the key prop
+    {
+      label: 'Deposit History',
+      key: 'deposit-history',
+      children: (
+        <$Vertical spacing={4}>
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={
+              <$Vertical spacing={2}>
+                <Typography.Link
+                  href={`${manifest.microfrontends.webflow.cosmicLootboxPage}?lid=${lootboxID}`}
+                  target="_blank"
+                >
+                  View Deposit History
+                </Typography.Link>
+              </$Vertical>
+            }
+            style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
+          />
+        </$Vertical>
+      ),
+    },
+  ];
 
   return (
     <Card style={{ flex: 1 }}>
@@ -293,7 +387,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
             }}
             description={
               <span style={{ maxWidth: '200px' }}>
-                {`Please switch networks to ${chainIdHexToName(chainIDHex)} to create a LOOTBOX`}
+                {`Please switch networks to ${chainIdHexToName(chainIDHex)} to deposit rewards`}
               </span>
             }
             style={{
@@ -308,35 +402,16 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
             </Button>
           </Empty>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '500px' }}>
-            <Form
-              layout="horizontal"
-              form={form}
-              onFinish={handleOnRewardSubmit}
-              onValuesChange={forceUpdate}
-            >
-              <fieldset>
-                <legend>{`Reward Sponsors`}</legend>
-                <FormBuilder form={form} meta={meta} />
-              </fieldset>
-              <fieldset>
-                <Form.Item className="form-footer" style={{ textAlign: 'right' }}>
-                  {!currentAccount ? (
-                    <ConnectWalletButton />
-                  ) : (
-                    <span>
-                      <span className={styles.walletText}>
-                        {currentAccount && `${shortenAddress(currentAccount)}`}
-                      </span>
-                      &nbsp;
-                      <Button htmlType="submit" type="primary" disabled={loading}>
-                        {loading ? 'Loading...' : 'Deposit'}
-                      </Button>
-                    </span>
-                  )}
-                </Form.Item>
-              </fieldset>
-            </Form>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              minWidth: '500px',
+            }}
+          >
+            {/* <legend>{`Reward Sponsors`}</legend> */}
+            <Tabs items={tabItems} />
           </div>
         )}
       </$Horizontal>

@@ -19,8 +19,8 @@ const StampLootbox_Classic: React.FC<StampWrapper> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const onButtonClick = useCallback(() => {
-    if (ref.current === null) {
+  const onButtonClick = () => {
+    if (!ref.current) {
       return;
     }
     setLoading(true);
@@ -33,9 +33,10 @@ const StampLootbox_Classic: React.FC<StampWrapper> = ({
         setLoading(false);
       })
       .catch((err) => {
+        console.log(`An error occurred generating the image!`);
         console.log(err);
       });
-  }, [ref, fileName]);
+  };
   return (
     <div>
       <div ref={ref}>{stampTemplate()}</div>

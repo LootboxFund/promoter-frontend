@@ -69,10 +69,8 @@ const LootboxCreatePage: React.FC = () => {
       const isDone: boolean = await new Promise(async (res, rej) => {
         const timer = setTimeout(() => {
           res(false);
-        }, 1000 * 60 * 5); // 5 minute timeout?
-        let i = 0;
+        }, 1000 * 60 * 8); // 8 minute timeout
         while (isPolling.current) {
-          i++;
           await new Promise((resolve, reject) =>
             setTimeout(() => {
               resolve(null);
@@ -84,7 +82,9 @@ const LootboxCreatePage: React.FC = () => {
       });
 
       if (!isDone) {
-        throw new Error('Timed out waiting for Lootbox to be created');
+        throw new Error(
+          `Timed out waiting for Lootbox to be created. Please check back later for your newly created LOOTBOX. Don't worry! Your Lootbox should be ready soon. `,
+        );
       }
       return true;
     };

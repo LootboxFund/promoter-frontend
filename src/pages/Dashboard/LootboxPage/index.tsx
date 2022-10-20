@@ -1,22 +1,26 @@
 import type {
   ResponseError,
-  EditLootboxPayload,
   QueryGetLootboxByIdArgs,
-  Lootbox,
+  MutationEditLootboxArgs,
 } from '@/api/graphql/generated/types';
-import { Button, Empty, Image, Modal, Popconfirm } from 'antd';
+import { Button, Empty, Popconfirm } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useMutation, useQuery } from '@apollo/client';
 import Spin from 'antd/lib/spin';
 import React, { useMemo, useState } from 'react';
-import { EDIT_LOOTBOX, GET_LOOTBOX, GetLootboxFE, LootboxFE } from './api.gql';
+import {
+  GET_LOOTBOX,
+  GetLootboxFE,
+  LootboxFE,
+  EDIT_LOOTBOX,
+  EditLootboxResponseSuccessFE,
+} from './api.gql';
 import styles from './index.less';
 import { useParams } from 'react-router-dom';
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
-import { $ColumnGap, $Horizontal, $InfoDescription } from '@/components/generics';
-import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
-import CreateLootboxForm from '@/components/CreateLootboxForm';
-import { Address, LootboxID, TournamentID } from '@wormgraph/helpers';
+import { $Horizontal, $InfoDescription } from '@/components/generics';
+import CreateLootboxForm, { EditLootboxRequest } from '@/components/CreateLootboxForm';
+import { LootboxID, TournamentID } from '@wormgraph/helpers';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { Link } from '@umijs/max';
 import DepositRewardForm, {
@@ -44,16 +48,13 @@ export const extractURLState_LootboxPage = (): MagicLinkParams => {
 };
 
 const LootboxPage: React.FC = () => {
-  // get the advertiser user
-  //   const { affiliateUser } = useAffiliateUser();
-  //   const { id: affiliateUserID } = affiliateUser;
-  // do the rest
   const { lootboxID } = useParams();
   const [magicLinkParams, setMagicLinkParams] = useState<MagicLinkParams>(
     extractURLState_LootboxPage(),
   );
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const { currentAccount } = useWeb3();
+
   // VIEW Lootbox
   const { data, loading, error } = useQuery<
     { getLootboxByID: GetLootboxFE | ResponseError },
@@ -62,37 +63,55 @@ const LootboxPage: React.FC = () => {
     variables: { id: lootboxID || '' },
   });
 
+  // EDIT Lootbox
+  const [editLootboxMutation] = useMutation<
+    { editLootbox: ResponseError | EditLootboxResponseSuccessFE },
+    MutationEditLootboxArgs
+  >(EDIT_LOOTBOX, {
+    refetchQueries: [{ query: GET_LOOTBOX, variables: { id: lootboxID } }],
+  });
+
   const lootbox: LootboxFE | undefined = useMemo(() => {
     return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
   }, [data]);
 
   const { depositERC20, depositNative } = useLootbox({ address: lootbox?.address });
-  const { getAllowance, approveTokenAmount } = useERC20({ chainIDHex: lootbox?.chainIdHex });
-
-  // EDIT Lootbox
-  //   const [editAdMutation] = useMutation<
-  //     { editAd: ResponseError | EditAdResponseSuccess },
-  //     MutationEditAdArgs
-  //   >(EDIT_AD, {
-  //     refetchQueries: [
-  //       { query: VIEW_AD, variables: { adID: adID as AdID } },
-  //       { query: LIST_ADS_PREVIEWS, variables: { advertiserID } },
-  //     ],
-  //   });
-  const editLootbox = async (payload: Omit<EditLootboxPayload, 'id'>) => {
+  const { getAllowance, approveTokenAmount } = useERC20({
+    chainIDHex: lootbox?.chainIdHex,
+  });
+  const editLootbox = async (payload: EditLootboxRequest) => {
     console.log('EDIT LOOTBOX', payload);
-    // const res = await editAdMutation({
-    //   variables: {
-    //     payload: {
-    //       ...payload,
-    //       id: adID as AdID,
-    //     },
-    //   },
-    // });
-    // if (!res?.data || res?.data?.editAd?.__typename === 'ResponseError') {
-    //   // @ts-ignore
-    //   throw new Error(res?.data?.editAd?.error?.message || words.anErrorOccured);
-    // }
+
+    if (!lootboxID) {
+      throw new Error('No Lootbox ID');
+    }
+    if (payload.payload.maxTickets) {
+      // TODO We need to update the web3 layer first
+      console.error('MAX TICKETS not implemented!');
+    }
+
+    const res = await editLootboxMutation({
+      variables: {
+        payload: {
+          lootboxID: lootboxID,
+          name: payload.payload.name,
+          description: payload.payload.description,
+          joinCommunityUrl: payload.payload.joinCommunityUrl,
+          logo: payload.payload.logoImage,
+          backgroundImage: payload.payload.backgroundImage,
+          // maxTickets: payload.payload.maxTickets,
+          nftBountyValue: payload.payload.nftBountyValue,
+          status: payload.payload.status,
+          themeColor: payload.payload.themeColor,
+          // symbol: payload.payload.symbol,
+        },
+      },
+    });
+
+    if (!res?.data || res?.data?.editLootbox?.__typename === 'ResponseError') {
+      // @ts-ignore
+      throw new Error(res?.data?.editLootbox?.error?.message || 'An error occured');
+    }
   };
 
   const renderDepositHelpText = () => {
@@ -221,6 +240,10 @@ const LootboxPage: React.FC = () => {
             maxTickets: lootbox.maxTickets,
             tag: lootbox.symbol,
             tournamentID: magicLinkParams.tournamentID as TournamentID | undefined,
+            status: lootbox.status,
+            address: lootbox.address,
+            creatorAddress: lootbox.creatorAddress,
+            chainIDHex: lootbox.chainIdHex,
           }}
           mode="view-edit"
           onSubmitEdit={editLootbox}
@@ -266,10 +289,7 @@ const LootboxPage: React.FC = () => {
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Ticket Analytics</h2>
         <$Horizontal justifyContent="space-between">
-          <Link
-            to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}
-            target="_blank"
-          >
+          <Link to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}>
             <Button style={{ marginRight: '5px' }}>Generate Stamp</Button>
           </Link>
           <Button type="primary" onClick={() => setIsReferralModalOpen(true)}>
@@ -298,6 +318,7 @@ const LootboxPage: React.FC = () => {
         onSubmitReward={rewardSponsors}
         onTokenApprove={approveAllowance}
         onCheckAllowance={isWithinAllowance}
+        lootboxID={(lootboxID || '') as LootboxID}
       />
       <GenerateReferralModal
         isOpen={isReferralModalOpen}

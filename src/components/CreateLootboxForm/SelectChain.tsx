@@ -56,13 +56,4 @@ export const SelectChain = ({
       </Button>
     </Dropdown>
   );
-  // return (
-  //   <Radio.Group
-  //     options={options}
-  //     onChange={buttonClick}
-  //     value={value}
-  //     optionType="button"
-  //     buttonStyle="solid"
-  //   />
-  // );
 };

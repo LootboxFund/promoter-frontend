@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
 import Web3Modal from 'web3modal';
 import { manifest } from '@/manifest';
+import WalletConnect from '@walletconnect/web3-provider';
 
 interface IWeb3Context {
   library?: ethers.providers.Web3Provider;
@@ -18,11 +19,26 @@ const Web3Context = createContext<IWeb3Context>({
   switchNetwork: async () => {},
 });
 
-const providerOptions = {};
+export const providerOptions = {
+  // coinbasewallet: {
+  //   package: CoinbaseWalletSDK,
+  //   options: {
+  //     appName: "Web 3 Modal Demo",
+  //     infuraId: process.env.INFURA_KEY
+  //   }
+  // },
+  walletconnect: {
+    package: WalletConnect,
+    options: {
+      infuraId: 'dadab9b61b484421a252e7b42c4bde53',
+    },
+  },
+};
 
 const web3Modal = new Web3Modal({
   network: 'mainnet',
   cacheProvider: true,
+  disableInjectedProvider: false,
   providerOptions,
 });
 
@@ -46,7 +62,21 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
     setNetwork(undefined);
   };
 
+  const checkInjectedConnection = async (): Promise<boolean> => {
+    if (!window?.ethereum?.request) {
+      return false;
+    }
+    try {
+      const accs = await window?.ethereum?.request({ method: 'eth_accounts' });
+      return accs.length > 0;
+    } catch (err) {
+      // Seems like MetaMask is not connected
+      return false;
+    }
+  };
+
   const disconnect = async () => {
+    console.log('disconnect');
     web3Modal.clearCachedProvider();
     refreshState();
   };
@@ -68,16 +98,30 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
     }
   };
   useEffect(() => {
-    if (web3Modal.cachedProvider) {
-      connectWallet();
-    }
+    (async () => {
+      if (web3Modal.cachedProvider) {
+        // Autoconnect (needed for persistence across page refreshes)
+        if (web3Modal.cachedProvider === 'injected') {
+          // To avoid annoying metamask popup, we only connect when we can do so silently
+          const connected = await checkInjectedConnection();
+          if (!connected) {
+            return;
+          }
+        }
+        // Try to connect to cached provider
+        await connectWallet();
+      }
+    })();
   }, []);
 
   useEffect(() => {
     if (provider?.on) {
       const handleAccountsChanged = (newAccounts: Address[]) => {
-        if (newAccounts) {
+        if (newAccounts.length > 0) {
           setAccounts(newAccounts);
+        } else {
+          // seems like a disconnect
+          handleDisconnect();
         }
       };
 
@@ -87,7 +131,6 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
       };
 
       const handleDisconnect = () => {
-        console.log('disconnect');
         disconnect();
       };
 

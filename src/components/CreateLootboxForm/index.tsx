@@ -1,8 +1,14 @@
-import { Address, AffiliateID, LootboxID, TournamentID } from '@wormgraph/helpers';
+import {
+  Address,
+  AffiliateID,
+  ChainIDHex,
+  chainIdHexToName,
+  LootboxID,
+  TournamentID,
+} from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
 import { Affix, Button, Card, Empty, Form, Modal, notification, Typography } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { EditLootboxPayload } from '@/api/graphql/generated/types';
 import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
 import { $Horizontal, $ColumnGap, $Vertical } from '@/components/generics';
 import { placeholderBackground, placeholderImage } from '../generics';
@@ -13,17 +19,14 @@ import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { useWeb3 } from '@/hooks/useWeb3';
 import LootboxPreview from '../LootboxPreview';
 import { ContractTransaction } from 'ethers';
-import { Link } from '@umijs/max';
 import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
+import { LootboxStatus } from '@/api/graphql/generated/types';
+// import * as _ from 'lodash';
 
 // const DEFAULT_THEME_COLOR = '#00B0FB'
 const DEFAULT_THEME_COLOR = '#000000';
 
-export interface CreateLootboxRequest {
-  payload: Omit<LootboxBodyPayload, 'address'>;
-}
-
-interface LootboxBodyPayload {
+interface LootboxBody {
   description: string;
   backgroundImage: string;
   logoImage: string;
@@ -35,6 +38,17 @@ interface LootboxBodyPayload {
   tag: string; // AKA symbol
   tournamentID?: TournamentID;
   address?: Address;
+  status: LootboxStatus;
+  creatorAddress?: Address;
+  chainIDHex?: ChainIDHex;
+}
+
+export interface CreateLootboxRequest {
+  payload: Omit<LootboxBody, 'address' | 'status' | 'chainIDHex' | 'creatorAddress'>;
+}
+
+export interface EditLootboxRequest {
+  payload: Omit<LootboxBody, 'address' | 'tag' | 'chainIDHex' | 'creatorAddress'>;
 }
 
 interface OnSubmitCreateResponse {
@@ -43,13 +57,13 @@ interface OnSubmitCreateResponse {
 }
 
 export type CreateLootboxFormProps = {
-  lootbox?: LootboxBodyPayload;
+  lootbox?: LootboxBody;
   onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
-  onSubmitEdit?: (payload: EditLootboxPayload) => void;
+  onSubmitEdit?: (payload: EditLootboxRequest) => Promise<void>;
   mode: 'create' | 'edit-only' | 'view-edit' | 'view-only';
 };
 
-const LOOTBOX_INFO: LootboxBodyPayload = {
+const LOOTBOX_INFO: LootboxBody = {
   description: '',
   backgroundImage: placeholderBackground,
   logoImage: placeholderImage,
@@ -59,7 +73,7 @@ const LOOTBOX_INFO: LootboxBodyPayload = {
   name: '',
   maxTickets: 100,
   tag: '',
-  address: 'missing' as Address,
+  status: LootboxStatus.Active,
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
@@ -82,7 +96,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const forceUpdate = FormBuilder.useForceUpdate();
   const [viewMode, setViewMode] = useState(true);
   const [pending, setPending] = useState(false);
-  const [lootboxInfo, setLootboxInfo] = useState<LootboxBodyPayload>(LOOTBOX_INFO);
+  const [lootboxInfo, setLootboxInfo] = useState<LootboxBody>(LOOTBOX_INFO);
   const lockedToEdit = mode === 'create' || mode === 'edit-only';
 
   useEffect(() => {
@@ -104,6 +118,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         maxTickets: lootbox.maxTickets,
         tag: lootbox.tag,
         address: lootbox.address,
+        status: lootbox.status,
+        creatorAddress: lootbox.creatorAddress,
+        chainIDHex: lootbox.chainIDHex,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -159,7 +176,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           ),
           okText: 'Go to Lootbox',
           onOk: () => {
-            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}`;
+            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}${
+              lootbox?.tournamentID ? `?tid=${lootbox.tournamentID}` : ''
+            }`;
           },
         });
       } catch (e: any) {
@@ -180,79 +199,59 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   );
 
   const handleEditFinish = useCallback(async (values) => {
-    console.log('edit? ', values);
-    // console.log(`values = `, values);
-    // console.log(`lootboxInfo = `, lootboxInfo);
-    // console.log(`newThemeColor = `, newThemeColor.current);
-    // console.log(`newMediaDestination = `, newMediaDestination.current);
-    // if (!onSubmitEdit) return;
-    // const payload = {
-    //   creative: {},
-    // } as EditAdPayload;
-    // if (lootbox?.id) {
-    //   payload.name = values.name;
-    // }
-    // if (values.name) {
-    //   payload.name = values.name;
-    // }
-    // if (values.description) {
-    //   payload.description = values.description;
-    // }
-    // if (values.status) {
-    //   payload.status = values.status;
-    // }
-    // if (values.placement) {
-    //   payload.placement = values.placement;
-    // }
-    // if (values.publicInfo) {
-    //   payload.publicInfo = values.publicInfo;
-    // }
-    // if (payload.creative && values.creative_creativeType) {
-    //   payload.creative.creativeType = values.creative_creativeType;
-    // }
-    // if (payload.creative && values.creative_creativeLinks) {
-    //   payload.creative.creativeLinks = values.creative_creativeLinks;
-    // }
-    // if (payload.creative && values.creative_callToAction) {
-    //   payload.creative.callToAction = values.customCTA || values.creative_callToAction;
-    // }
-    // if (payload.creative && values.creative_aspectRatio) {
-    //   payload.creative.aspectRatio = values.creative_aspectRatio;
-    // }
-    // // if (payload.creative && lootboxInfo.creative.themeColor) {
-    // //   payload.creative.themeColor = lootboxInfo.creative.themeColor;
-    // // }
-    // if (payload.creative && newThemeColor.current) {
-    //   payload.creative.themeColor = newThemeColor.current;
-    // }
-    // if (payload.creative && newMediaDestination.current) {
-    //   payload.creative.creativeLinks = [newMediaDestination.current];
-    // }
-    // if (payload.creative && newMediaDestination.current) {
-    //   payload.creative.thumbnail =
-    //     values.creative_creativeType === CreativeType.Video
-    //       ? placeholderVideoThumbnail
-    //       : newMediaDestination.current;
-    // }
-    // setPending(true);
-    // try {
-    //   await onSubmitEdit(payload);
-    //   setPending(false);
-    //   if (!lockedToEdit) {
-    //     setViewMode(true);
-    //   }
-    //   Modal.success({
-    //     title: 'Success',
-    //     content: 'Offer updated',
-    //   });
-    //   setPending(false);
-    // } catch (e: any) {
-    //   Modal.error({
-    //     title: 'Failure',
-    //     content: `${e.message}`,
-    //   });
-    //   setPending(false);
-    // }
+    if (!onSubmitEdit) return;
+    const request = { payload: {} } as EditLootboxRequest;
+
+    if (values.name) {
+      request.payload.name = values.name;
+    }
+    if (values.description) {
+      request.payload.description = values.description;
+    }
+    if (newMediaDestinationBackground.current) {
+      request.payload.backgroundImage = newMediaDestinationBackground.current;
+    }
+    if (newMediaDestinationLogo.current) {
+      request.payload.logoImage = newMediaDestinationLogo.current;
+    }
+    if (values.logoImage) {
+      request.payload.logoImage = newMediaDestinationLogo.current;
+    }
+    if (newThemeColor.current) {
+      request.payload.themeColor = newThemeColor.current;
+    }
+    if (values.nftBountyValue) {
+      request.payload.nftBountyValue = values.nftBountyValue;
+    }
+    if (values.joinCommunityUrl) {
+      request.payload.joinCommunityUrl = values.joinCommunityUrl;
+    }
+    if (values.status) {
+      request.payload.status = values.status;
+    }
+    if (values.maxTickets) {
+      request.payload.maxTickets = values.maxTickets;
+    }
+
+    setPending(true);
+    try {
+      await onSubmitEdit(request);
+      setPending(false);
+      if (!lockedToEdit) {
+        setViewMode(true);
+      }
+      Modal.success({
+        title: 'Success',
+        content: 'Lootbox updated',
+      });
+      setPending(false);
+    } catch (e: any) {
+      Modal.error({
+        title: 'Failure',
+        content: `${e.message}`,
+      });
+      setPending(false);
+    }
   }, []);
 
   const metaPublic = () => {
@@ -261,14 +260,18 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
-        {
-          key: 'chain',
-          label: 'Network',
-          widget: SelectChain,
-          required: true,
-          tooltip:
-            'The blockchain network that this Lootbox will reside on. The fan prize money must also be distributed on this same blockchain network.',
-        },
+        ...(mode === 'create'
+          ? [
+              {
+                key: 'chain',
+                label: 'Network',
+                widget: SelectChain,
+                required: true,
+                tooltip:
+                  'The blockchain network that this Lootbox will reside on. The fan prize money must also be distributed on this same blockchain network.',
+              },
+            ]
+          : []),
         {
           key: 'name',
           label: 'Team Name',
@@ -281,6 +284,13 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           ],
           tooltip:
             'The display name of the Lootbox. Typically this is the Team name or a variation, since a Lootbox is only used for a single event.',
+        },
+        {
+          key: 'description',
+          label: 'Description',
+          widget: 'textarea',
+          tooltip:
+            'Additional information shown publically on your Lootbox. We recommend linking your socials.',
         },
         {
           key: 'nftBountyValue',
@@ -307,13 +317,22 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           tooltip:
             'Link to where you want to funnel your fans who claim these Lootbox tickets. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
         },
-        {
-          key: 'description',
-          label: 'Description',
-          widget: 'textarea',
-          tooltip:
-            'Additional information shown publically on your Lootbox. We recommend linking your socials.',
-        },
+        ...(mode === 'view-edit'
+          ? [
+              {
+                key: 'status',
+                label: 'Status',
+                widget: 'select',
+                // options: Object.values(LootboxStatus).map((statusOption) => ({
+                //   name: _.lowerCase,
+                //   value: statusOption,
+                // })),
+                options: Object.values(LootboxStatus),
+                tooltip:
+                  "The Lootbox's current status. Sold out Lootboxes still appear on the Viral Onboarding loop, but cannot be claimed. Disbaled Lootboxes will not be visible.",
+              },
+            ]
+          : []),
       ],
     };
 
@@ -410,19 +429,35 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     return meta;
   };
   const metaBlockchain = () => {
+    const explorerURL = lootboxInfo.chainIDHex ? getBlockExplorerUrl(lootboxInfo.chainIDHex) : null;
     const meta = {
       columns: 1,
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
         {
+          key: 'network',
+          label: 'Network',
+          viewWidget: () => (
+            <Typography.Text>
+              {lootboxInfo.chainIDHex ? chainIdHexToName(lootboxInfo.chainIDHex) : 'Unknown'}
+            </Typography.Text>
+          ),
+        },
+        {
           key: 'blockchainExplorer',
           label: 'Lootbox Address',
           // @ts-ignore
           viewWidget: () => (
-            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
+            <Typography.Link
+              href={`${explorerURL}/address/${lootboxInfo.address}`}
+              target="_blank"
+              rel="noreferrer"
+              copyable
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
               {lootboxInfo.address}
-            </a>
+            </Typography.Link>
           ),
         },
         {
@@ -430,19 +465,15 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           label: 'Owner Address',
           // @ts-ignore
           viewWidget: () => (
-            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
-              {lootboxInfo.address}
-            </a>
-          ),
-        },
-        {
-          key: 'lootboxTreasury',
-          label: 'Treasury Address',
-          // @ts-ignore
-          viewWidget: () => (
-            <a href={`https://blockexplorer.com`} target="_blank" rel="noreferrer">
-              {lootboxInfo.address}
-            </a>
+            <Typography.Link
+              href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
+              target="_blank"
+              rel="noreferrer"
+              copyable
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {lootboxInfo.creatorAddress}
+            </Typography.Link>
           ),
         },
       ],
@@ -562,7 +593,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         ) : (
           <Affix offsetTop={70} style={{ pointerEvents: 'none' }}>
             <LootboxPreview
-              name={form.getFieldValue('name')}
+              name={form.getFieldValue('name') || lootboxInfo.name}
               logoImage={newMediaDestinationLogo.current || placeholderImage}
               backgroundImage={newMediaDestinationBackground.current || placeholderBackground}
               themeColor={newThemeColor.current || lootboxInfo.themeColor}

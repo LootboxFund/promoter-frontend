@@ -97,7 +97,10 @@ export const AntUploadFile: React.FC<AntUploadFileProps> = ({
   );
 };
 
-export const DateView = ({ value }: { value: Moment }) => value.format('MMM Do YYYY');
+export const DateView = ({ value }: { value: Moment }) => {
+  value.locale('en');
+  return value.format('MMM Do YYYY');
+};
 
 export const PriceInput = ({ value, onChange }: { value: any; onChange: any }) =>
   value ? (
