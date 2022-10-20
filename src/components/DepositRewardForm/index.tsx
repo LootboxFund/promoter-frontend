@@ -356,65 +356,64 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
     },
   ];
 
+  if (!currentAccount || !userChainIDHex) {
+    return (
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        imageStyle={{
+          height: 60,
+        }}
+        description={
+          <span style={{ maxWidth: '200px' }}>
+            {`You must connect your Metamask wallet before you can deposit rewards`}
+          </span>
+        }
+        style={{
+          padding: '50px',
+          border: '1px solid rgba(0,0,0,0.1)',
+          flex: 1,
+        }}
+      >
+        <ConnectWalletButton />
+      </Empty>
+    );
+  } else if (chainIDHex !== userChainIDHex) {
+    return (
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        imageStyle={{
+          height: 60,
+        }}
+        description={
+          <span style={{ maxWidth: '200px' }}>
+            {`Please switch networks to ${chainIdHexToName(chainIDHex)} to deposit rewards`}
+          </span>
+        }
+        style={{
+          padding: '50px',
+          border: '1px solid rgba(0,0,0,0.1)',
+          flex: 1,
+        }}
+      >
+        <Button type="primary" onClick={() => switchNetwork(chainIDHex)}>
+          Switch Network
+        </Button>
+      </Empty>
+    );
+  }
+
   return (
-    <Card style={{ flex: 1 }}>
-      <$Horizontal>
-        {!currentAccount || !userChainIDHex ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            imageStyle={{
-              height: 60,
-            }}
-            description={
-              <span style={{ maxWidth: '200px' }}>
-                {`You must connect your Metamask wallet before you can deposit rewards`}
-              </span>
-            }
-            style={{
-              padding: '50px',
-              flex: 1,
-              minWidth: '500px',
-              borderRadius: '10px',
-            }}
-          >
-            <ConnectWalletButton />
-          </Empty>
-        ) : chainIDHex !== userChainIDHex ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            imageStyle={{
-              height: 60,
-            }}
-            description={
-              <span style={{ maxWidth: '200px' }}>
-                {`Please switch networks to ${chainIdHexToName(chainIDHex)} to deposit rewards`}
-              </span>
-            }
-            style={{
-              padding: '50px',
-              flex: 1,
-              minWidth: '500px',
-              borderRadius: '10px',
-            }}
-          >
-            <Button type="primary" onClick={() => switchNetwork(chainIDHex)}>
-              Switch Network
-            </Button>
-          </Empty>
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              flex: 1,
-              minWidth: '500px',
-            }}
-          >
-            {/* <legend>{`Reward Sponsors`}</legend> */}
-            <Tabs items={tabItems} />
-          </div>
-        )}
-      </$Horizontal>
+    <Card>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minWidth: '500px',
+        }}
+      >
+        <Tabs items={tabItems} />
+      </div>
     </Card>
   );
 };
