@@ -62,7 +62,21 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
     setNetwork(undefined);
   };
 
+  const checkInjectedConnection = async (): Promise<boolean> => {
+    if (!window?.ethereum?.request) {
+      return false;
+    }
+    try {
+      const accs = await window?.ethereum?.request({ method: 'eth_accounts' });
+      return accs.length > 0;
+    } catch (err) {
+      // Seems like MetaMask is not connected
+      return false;
+    }
+  };
+
   const disconnect = async () => {
+    console.log('disconnect');
     web3Modal.clearCachedProvider();
     refreshState();
   };
@@ -84,9 +98,20 @@ export const Web3Provider = (props: PropsWithChildren<Web3ProviderProps>) => {
     }
   };
   useEffect(() => {
-    if (web3Modal.cachedProvider) {
-      connectWallet();
-    }
+    (async () => {
+      if (web3Modal.cachedProvider) {
+        // Autoconnect (needed for persistence across page refreshes)
+        if (web3Modal.cachedProvider === 'injected') {
+          // To avoid annoying metamask popup, we only connect when we can do so silently
+          const connected = await checkInjectedConnection();
+          if (!connected) {
+            return;
+          }
+        }
+        // Try to connect to cached provider
+        await connectWallet();
+      }
+    })();
   }, []);
 
   useEffect(() => {
