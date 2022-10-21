@@ -21,6 +21,7 @@ import LootboxPreview from '../LootboxPreview';
 import { ContractTransaction } from 'ethers';
 import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
 import { LootboxStatus } from '@/api/graphql/generated/types';
+import { shortenAddress } from '@/lib/address';
 // import * as _ from 'lodash';
 
 // const DEFAULT_THEME_COLOR = '#00B0FB'
@@ -457,7 +458,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               copyable
               style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
-              {lootboxInfo.address}
+              {shortenAddress(lootboxInfo.address || '')}
             </Typography.Link>
           ),
         },
@@ -473,7 +474,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               copyable
               style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
-              {lootboxInfo.creatorAddress}
+              {shortenAddress(lootboxInfo.creatorAddress || '')}
             </Typography.Link>
           ),
         },

@@ -399,7 +399,14 @@ const EventPage: React.FC = () => {
       items={[
         {
           key: `bulk-state-activate`,
-          label: 'Activate',
+          label: (
+            <Tooltip
+              title="All selected Lootboxes will become visible and claimable by your audience"
+              placement="left"
+            >
+              Activate
+            </Tooltip>
+          ),
           onClick: () => {
             handleEditLootboxTournamentSnapshots(
               (eventID || '') as TournamentID,
@@ -412,7 +419,14 @@ const EventPage: React.FC = () => {
         },
         {
           key: `bulk-state-disable`,
-          label: 'Deactivate',
+          label: (
+            <Tooltip
+              title="All selected Lootboxes will become invisible and not-claimable by your audience"
+              placement="left"
+            >
+              Deactivate
+            </Tooltip>
+          ),
           onClick: () => {
             handleEditLootboxTournamentSnapshots(
               (eventID || '') as TournamentID,
@@ -436,7 +450,9 @@ const EventPage: React.FC = () => {
                 )
               }
             >
-              Delete
+              <Tooltip title="Deletes all selected Lootboxes permanently" placement="left">
+                Delete
+              </Tooltip>
             </Popconfirm>
           ),
         },
@@ -579,30 +595,47 @@ const EventPage: React.FC = () => {
                         {
                           key: `view-${snapshot.id}`,
                           label: (
-                            <Link
-                              key={`view-${snapshot.lootboxID}`}
-                              to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
-                              target="_blank"
+                            <Tooltip
+                              title="View detailed information about the Lootbox and edit it if you have permission"
+                              placement="left"
                             >
-                              View
-                            </Link>
+                              <Link
+                                key={`view-${snapshot.lootboxID}`}
+                                to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
+                                target="_blank"
+                              >
+                                View
+                              </Link>
+                            </Tooltip>
                           ),
                         },
                         {
                           key: `stamp-${snapshot.id}`,
                           label: (
-                            <Link
-                              key={`stamp-${snapshot.lootboxID}`}
-                              to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
-                              target="_blank"
+                            <Tooltip
+                              title="Generate viral and shareable graphics for this Lootbox"
+                              placement="left"
                             >
-                              Stamp
-                            </Link>
+                              <Link
+                                key={`stamp-${snapshot.lootboxID}`}
+                                to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
+                                target="_blank"
+                              >
+                                Stamp
+                              </Link>
+                            </Tooltip>
                           ),
                         },
                         {
                           key: `visibility-up-${snapshot.id}`,
-                          label: 'Show before',
+                          label: (
+                            <Tooltip
+                              title="Increases the chances that this Lootbox will be seen in the Viral Onboarding"
+                              placement="left"
+                            >
+                              Show before
+                            </Tooltip>
+                          ),
                           onClick: () => {
                             handleEditLootboxTournamentSnapshots(
                               tournament.id as TournamentID,
@@ -615,7 +648,14 @@ const EventPage: React.FC = () => {
                         },
                         {
                           key: `visibility-down-${snapshot.id}`,
-                          label: 'Show after',
+                          label: (
+                            <Tooltip
+                              title="Decreases the chances that this Lootbox will be seen in the Viral Onboarding"
+                              placement="left"
+                            >
+                              Show after
+                            </Tooltip>
+                          ),
                           onClick: () => {
                             handleEditLootboxTournamentSnapshots(
                               tournament.id as TournamentID,
@@ -629,9 +669,21 @@ const EventPage: React.FC = () => {
                         {
                           key: `state-${snapshot.id}`,
                           label:
-                            snapshot.status === LootboxTournamentStatus.Active
-                              ? 'Deactivate'
-                              : 'Activate',
+                            snapshot.status === LootboxTournamentStatus.Active ? (
+                              <Tooltip
+                                title="Your audience will not see this Lootbox and cannot claim it"
+                                placement="left"
+                              >
+                                Deactivate
+                              </Tooltip>
+                            ) : (
+                              <Tooltip
+                                title="This Lootbox will be visible and claimable by your audience"
+                                placement="left"
+                              >
+                                Activate
+                              </Tooltip>
+                            ),
                           onClick: () => {
                             handleEditLootboxTournamentSnapshots(
                               tournament.id as TournamentID,
@@ -658,7 +710,9 @@ const EventPage: React.FC = () => {
                                 )
                               }
                             >
-                              Delete
+                              <Tooltip title="Delete this Lootbox from your event" placement="left">
+                                Delete
+                              </Tooltip>
                             </Popconfirm>
                           ),
                         },
@@ -714,9 +768,13 @@ const EventPage: React.FC = () => {
                           title={snapshot.name}
                           description={
                             snapshot.status === LootboxTournamentStatus.Active ? (
-                              <Tag color="success">Active</Tag>
+                              <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
+                                <Tag color="success">Active</Tag>
+                              </Tooltip>
                             ) : (
-                              <Tag color="warning">Inactive</Tag>
+                              <Tooltip title="Inactive Lootboxes are not visible or redeemable by your audience">
+                                <Tag color="warning">Inactive</Tag>
+                              </Tooltip>
                             )
                           }
                         />
