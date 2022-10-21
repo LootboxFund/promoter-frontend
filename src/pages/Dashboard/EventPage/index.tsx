@@ -9,17 +9,16 @@ import {
   EditTournamentResponseSuccess,
   MutationEditTournamentArgs,
   EditTournamentPayload,
-  PaginatedLootboxTournamentSnapshotPageInfo,
   LootboxTournamentSnapshotCursor,
+  BulkEditLootboxTournamentSnapshotsResponse,
+  MutationBulkEditLootboxTournamentSnapshotsArgs,
 } from '@/api/graphql/generated/types';
 import { history } from '@umijs/max';
 import * as _ from 'lodash';
-
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
-
 import { useMutation, useQuery } from '@apollo/client';
 import { Link, useParams } from '@umijs/max';
-import type {
+import {
   ActivationID,
   AffiliateID,
   LootboxTournamentSnapshotID,
@@ -38,6 +37,7 @@ import {
   PaginateEventLootboxesFE,
   LootboxTournamentSnapshotFE,
   parsePaginatedLootboxEventSnapshots,
+  BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS,
 } from './api.gql';
 import styles from './index.less';
 import { $Horizontal, $Vertical, $ColumnGap, $InfoDescription } from '@/components/generics';
@@ -47,7 +47,10 @@ import {
   Avatar,
   Button,
   Card,
+  Checkbox,
+  Dropdown,
   Empty,
+  Menu,
   message,
   Modal,
   Popconfirm,
@@ -75,6 +78,7 @@ import CreateEventForm from '@/components/CreateEventForm';
 import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { manifest } from '@/manifest';
+import { MenuOutlined } from '@ant-design/icons';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -109,6 +113,9 @@ const EventPage: React.FC = () => {
   const [lootboxTournamentSnapshots, setLootboxTournamentSnapshots] = useState<
     LootboxTournamentSnapshotFE[]
   >([]);
+  const [bulkSelectedSnapshots, setBulkSelectedSnapshots] = useState<LootboxTournamentSnapshotID[]>(
+    [],
+  );
 
   // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
@@ -148,7 +155,31 @@ const EventPage: React.FC = () => {
           data?.tournament as PaginateEventLootboxesFE | undefined,
         );
 
-        setLootboxTournamentSnapshots((prev) => [...prev, ...paginatedsnapshots]);
+        setLootboxTournamentSnapshots((prev) => {
+          const newSnapshotsCopy = [...prev];
+          paginatedsnapshots.forEach((snapshot) => {
+            const index = newSnapshotsCopy.findIndex((snap) => snap.id === snapshot.id);
+            if (index > -1) {
+              // Update the document
+              newSnapshotsCopy[index] = snapshot;
+            } else {
+              // Append the document
+              newSnapshotsCopy.push(snapshot);
+            }
+          });
+
+          // Sort by impression priority (already done in backend, but do again to catch when the impressionPriority changes)
+          newSnapshotsCopy.sort((a, b) => {
+            const diff = b.impressionPriority - a.impressionPriority;
+            if (diff === 0) {
+              return b.timestamps.createdAt - a.timestamps.createdAt;
+            } else {
+              return diff;
+            }
+          });
+
+          return newSnapshotsCopy;
+        });
       }
     },
   });
@@ -194,6 +225,117 @@ const EventPage: React.FC = () => {
       { query: VIEW_TOURNAMENT_AS_ORGANIZER, variables: { tournamentID: eventID || '' } },
     ],
   });
+
+  const [bulkEditLootboxTournamentSnapshots, { loading: loadingBulkEditLootboxSnapshot }] =
+    useMutation<
+      {
+        bulkEditLootboxTournamentSnapshots:
+          | ResponseError
+          | BulkEditLootboxTournamentSnapshotsResponse;
+      },
+      MutationBulkEditLootboxTournamentSnapshotsArgs
+    >(BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS);
+
+  const handleEditLootboxTournamentSnapshots = async (
+    tournamentID: TournamentID,
+    lootboxSnapshotIDs: LootboxTournamentSnapshotID[],
+    payload: {
+      impressionPriority?: number;
+      status?: LootboxTournamentStatus;
+    },
+  ) => {
+    try {
+      const res = await bulkEditLootboxTournamentSnapshots({
+        variables: {
+          payload: {
+            tournamentID,
+            lootboxSnapshotIDs: lootboxSnapshotIDs,
+            impressionPriority: payload.impressionPriority,
+            status: payload.status,
+          },
+        },
+        refetchQueries: [
+          {
+            query: PAGINATE_EVENT_LOOTBOXES,
+            variables: {
+              tournamentID: eventID || '',
+              first: GALLERY_PAGE_SIZE,
+              after: lastLootboxCursor,
+            },
+          },
+        ],
+      });
+
+      if (
+        (
+          res.data?.bulkEditLootboxTournamentSnapshots as
+            | ResponseError
+            | BulkEditLootboxTournamentSnapshotsResponse
+        )?.__typename === 'BulkEditLootboxTournamentSnapshotsResponseSuccess'
+      ) {
+        Modal.success({
+          title: 'Success',
+          content: 'Lootboxes have been Updated!',
+        });
+      } else {
+        throw new Error(
+          (res.data?.bulkEditLootboxTournamentSnapshots as ResponseError | undefined)?.error
+            ?.message || 'An error occured',
+        );
+      }
+    } catch (e: any) {
+      Modal.error({
+        title: 'Failure',
+        content: `${e.message}`,
+      });
+    }
+  };
+
+  const handleDeleteLootboxTournamentSnapshots = async (
+    tournamentID: TournamentID,
+    lootboxSnapshotIDs: LootboxTournamentSnapshotID[],
+  ) => {
+    try {
+      const res = await bulkEditLootboxTournamentSnapshots({
+        variables: {
+          payload: {
+            tournamentID,
+            lootboxSnapshotIDs: lootboxSnapshotIDs,
+            delete: true,
+          },
+        },
+      });
+
+      if (
+        (
+          res.data?.bulkEditLootboxTournamentSnapshots as
+            | ResponseError
+            | BulkEditLootboxTournamentSnapshotsResponse
+        )?.__typename === 'BulkEditLootboxTournamentSnapshotsResponseSuccess'
+      ) {
+        // Lets just remove it in state...
+        setLootboxTournamentSnapshots((prev) => {
+          const newSnapshotsCopy = prev.filter((snap) => !lootboxSnapshotIDs.includes(snap.id));
+          return newSnapshotsCopy;
+        });
+
+        Modal.success({
+          title: 'Success',
+          content: 'Lootbox removed from tournament',
+        });
+      } else {
+        throw new Error(
+          (res.data?.bulkEditLootboxTournamentSnapshots as ResponseError | undefined)?.error
+            ?.message || 'An error occured',
+        );
+      }
+    } catch (e: any) {
+      Modal.error({
+        title: 'Failure',
+        content: `${e.message}`,
+      });
+    }
+  };
 
   if (error) {
     return <span>{error?.message || ''}</span>;
@@ -251,6 +393,59 @@ const EventPage: React.FC = () => {
     );
   };
   const maxWidth = '1000px';
+
+  const bulkEditLootboxSnapshotMenu = (
+    <Menu
+      items={[
+        {
+          key: `bulk-state-activate`,
+          label: 'Activate',
+          onClick: () => {
+            handleEditLootboxTournamentSnapshots(
+              (eventID || '') as TournamentID,
+              bulkSelectedSnapshots,
+              {
+                status: LootboxTournamentStatus.Active,
+              },
+            );
+          },
+        },
+        {
+          key: `bulk-state-disable`,
+          label: 'Deactivate',
+          onClick: () => {
+            handleEditLootboxTournamentSnapshots(
+              (eventID || '') as TournamentID,
+              bulkSelectedSnapshots,
+              {
+                status: LootboxTournamentStatus.Disabled,
+              },
+            );
+          },
+        },
+        {
+          key: `bulk-delete`,
+          danger: true,
+          label: (
+            <Popconfirm
+              title="Are you sure?"
+              onConfirm={() =>
+                handleDeleteLootboxTournamentSnapshots(
+                  (eventID || '') as TournamentID,
+                  bulkSelectedSnapshots,
+                )
+              }
+            >
+              Delete
+            </Popconfirm>
+          ),
+        },
+      ]}
+    />
+  );
+
+  const isBulkActionEnabled = bulkSelectedSnapshots.length > 0;
+
   return (
     <div>
       {loading || !tournament ? (
@@ -323,7 +518,18 @@ const EventPage: React.FC = () => {
 
           <$Horizontal justifyContent="space-between">
             <h2 id="lootbox-gallery">Lootbox Gallery</h2>
-            <$Horizontal>
+            <Space>
+              <Dropdown
+                disabled={loadingBulkEditLootboxSnapshot || !isBulkActionEnabled}
+                overlay={bulkEditLootboxSnapshotMenu}
+              >
+                <Button
+                  disabled={loadingBulkEditLootboxSnapshot || !isBulkActionEnabled}
+                  type="primary"
+                >
+                  Bulk Edit
+                </Button>
+              </Dropdown>
               <Popconfirm
                 title={`Coming soon - Inviting a team means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it.`}
                 onConfirm={() => {
@@ -340,7 +546,7 @@ const EventPage: React.FC = () => {
               <Link to={`/dashboard/lootbox/create?tid=${eventID}`}>
                 <Button type="primary">Create Lootbox</Button>
               </Link>
-            </$Horizontal>
+            </Space>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
             Each Lootbox represents a team competing in the event.
@@ -366,48 +572,158 @@ const EventPage: React.FC = () => {
           ) : (
             <$Vertical>
               <div className={styles.content}>
-                {lootboxTournamentSnapshots.map((snapshot) => (
-                  <Link
-                    key={snapshot.lootboxID}
-                    to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
-                    target="_blank"
-                  >
-                    <Card
-                      hoverable
-                      className={styles.card}
-                      cover={
-                        <img
-                          alt="example"
-                          src={snapshot.stampImage || ''}
-                          className={styles.cardImage}
-                        />
-                      }
-                      actions={[
-                        <Button key={`view-${snapshot.lootboxID}`} style={{ width: '90%' }}>
-                          View
-                        </Button>,
-                        <Link
-                          key={`stamp-${snapshot.lootboxID}`}
-                          to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
-                          target="_blank"
-                        >
-                          <Button style={{ width: '90%' }}>Stamp</Button>
-                        </Link>,
+                {lootboxTournamentSnapshots.map((snapshot) => {
+                  const editLootboxSnapshotMenu = (
+                    <Menu
+                      items={[
+                        {
+                          key: `view-${snapshot.id}`,
+                          label: (
+                            <Link
+                              key={`view-${snapshot.lootboxID}`}
+                              to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
+                              target="_blank"
+                            >
+                              View
+                            </Link>
+                          ),
+                        },
+                        {
+                          key: `stamp-${snapshot.id}`,
+                          label: (
+                            <Link
+                              key={`stamp-${snapshot.lootboxID}`}
+                              to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
+                              target="_blank"
+                            >
+                              Stamp
+                            </Link>
+                          ),
+                        },
+                        {
+                          key: `visibility-up-${snapshot.id}`,
+                          label: 'Show before',
+                          onClick: () => {
+                            handleEditLootboxTournamentSnapshots(
+                              tournament.id as TournamentID,
+                              [snapshot.id],
+                              {
+                                impressionPriority: snapshot.impressionPriority + 1,
+                              },
+                            );
+                          },
+                        },
+                        {
+                          key: `visibility-down-${snapshot.id}`,
+                          label: 'Show after',
+                          onClick: () => {
+                            handleEditLootboxTournamentSnapshots(
+                              tournament.id as TournamentID,
+                              [snapshot.id],
+                              {
+                                impressionPriority: snapshot.impressionPriority - 1,
+                              },
+                            );
+                          },
+                        },
+                        {
+                          key: `state-${snapshot.id}`,
+                          label:
+                            snapshot.status === LootboxTournamentStatus.Active
+                              ? 'Deactivate'
+                              : 'Activate',
+                          onClick: () => {
+                            handleEditLootboxTournamentSnapshots(
+                              tournament.id as TournamentID,
+                              [snapshot.id],
+                              {
+                                status:
+                                  snapshot.status === LootboxTournamentStatus.Active
+                                    ? LootboxTournamentStatus.Disabled
+                                    : LootboxTournamentStatus.Active,
+                              },
+                            );
+                          },
+                        },
+                        {
+                          key: `del-${snapshot.id}`,
+                          danger: true,
+                          label: (
+                            <Popconfirm
+                              title="Are you sure?"
+                              onConfirm={() =>
+                                handleDeleteLootboxTournamentSnapshots(
+                                  tournament.id as TournamentID,
+                                  [snapshot.id],
+                                )
+                              }
+                            >
+                              Delete
+                            </Popconfirm>
+                          ),
+                        },
                       ]}
+                    />
+                  );
+                  return (
+                    <Link
+                      key={`view-${snapshot.lootboxID}`}
+                      to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
+                      target="_blank"
                     >
-                      <Meta
-                        title={snapshot.name}
-                        description={
-                          snapshot.status === LootboxTournamentStatus.Active ? (
-                            <Tag color="success">Active</Tag>
-                          ) : (
-                            <Tag color="warning">Inactive</Tag>
-                          )
+                      <Card
+                        key={snapshot.lootboxID}
+                        hoverable
+                        className={styles.card}
+                        title={
+                          <Checkbox
+                            key={`CB-${snapshot.lootboxID}`}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setBulkSelectedSnapshots((prev) => {
+                                  return [...prev, snapshot.id];
+                                });
+                              } else {
+                                setBulkSelectedSnapshots((prev) => {
+                                  return prev.filter((id) => id !== snapshot.id);
+                                });
+                              }
+                            }}
+                          />
                         }
-                      />
-                    </Card>
-                  </Link>
-                ))}
+                        extra={
+                          <Space size="middle">
+                            <Dropdown
+                              disabled={loadingBulkEditLootboxSnapshot}
+                              key={`ellipsis-${snapshot.lootboxID}`}
+                              overlay={editLootboxSnapshotMenu}
+                            >
+                              {loadingBulkEditLootboxSnapshot ? <Spin /> : <MenuOutlined />}
+                            </Dropdown>
+                          </Space>
+                        }
+                        cover={
+                          <img
+                            alt="example"
+                            src={snapshot.stampImage || ''}
+                            className={styles.cardImage}
+                          />
+                        }
+                      >
+                        <Meta
+                          title={snapshot.name}
+                          description={
+                            snapshot.status === LootboxTournamentStatus.Active ? (
+                              <Tag color="success">Active</Tag>
+                            ) : (
+                              <Tag color="warning">Inactive</Tag>
+                            )
+                          }
+                        />
+                      </Card>
+                    </Link>
+                  );
+                })}
                 {loadingLootboxEdges && <Card loading />}
               </div>
               <br />

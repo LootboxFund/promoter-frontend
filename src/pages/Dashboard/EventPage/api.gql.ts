@@ -78,6 +78,10 @@ export interface LootboxTournamentSnapshotFE {
   stampImage: string;
   status: LootboxTournamentStatus;
   name: string;
+  impressionPriority: number;
+  timestamps: {
+    createdAt: number;
+  };
 }
 
 export interface PaginateEventLootboxesFE {
@@ -119,6 +123,10 @@ export const PAGINATE_EVENT_LOOTBOXES = gql`
                 stampImage
                 status
                 name
+                impressionPriority
+                timestamps {
+                  createdAt
+                }
               }
               cursor {
                 impression
@@ -223,6 +231,24 @@ export const REMOVE_ADSET_FROM_TOURNAMENT = gql`
           }
           isPostCosmic
         }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
+
+export const BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS = gql`
+  mutation BulkEditLootboxTournamentSnapshots(
+    $payload: BulkEditLootboxTournamentSnapshotsPayload!
+  ) {
+    bulkEditLootboxTournamentSnapshots(payload: $payload) {
+      ... on BulkEditLootboxTournamentSnapshotsResponseSuccess {
+        lootboxTournamentSnapshotIDs
       }
       ... on ResponseError {
         error {
