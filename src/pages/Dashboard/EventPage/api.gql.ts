@@ -1,4 +1,4 @@
-import { LootboxTournamentStatus } from '@/api/graphql/generated/types';
+import { LootboxTournamentStatus, ResponseError } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
 import { Address, LootboxID, LootboxTournamentSnapshotID } from '@wormgraph/helpers';
 
@@ -72,59 +72,118 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
 `;
 
 export interface LootboxTournamentSnapshotFE {
+  id: LootboxTournamentSnapshotID;
   address: Address;
   lootboxID: LootboxID;
   stampImage: string;
   status: LootboxTournamentStatus;
   name: string;
-}
-
-export interface PaginateEventLootboxesFE {
-  __resolveType: 'TournamentResponseSuccess';
-  tournament: {
-    paginateLootboxSnapshots: {
-      edges: {
-        node: LootboxTournamentSnapshotFE;
-        cursor: LootboxTournamentSnapshotID;
-      }[];
-      pageInfo: {
-        hasNextPage: boolean;
-      };
-    };
+  impressionPriority: number;
+  timestamps: {
+    createdAt: number;
   };
 }
 
-export const parsePaginatedLootboxEventSnapshots = (
-  response: PaginateEventLootboxesFE | undefined,
-): LootboxTournamentSnapshotFE[] => {
-  return response?.tournament?.paginateLootboxSnapshots?.edges?.map((edge) => edge.node) || [];
+export type TournamentLootboxesResponseSuccessFE = {
+  __typename: 'TournamentResponseSuccess';
+  tournament: {
+    lootboxSnapshots: LootboxTournamentSnapshotFE[];
+  };
 };
 
-export const PAGINATE_EVENT_LOOTBOXES = gql`
-  query PaginateLootboxSnapshots($tournamentID: ID!, $first: Int!, $after: ID) {
-    tournament(id: $tournamentID) {
+export type TournamentLootboxesResponseFE = TournamentLootboxesResponseSuccessFE | ResponseError;
+
+export const GET_TOURNAMENT_LOOTBOXES = gql`
+  query Query($id: ID!) {
+    tournament(id: $id) {
       ... on TournamentResponseSuccess {
         tournament {
-          paginateLootboxSnapshots(first: $first, after: $after) {
-            edges {
-              node {
-                address
-                lootboxID
-                stampImage
-                status
-                name
-              }
-              cursor
-            }
-            pageInfo {
-              hasNextPage
+          lootboxSnapshots {
+            id
+            address
+            lootboxID
+            stampImage
+            status
+            name
+            impressionPriority
+            timestamps {
+              createdAt
             }
           }
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
         }
       }
     }
   }
 `;
+
+// export interface PaginateEventLootboxesFE {
+//   __typename: 'TournamentResponseSuccess';
+//   tournament: {
+//     paginateLootboxSnapshots: {
+//       edges: {
+//         node: LootboxTournamentSnapshotFE;
+//         cursor: number; // Created at timestamp
+//       }[];
+//       pageInfo: {
+//         hasNextPage: boolean;
+//         endCursor: {
+//           impression: number;
+//           createdAt: number;
+//         } | null;
+//       };
+//     };
+//   };
+// }
+
+// export const parsePaginatedLootboxEventSnapshots = (
+//   response: PaginateEventLootboxesFE | undefined,
+// ): LootboxTournamentSnapshotFE[] => {
+//   return response?.tournament?.paginateLootboxSnapshots?.edges?.map((edge) => edge.node) || [];
+// };
+
+// export const PAGINATE_EVENT_LOOTBOXES = gql`
+//   query PaginateLootboxSnapshots($tournamentID: ID!, $first: Int!, $after: InputCursor) {
+//     tournament(id: $tournamentID) {
+//       ... on TournamentResponseSuccess {
+//         tournament {
+//           paginateLootboxSnapshots(first: $first, after: $after) {
+//             edges {
+//               node {
+//                 id
+//                 address
+//                 lootboxID
+//                 stampImage
+//                 status
+//                 name
+//                 impressionPriority
+//                 timestamps {
+//                   createdAt
+//                 }
+//               }
+//               cursor {
+//                 impression
+//                 createdAt
+//               }
+//             }
+//             pageInfo {
+//               hasNextPage
+//               endCursor {
+//                 impression
+//                 createdAt
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// `;
 
 export const EDIT_TOURNAMENT_AS_ORGANIZER = gql`
   mutation EditTournament($payload: EditTournamentPayload!) {
@@ -210,6 +269,24 @@ export const REMOVE_ADSET_FROM_TOURNAMENT = gql`
           }
           isPostCosmic
         }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
+
+export const BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS = gql`
+  mutation BulkEditLootboxTournamentSnapshots(
+    $payload: BulkEditLootboxTournamentSnapshotsPayload!
+  ) {
+    bulkEditLootboxTournamentSnapshots(payload: $payload) {
+      ... on BulkEditLootboxTournamentSnapshotsResponseSuccess {
+        lootboxTournamentSnapshotIDs
       }
       ... on ResponseError {
         error {

@@ -21,6 +21,7 @@ import LootboxPreview from '../LootboxPreview';
 import { ContractTransaction } from 'ethers';
 import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
 import { LootboxStatus } from '@/api/graphql/generated/types';
+import { shortenAddress } from '@/lib/address';
 // import * as _ from 'lodash';
 
 // const DEFAULT_THEME_COLOR = '#00B0FB'
@@ -98,6 +99,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const [pending, setPending] = useState(false);
   const [lootboxInfo, setLootboxInfo] = useState<LootboxBody>(LOOTBOX_INFO);
   const lockedToEdit = mode === 'create' || mode === 'edit-only';
+  const lockedToView = mode === 'view-only';
 
   useEffect(() => {
     if (lockedToEdit) {
@@ -317,7 +319,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           tooltip:
             'Link to where you want to funnel your fans who claim these Lootbox tickets. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
         },
-        ...(mode === 'view-edit'
+        ...(mode === 'view-edit' || mode === 'view-only'
           ? [
               {
                 key: 'status',
@@ -456,7 +458,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               copyable
               style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
-              {lootboxInfo.address}
+              {shortenAddress(lootboxInfo.address || '')}
             </Typography.Link>
           ),
         },
@@ -472,7 +474,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               copyable
               style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
-              {lootboxInfo.creatorAddress}
+              {shortenAddress(lootboxInfo.creatorAddress || '')}
             </Typography.Link>
           ),
         },
@@ -506,7 +508,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           </Empty>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '500px' }}>
-            {viewMode && !lockedToEdit && (
+            {viewMode && !lockedToEdit && !lockedToView && (
               <Button
                 type="link"
                 onClick={() => setViewMode(false)}

@@ -6,23 +6,22 @@ import {
   RemoveOfferAdSetFromTournamentResponse,
   MutationRemoveOfferAdSetFromTournamentArgs,
   ResponseError,
-  AdSetStatus,
   EditTournamentResponseSuccess,
   MutationEditTournamentArgs,
   EditTournamentPayload,
-  LootboxTournamentSnapshot,
+  BulkEditLootboxTournamentSnapshotsResponse,
+  MutationBulkEditLootboxTournamentSnapshotsArgs,
+  QueryTournamentArgs,
 } from '@/api/graphql/generated/types';
 import { history } from '@umijs/max';
 import * as _ from 'lodash';
-
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
-
 import { useMutation, useQuery } from '@apollo/client';
 import { Link, useParams } from '@umijs/max';
-import type {
+import {
   ActivationID,
   AffiliateID,
-  LootboxID,
+  LootboxTournamentSnapshotID,
   OfferID,
   RateQuoteID,
   TournamentID,
@@ -34,10 +33,10 @@ import {
   EDIT_TOURNAMENT_AS_ORGANIZER,
   REMOVE_ADSET_FROM_TOURNAMENT,
   VIEW_TOURNAMENT_AS_ORGANIZER,
-  PAGINATE_EVENT_LOOTBOXES,
-  PaginateEventLootboxesFE,
   LootboxTournamentSnapshotFE,
-  parsePaginatedLootboxEventSnapshots,
+  BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS,
+  GET_TOURNAMENT_LOOTBOXES,
+  TournamentLootboxesResponseFE,
 } from './api.gql';
 import styles from './index.less';
 import { $Horizontal, $Vertical, $ColumnGap, $InfoDescription } from '@/components/generics';
@@ -54,7 +53,6 @@ import {
   Space,
   Table,
   Tabs,
-  Tag,
   Tooltip,
 } from 'antd';
 import Meta from 'antd/lib/card/Meta';
@@ -75,6 +73,9 @@ import CreateEventForm from '@/components/CreateEventForm';
 import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { manifest } from '@/manifest';
+import LootboxGallery from '@/components/LootboxGallery';
+
+const GALLERY_PAGE_SIZE = 12;
 
 interface DataType {
   rateQuoteID: string;
@@ -117,28 +118,26 @@ const EventPage: React.FC = () => {
       ) {
         const tournament = data.viewTournamentAsOrganizer.tournament;
         setTournament(tournament);
-        console.log(`--- tournament`, tournament);
       }
     },
   });
 
-  // GET EVENT LOOTBOXES
-  const {
-    data: paginatedLootboxEdges,
-    loading: loadingLootboxEdges,
-    // error: errorLootboxEdges,
-  } = useQuery<{ tournament: PaginateEventLootboxesFE | ResponseError }>(PAGINATE_EVENT_LOOTBOXES, {
+  const { data: tournamentLootboxesResponse, loading: loadingTournamentLootboxes } = useQuery<
+    { tournament: TournamentLootboxesResponseFE },
+    QueryTournamentArgs
+  >(GET_TOURNAMENT_LOOTBOXES, {
     variables: {
-      tournamentID: eventID || '',
-      first: 30,
+      id: eventID || '',
     },
   });
 
-  const lootboxTournamentSnapshots: LootboxTournamentSnapshotFE[] = useMemo(() => {
-    return parsePaginatedLootboxEventSnapshots(
-      paginatedLootboxEdges?.tournament as PaginateEventLootboxesFE | undefined,
-    );
-  }, [paginatedLootboxEdges?.tournament]);
+  const tournamentLootboxes: LootboxTournamentSnapshotFE[] = useMemo(() => {
+    if (tournamentLootboxesResponse?.tournament?.__typename === 'TournamentResponseSuccess') {
+      return tournamentLootboxesResponse?.tournament?.tournament?.lootboxSnapshots || [];
+    } else {
+      return [];
+    }
+  }, [tournamentLootboxesResponse?.tournament]);
 
   // EDIT TOURNAMENT AS ORGANIZER
   const [editTournamentMutation] = useMutation<
@@ -165,6 +164,80 @@ const EventPage: React.FC = () => {
       { query: VIEW_TOURNAMENT_AS_ORGANIZER, variables: { tournamentID: eventID || '' } },
     ],
   });
+
+  const [bulkEditLootboxTournamentSnapshots] = useMutation<
+    {
+      bulkEditLootboxTournamentSnapshots:
+        | ResponseError
+        | BulkEditLootboxTournamentSnapshotsResponse;
+    },
+    MutationBulkEditLootboxTournamentSnapshotsArgs
+  >(BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS);
+
+  const handleEditLootboxTournamentSnapshots = async (
+    tournamentID: TournamentID,
+    lootboxSnapshotIDs: LootboxTournamentSnapshotID[],
+    payload: {
+      impressionPriority?: number;
+      status?: LootboxTournamentStatus;
+    },
+  ) => {
+    const res = await bulkEditLootboxTournamentSnapshots({
+      variables: {
+        payload: {
+          tournamentID,
+          lootboxSnapshotIDs: lootboxSnapshotIDs,
+          impressionPriority: payload.impressionPriority,
+          status: payload.status,
+        },
+      },
+      refetchQueries: [GET_TOURNAMENT_LOOTBOXES],
+    });
+
+    if (
+      (
+        res?.data?.bulkEditLootboxTournamentSnapshots as
+          | ResponseError
+          | BulkEditLootboxTournamentSnapshotsResponse
+      )?.__typename === 'ResponseError'
+    ) {
+      throw new Error(
+        (res.data?.bulkEditLootboxTournamentSnapshots as ResponseError | undefined)?.error
+          ?.message || 'An error occured',
+      );
+    }
+
+    return;
+  };
+
+  const handleDeleteLootboxTournamentSnapshots = async (
+    tournamentID: TournamentID,
+    lootboxSnapshotIDs: LootboxTournamentSnapshotID[],
+  ) => {
+    const res = await bulkEditLootboxTournamentSnapshots({
+      variables: {
+        payload: {
+          tournamentID,
+          lootboxSnapshotIDs: lootboxSnapshotIDs,
+          delete: true,
+        },
+      },
+      refetchQueries: [GET_TOURNAMENT_LOOTBOXES],
+    });
+
+    if (
+      (
+        res.data?.bulkEditLootboxTournamentSnapshots as
+          | ResponseError
+          | BulkEditLootboxTournamentSnapshotsResponse
+      )?.__typename === 'ResponseError'
+    ) {
+      throw new Error(
+        (res.data?.bulkEditLootboxTournamentSnapshots as ResponseError | undefined)?.error
+          ?.message || 'An error occured',
+      );
+    }
+  };
 
   if (error) {
     return <span>{error?.message || ''}</span>;
@@ -200,57 +273,6 @@ const EventPage: React.FC = () => {
     { title: tournament?.title || '', route: `/dashboard/events/id/${tournament?.id}` },
   ];
 
-  const LootboxGallery = ({
-    snapshots,
-    loading,
-  }: {
-    snapshots: LootboxTournamentSnapshotFE[];
-    loading: boolean;
-  }) => {
-    return (
-      <div className={styles.content}>
-        {snapshots.map((snapshot) => (
-          <Link
-            key={snapshot.lootboxID}
-            to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
-            target="_blank"
-          >
-            <Card
-              hoverable
-              className={styles.card}
-              cover={
-                <img alt="example" src={snapshot.stampImage || ''} className={styles.cardImage} />
-              }
-              actions={[
-                <Button key={`view-${snapshot.lootboxID}`} style={{ width: '90%' }}>
-                  View
-                </Button>,
-                <Link
-                  key={`stamp-${snapshot.lootboxID}`}
-                  to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
-                  target="_blank"
-                >
-                  <Button style={{ width: '90%' }}>Stamp</Button>
-                </Link>,
-              ]}
-            >
-              <Meta
-                title={snapshot.name}
-                description={
-                  snapshot.status === LootboxTournamentStatus.Active ? (
-                    <Tag color="success">Active</Tag>
-                  ) : (
-                    <Tag color="warning">Inactive</Tag>
-                  )
-                }
-              />
-            </Card>
-          </Link>
-        ))}
-      </div>
-    );
-  };
-
   const renderHelpText = () => {
     return (
       <$InfoDescription>
@@ -265,6 +287,7 @@ const EventPage: React.FC = () => {
     );
   };
   const maxWidth = '1000px';
+
   return (
     <div>
       {loading || !tournament ? (
@@ -337,7 +360,7 @@ const EventPage: React.FC = () => {
 
           <$Horizontal justifyContent="space-between">
             <h2 id="lootbox-gallery">Lootbox Gallery</h2>
-            <$Horizontal>
+            <Space>
               <Popconfirm
                 title={`Coming soon - Inviting a team means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it.`}
                 onConfirm={() => {
@@ -354,32 +377,21 @@ const EventPage: React.FC = () => {
               <Link to={`/dashboard/lootbox/create?tid=${eventID}`}>
                 <Button type="primary">Create Lootbox</Button>
               </Link>
-            </$Horizontal>
+            </Space>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
             Each Lootbox represents a team competing in the event.
           </$InfoDescription>
 
-          {!lootboxTournamentSnapshots || lootboxTournamentSnapshots.length === 0 ? (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              imageStyle={{
-                height: 60,
-              }}
-              description={
-                <span style={{ maxWidth: '200px' }}>
-                  {`There are no Lootboxes for this event. Create one to get started.`}
-                </span>
-              }
-              style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
-            >
-              <Link to={`/dashboard/lootbox/create?tid=${eventID}`}>
-                <Button>Create Lootbox</Button>
-              </Link>
-            </Empty>
-          ) : (
-            <LootboxGallery loading={loadingLootboxEdges} snapshots={lootboxTournamentSnapshots} />
-          )}
+          <LootboxGallery
+            mode="view-edit"
+            eventID={tournament.id as TournamentID}
+            pageSize={GALLERY_PAGE_SIZE}
+            loading={loadingTournamentLootboxes}
+            lootboxTournamentSnapshots={tournamentLootboxes}
+            onBulkDelete={handleDeleteLootboxTournamentSnapshots}
+            onBulkEdit={handleEditLootboxTournamentSnapshots}
+          />
           <br />
           <br />
           <$Horizontal justifyContent="space-between">
@@ -387,7 +399,7 @@ const EventPage: React.FC = () => {
             <Button
               type="primary"
               onClick={() => setIsReferralModalOpen(true)}
-              disabled={lootboxTournamentSnapshots.length === 0}
+              disabled={tournamentLootboxes.length === 0}
             >
               Invite Fans
             </Button>
@@ -743,7 +755,7 @@ const EventPage: React.FC = () => {
           {simulatedAd && <DeviceSimulator creative={simulatedAd.creative} />}
         </Modal>
       )}
-      {lootboxTournamentSnapshots.length > 0 && (
+      {tournamentLootboxes.length > 0 && (
         <GenerateReferralModal
           isOpen={isReferralModalOpen}
           setIsOpen={setIsReferralModalOpen}

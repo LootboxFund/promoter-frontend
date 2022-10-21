@@ -32,6 +32,7 @@ import { ContractTransaction, ethers } from 'ethers';
 import useERC20 from '@/hooks/useERC20';
 import useWeb3 from '@/hooks/useWeb3';
 import { manifest } from '@/manifest';
+import { useAuth } from '@/api/firebase/useAuth';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -48,6 +49,7 @@ export const extractURLState_LootboxPage = (): MagicLinkParams => {
 };
 
 const LootboxPage: React.FC = () => {
+  const { user } = useAuth();
   const { lootboxID } = useParams();
   const [magicLinkParams, setMagicLinkParams] = useState<MagicLinkParams>(
     extractURLState_LootboxPage(),
@@ -211,10 +213,11 @@ const LootboxPage: React.FC = () => {
   }
 
   const maxWidth = '1000px';
+  const doesUserHaveEditPermission = lootbox.creatorID === user?.id;
+
   return (
     <div style={{ maxWidth }}>
       <BreadCrumbDynamic breadLine={breadLine} />
-
       <$Horizontal justifyContent="space-between">
         <h1>{lootbox.name}</h1>
         <a
@@ -225,7 +228,6 @@ const LootboxPage: React.FC = () => {
           <Button type="primary">View Public Page</Button>
         </a>
       </$Horizontal>
-
       {renderHelpText()}
       <div style={{ minWidth: '1000px', maxWidth: '1000px' }}>
         <CreateLootboxForm
@@ -245,7 +247,7 @@ const LootboxPage: React.FC = () => {
             creatorAddress: lootbox.creatorAddress,
             chainIDHex: lootbox.chainIdHex,
           }}
-          mode="view-edit"
+          mode={doesUserHaveEditPermission ? 'view-edit' : 'view-only'}
           onSubmitEdit={editLootbox}
         />
       </div>
