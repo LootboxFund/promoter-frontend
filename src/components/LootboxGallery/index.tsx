@@ -1,5 +1,5 @@
 import { LootboxTournamentStatus } from '@/api/graphql/generated/types';
-import { MenuOutlined } from '@ant-design/icons';
+import { MenuOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import { Link } from '@umijs/max';
 import { Address, LootboxID, LootboxTournamentSnapshotID, TournamentID } from '@wormgraph/helpers';
 import {
@@ -20,6 +20,7 @@ import {
   Col,
 } from 'antd';
 import { useMemo, useState } from 'react';
+import GenerateReferralModal from '../GenerateReferralModal';
 import styles from './index.less';
 
 interface LootboxSnapshotFE {
@@ -55,6 +56,8 @@ interface LootboxGalleryProps {
 }
 
 const LootboxGallery = (props: LootboxGalleryProps) => {
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+  const [lootboxForReferralModal, setLootboxForReferralModal] = useState<LootboxID | null>(null);
   const [searchString, setSearchString] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [bulkSelectedSnapshots, setBulkSelectedSnapshots] = useState<LootboxTournamentSnapshotID[]>(
@@ -339,6 +342,20 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                   ),
                 },
                 {
+                  key: `state-activate-${snapshot.id}`,
+                  label: (
+                    <Tooltip title="Generate a referral link for this Lootbox" placement="left">
+                      <Button type="text" ghost>
+                        Invite Fans
+                      </Button>
+                    </Tooltip>
+                  ),
+                  onClick: () => {
+                    setLootboxForReferralModal(snapshot.lootboxID);
+                    setIsReferralModalOpen(true);
+                  },
+                },
+                {
                   key: `visibility-up-${snapshot.id}`,
                   label: (
                     <Tooltip
@@ -346,7 +363,7 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                       placement="left"
                     >
                       <Button type="text" ghost>
-                        Show before
+                        <ArrowUpOutlined /> Visibility
                       </Button>
                     </Tooltip>
                   ),
@@ -364,7 +381,7 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                       placement="left"
                     >
                       <Button type="text" ghost>
-                        Show after
+                        <ArrowDownOutlined /> Visibility
                       </Button>
                     </Tooltip>
                   ),
@@ -494,6 +511,12 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
         pageSize={props.pageSize}
         onChange={handleOnPageChange}
         style={{ textAlign: 'center' }}
+      />
+      <GenerateReferralModal
+        isOpen={isReferralModalOpen}
+        setIsOpen={setIsReferralModalOpen}
+        lootboxID={lootboxForReferralModal || undefined}
+        tournamentID={props.eventID}
       />
     </Space>
   );
