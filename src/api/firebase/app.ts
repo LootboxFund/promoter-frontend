@@ -10,5 +10,5 @@ const firebaseConfig = manifest.firebase;
 export const app = initializeApp(firebaseConfig);
 export const storage = getStorage(app);
 export const auth = getAuth(app);
-export const functions = getFunctions(app, 'asia-southeast1');
+export const functions = getFunctions(app, manifest.cloudFunctions.region);
 auth.useDeviceLanguage();
