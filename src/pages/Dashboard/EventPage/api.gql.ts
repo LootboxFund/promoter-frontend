@@ -1,4 +1,4 @@
-import { LootboxTournamentStatus } from '@/api/graphql/generated/types';
+import { LootboxTournamentStatus, ResponseError } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
 import { Address, LootboxID, LootboxTournamentSnapshotID } from '@wormgraph/helpers';
 
@@ -84,68 +84,106 @@ export interface LootboxTournamentSnapshotFE {
   };
 }
 
-export interface PaginateEventLootboxesFE {
+export type TournamentLootboxesResponseSuccessFE = {
   __typename: 'TournamentResponseSuccess';
   tournament: {
-    paginateLootboxSnapshots: {
-      edges: {
-        node: LootboxTournamentSnapshotFE;
-        cursor: number; // Created at timestamp
-      }[];
-      pageInfo: {
-        hasNextPage: boolean;
-        endCursor: {
-          impression: number;
-          createdAt: number;
-        } | null;
-      };
-    };
+    lootboxSnapshots: LootboxTournamentSnapshotFE[];
   };
-}
-
-export const parsePaginatedLootboxEventSnapshots = (
-  response: PaginateEventLootboxesFE | undefined,
-): LootboxTournamentSnapshotFE[] => {
-  return response?.tournament?.paginateLootboxSnapshots?.edges?.map((edge) => edge.node) || [];
 };
 
-export const PAGINATE_EVENT_LOOTBOXES = gql`
-  query PaginateLootboxSnapshots($tournamentID: ID!, $first: Int!, $after: InputCursor) {
-    tournament(id: $tournamentID) {
+export type TournamentLootboxesResponseFE = TournamentLootboxesResponseSuccessFE | ResponseError;
+
+export const GET_TOURNAMENT_LOOTBOXES = gql`
+  query Query($id: ID!) {
+    tournament(id: $id) {
       ... on TournamentResponseSuccess {
         tournament {
-          paginateLootboxSnapshots(first: $first, after: $after) {
-            edges {
-              node {
-                id
-                address
-                lootboxID
-                stampImage
-                status
-                name
-                impressionPriority
-                timestamps {
-                  createdAt
-                }
-              }
-              cursor {
-                impression
-                createdAt
-              }
-            }
-            pageInfo {
-              hasNextPage
-              endCursor {
-                impression
-                createdAt
-              }
+          lootboxSnapshots {
+            id
+            address
+            lootboxID
+            stampImage
+            status
+            name
+            impressionPriority
+            timestamps {
+              createdAt
             }
           }
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
         }
       }
     }
   }
 `;
+
+// export interface PaginateEventLootboxesFE {
+//   __typename: 'TournamentResponseSuccess';
+//   tournament: {
+//     paginateLootboxSnapshots: {
+//       edges: {
+//         node: LootboxTournamentSnapshotFE;
+//         cursor: number; // Created at timestamp
+//       }[];
+//       pageInfo: {
+//         hasNextPage: boolean;
+//         endCursor: {
+//           impression: number;
+//           createdAt: number;
+//         } | null;
+//       };
+//     };
+//   };
+// }
+
+// export const parsePaginatedLootboxEventSnapshots = (
+//   response: PaginateEventLootboxesFE | undefined,
+// ): LootboxTournamentSnapshotFE[] => {
+//   return response?.tournament?.paginateLootboxSnapshots?.edges?.map((edge) => edge.node) || [];
+// };
+
+// export const PAGINATE_EVENT_LOOTBOXES = gql`
+//   query PaginateLootboxSnapshots($tournamentID: ID!, $first: Int!, $after: InputCursor) {
+//     tournament(id: $tournamentID) {
+//       ... on TournamentResponseSuccess {
+//         tournament {
+//           paginateLootboxSnapshots(first: $first, after: $after) {
+//             edges {
+//               node {
+//                 id
+//                 address
+//                 lootboxID
+//                 stampImage
+//                 status
+//                 name
+//                 impressionPriority
+//                 timestamps {
+//                   createdAt
+//                 }
+//               }
+//               cursor {
+//                 impression
+//                 createdAt
+//               }
+//             }
+//             pageInfo {
+//               hasNextPage
+//               endCursor {
+//                 impression
+//                 createdAt
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// `;
 
 export const EDIT_TOURNAMENT_AS_ORGANIZER = gql`
   mutation EditTournament($payload: EditTournamentPayload!) {

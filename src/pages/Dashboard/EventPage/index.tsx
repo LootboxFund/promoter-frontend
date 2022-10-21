@@ -9,9 +9,9 @@ import {
   EditTournamentResponseSuccess,
   MutationEditTournamentArgs,
   EditTournamentPayload,
-  LootboxTournamentSnapshotCursor,
   BulkEditLootboxTournamentSnapshotsResponse,
   MutationBulkEditLootboxTournamentSnapshotsArgs,
+  QueryTournamentArgs,
 } from '@/api/graphql/generated/types';
 import { history } from '@umijs/max';
 import * as _ from 'lodash';
@@ -33,11 +33,10 @@ import {
   EDIT_TOURNAMENT_AS_ORGANIZER,
   REMOVE_ADSET_FROM_TOURNAMENT,
   VIEW_TOURNAMENT_AS_ORGANIZER,
-  PAGINATE_EVENT_LOOTBOXES,
-  PaginateEventLootboxesFE,
   LootboxTournamentSnapshotFE,
-  parsePaginatedLootboxEventSnapshots,
   BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS,
+  GET_TOURNAMENT_LOOTBOXES,
+  TournamentLootboxesResponseFE,
 } from './api.gql';
 import styles from './index.less';
 import { $Horizontal, $Vertical, $ColumnGap, $InfoDescription } from '@/components/generics';
@@ -47,17 +46,13 @@ import {
   Avatar,
   Button,
   Card,
-  Checkbox,
-  Dropdown,
   Empty,
-  Menu,
   message,
   Modal,
   Popconfirm,
   Space,
   Table,
   Tabs,
-  Tag,
   Tooltip,
 } from 'antd';
 import Meta from 'antd/lib/card/Meta';
@@ -78,7 +73,7 @@ import CreateEventForm from '@/components/CreateEventForm';
 import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { manifest } from '@/manifest';
-import { MenuOutlined } from '@ant-design/icons';
+import LootboxGallery from '@/components/LootboxGallery';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -108,14 +103,6 @@ const EventPage: React.FC = () => {
   const [showTableOfContents, setShowTableOfContents] = useState(true);
   const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
-  const [lastLootboxCursor, setLastLootboxCursor] =
-    useState<LootboxTournamentSnapshotCursor | null>(null);
-  const [lootboxTournamentSnapshots, setLootboxTournamentSnapshots] = useState<
-    LootboxTournamentSnapshotFE[]
-  >([]);
-  const [bulkSelectedSnapshots, setBulkSelectedSnapshots] = useState<LootboxTournamentSnapshotID[]>(
-    [],
-  );
 
   // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
@@ -135,70 +122,22 @@ const EventPage: React.FC = () => {
     },
   });
 
-  // GET EVENT LOOTBOXES
-  const {
-    data: paginatedLootboxEdges,
-    loading: loadingLootboxEdges,
-    // error: errorLootboxEdges,
-  } = useQuery<{ tournament: PaginateEventLootboxesFE | ResponseError }>(PAGINATE_EVENT_LOOTBOXES, {
+  const { data: tournamentLootboxesResponse, loading: loadingTournamentLootboxes } = useQuery<
+    { tournament: TournamentLootboxesResponseFE },
+    QueryTournamentArgs
+  >(GET_TOURNAMENT_LOOTBOXES, {
     variables: {
-      tournamentID: eventID || '',
-      first: GALLERY_PAGE_SIZE,
-      after: lastLootboxCursor,
-    },
-    onCompleted: (data) => {
-      if (
-        (data?.tournament as PaginateEventLootboxesFE | undefined)?.__typename ===
-        'TournamentResponseSuccess'
-      ) {
-        const paginatedsnapshots = parsePaginatedLootboxEventSnapshots(
-          data?.tournament as PaginateEventLootboxesFE | undefined,
-        );
-
-        setLootboxTournamentSnapshots((prev) => {
-          const newSnapshotsCopy = [...prev];
-          paginatedsnapshots.forEach((snapshot) => {
-            const index = newSnapshotsCopy.findIndex((snap) => snap.id === snapshot.id);
-            if (index > -1) {
-              // Update the document
-              newSnapshotsCopy[index] = snapshot;
-            } else {
-              // Append the document
-              newSnapshotsCopy.push(snapshot);
-            }
-          });
-
-          // Sort by impression priority (already done in backend, but do again to catch when the impressionPriority changes)
-          newSnapshotsCopy.sort((a, b) => {
-            const diff = b.impressionPriority - a.impressionPriority;
-            if (diff === 0) {
-              return b.timestamps.createdAt - a.timestamps.createdAt;
-            } else {
-              return diff;
-            }
-          });
-
-          return newSnapshotsCopy;
-        });
-      }
+      id: eventID || '',
     },
   });
 
-  const {
-    pageEndCursor,
-    hasNextPage,
-  }: {
-    pageEndCursor: LootboxTournamentSnapshotCursor | null; // Created at timestamp
-    hasNextPage: boolean;
-  } = useMemo(() => {
-    const pageEndCursor = (
-      paginatedLootboxEdges?.tournament as PaginateEventLootboxesFE | undefined
-    )?.tournament?.paginateLootboxSnapshots?.pageInfo?.endCursor;
-    const hasNextPage = (paginatedLootboxEdges?.tournament as PaginateEventLootboxesFE | undefined)
-      ?.tournament?.paginateLootboxSnapshots?.pageInfo?.hasNextPage;
-
-    return { pageEndCursor: pageEndCursor || null, hasNextPage: !!hasNextPage };
-  }, [paginatedLootboxEdges?.tournament]);
+  const tournamentLootboxes: LootboxTournamentSnapshotFE[] = useMemo(() => {
+    if (tournamentLootboxesResponse?.tournament?.__typename === 'TournamentResponseSuccess') {
+      return tournamentLootboxesResponse?.tournament?.tournament?.lootboxSnapshots || [];
+    } else {
+      return [];
+    }
+  }, [tournamentLootboxesResponse?.tournament]);
 
   // EDIT TOURNAMENT AS ORGANIZER
   const [editTournamentMutation] = useMutation<
@@ -226,15 +165,14 @@ const EventPage: React.FC = () => {
     ],
   });
 
-  const [bulkEditLootboxTournamentSnapshots, { loading: loadingBulkEditLootboxSnapshot }] =
-    useMutation<
-      {
-        bulkEditLootboxTournamentSnapshots:
-          | ResponseError
-          | BulkEditLootboxTournamentSnapshotsResponse;
-      },
-      MutationBulkEditLootboxTournamentSnapshotsArgs
-    >(BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS);
+  const [bulkEditLootboxTournamentSnapshots] = useMutation<
+    {
+      bulkEditLootboxTournamentSnapshots:
+        | ResponseError
+        | BulkEditLootboxTournamentSnapshotsResponse;
+    },
+    MutationBulkEditLootboxTournamentSnapshotsArgs
+  >(BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS);
 
   const handleEditLootboxTournamentSnapshots = async (
     tournamentID: TournamentID,
@@ -244,96 +182,60 @@ const EventPage: React.FC = () => {
       status?: LootboxTournamentStatus;
     },
   ) => {
-    try {
-      const res = await bulkEditLootboxTournamentSnapshots({
-        variables: {
-          payload: {
-            tournamentID,
-            lootboxSnapshotIDs: lootboxSnapshotIDs,
-            impressionPriority: payload.impressionPriority,
-            status: payload.status,
-          },
+    const res = await bulkEditLootboxTournamentSnapshots({
+      variables: {
+        payload: {
+          tournamentID,
+          lootboxSnapshotIDs: lootboxSnapshotIDs,
+          impressionPriority: payload.impressionPriority,
+          status: payload.status,
         },
-        refetchQueries: [
-          {
-            query: PAGINATE_EVENT_LOOTBOXES,
-            variables: {
-              tournamentID: eventID || '',
-              first: GALLERY_PAGE_SIZE,
-              after: lastLootboxCursor,
-            },
-          },
-        ],
-      });
+      },
+      refetchQueries: [GET_TOURNAMENT_LOOTBOXES],
+    });
 
-      if (
-        (
-          res.data?.bulkEditLootboxTournamentSnapshots as
-            | ResponseError
-            | BulkEditLootboxTournamentSnapshotsResponse
-        )?.__typename === 'BulkEditLootboxTournamentSnapshotsResponseSuccess'
-      ) {
-        Modal.success({
-          title: 'Success',
-          content: 'Lootboxes have been Updated!',
-        });
-      } else {
-        throw new Error(
-          (res.data?.bulkEditLootboxTournamentSnapshots as ResponseError | undefined)?.error
-            ?.message || 'An error occured',
-        );
-      }
-    } catch (e: any) {
-      Modal.error({
-        title: 'Failure',
-        content: `${e.message}`,
-      });
+    if (
+      (
+        res?.data?.bulkEditLootboxTournamentSnapshots as
+          | ResponseError
+          | BulkEditLootboxTournamentSnapshotsResponse
+      )?.__typename === 'ResponseError'
+    ) {
+      throw new Error(
+        (res.data?.bulkEditLootboxTournamentSnapshots as ResponseError | undefined)?.error
+          ?.message || 'An error occured',
+      );
     }
+
+    return;
   };
 
   const handleDeleteLootboxTournamentSnapshots = async (
     tournamentID: TournamentID,
     lootboxSnapshotIDs: LootboxTournamentSnapshotID[],
   ) => {
-    try {
-      const res = await bulkEditLootboxTournamentSnapshots({
-        variables: {
-          payload: {
-            tournamentID,
-            lootboxSnapshotIDs: lootboxSnapshotIDs,
-            delete: true,
-          },
+    const res = await bulkEditLootboxTournamentSnapshots({
+      variables: {
+        payload: {
+          tournamentID,
+          lootboxSnapshotIDs: lootboxSnapshotIDs,
+          delete: true,
         },
-      });
+      },
+      refetchQueries: [GET_TOURNAMENT_LOOTBOXES],
+    });
 
-      if (
-        (
-          res.data?.bulkEditLootboxTournamentSnapshots as
-            | ResponseError
-            | BulkEditLootboxTournamentSnapshotsResponse
-        )?.__typename === 'BulkEditLootboxTournamentSnapshotsResponseSuccess'
-      ) {
-        // Lets just remove it in state...
-        setLootboxTournamentSnapshots((prev) => {
-          const newSnapshotsCopy = prev.filter((snap) => !lootboxSnapshotIDs.includes(snap.id));
-          return newSnapshotsCopy;
-        });
-
-        Modal.success({
-          title: 'Success',
-          content: 'Lootbox removed from tournament',
-        });
-      } else {
-        throw new Error(
-          (res.data?.bulkEditLootboxTournamentSnapshots as ResponseError | undefined)?.error
-            ?.message || 'An error occured',
-        );
-      }
-    } catch (e: any) {
-      Modal.error({
-        title: 'Failure',
-        content: `${e.message}`,
-      });
+    if (
+      (
+        res.data?.bulkEditLootboxTournamentSnapshots as
+          | ResponseError
+          | BulkEditLootboxTournamentSnapshotsResponse
+      )?.__typename === 'ResponseError'
+    ) {
+      throw new Error(
+        (res.data?.bulkEditLootboxTournamentSnapshots as ResponseError | undefined)?.error
+          ?.message || 'An error occured',
+      );
     }
   };
 
@@ -371,14 +273,6 @@ const EventPage: React.FC = () => {
     { title: tournament?.title || '', route: `/dashboard/events/id/${tournament?.id}` },
   ];
 
-  const loadMore = () => {
-    setLastLootboxCursor(
-      pageEndCursor
-        ? { impression: pageEndCursor.impression, createdAt: pageEndCursor.createdAt }
-        : null,
-    );
-  };
-
   const renderHelpText = () => {
     return (
       <$InfoDescription>
@@ -393,74 +287,6 @@ const EventPage: React.FC = () => {
     );
   };
   const maxWidth = '1000px';
-
-  const bulkEditLootboxSnapshotMenu = (
-    <Menu
-      items={[
-        {
-          key: `bulk-state-activate`,
-          label: (
-            <Tooltip
-              title="All selected Lootboxes will become visible and claimable by your audience"
-              placement="left"
-            >
-              Activate
-            </Tooltip>
-          ),
-          onClick: () => {
-            handleEditLootboxTournamentSnapshots(
-              (eventID || '') as TournamentID,
-              bulkSelectedSnapshots,
-              {
-                status: LootboxTournamentStatus.Active,
-              },
-            );
-          },
-        },
-        {
-          key: `bulk-state-disable`,
-          label: (
-            <Tooltip
-              title="All selected Lootboxes will become invisible and not-claimable by your audience"
-              placement="left"
-            >
-              Deactivate
-            </Tooltip>
-          ),
-          onClick: () => {
-            handleEditLootboxTournamentSnapshots(
-              (eventID || '') as TournamentID,
-              bulkSelectedSnapshots,
-              {
-                status: LootboxTournamentStatus.Disabled,
-              },
-            );
-          },
-        },
-        {
-          key: `bulk-delete`,
-          danger: true,
-          label: (
-            <Popconfirm
-              title="Are you sure?"
-              onConfirm={() =>
-                handleDeleteLootboxTournamentSnapshots(
-                  (eventID || '') as TournamentID,
-                  bulkSelectedSnapshots,
-                )
-              }
-            >
-              <Tooltip title="Deletes all selected Lootboxes permanently" placement="left">
-                Delete
-              </Tooltip>
-            </Popconfirm>
-          ),
-        },
-      ]}
-    />
-  );
-
-  const isBulkActionEnabled = bulkSelectedSnapshots.length > 0;
 
   return (
     <div>
@@ -535,17 +361,6 @@ const EventPage: React.FC = () => {
           <$Horizontal justifyContent="space-between">
             <h2 id="lootbox-gallery">Lootbox Gallery</h2>
             <Space>
-              <Dropdown
-                disabled={loadingBulkEditLootboxSnapshot || !isBulkActionEnabled}
-                overlay={bulkEditLootboxSnapshotMenu}
-              >
-                <Button
-                  disabled={loadingBulkEditLootboxSnapshot || !isBulkActionEnabled}
-                  type="primary"
-                >
-                  Bulk Edit
-                </Button>
-              </Dropdown>
               <Popconfirm
                 title={`Coming soon - Inviting a team means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it.`}
                 onConfirm={() => {
@@ -568,230 +383,15 @@ const EventPage: React.FC = () => {
             Each Lootbox represents a team competing in the event.
           </$InfoDescription>
 
-          {!lootboxTournamentSnapshots || lootboxTournamentSnapshots.length === 0 ? (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              imageStyle={{
-                height: 60,
-              }}
-              description={
-                <span style={{ maxWidth: '200px' }}>
-                  {`There are no Lootboxes for this event. Create one to get started.`}
-                </span>
-              }
-              style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
-            >
-              <Link to={`/dashboard/lootbox/create?tid=${eventID}`}>
-                <Button>Create Lootbox</Button>
-              </Link>
-            </Empty>
-          ) : (
-            <$Vertical>
-              <div className={styles.content}>
-                {lootboxTournamentSnapshots.map((snapshot) => {
-                  const editLootboxSnapshotMenu = (
-                    <Menu
-                      items={[
-                        {
-                          key: `view-${snapshot.id}`,
-                          label: (
-                            <Tooltip
-                              title="View detailed information about the Lootbox and edit it if you have permission"
-                              placement="left"
-                            >
-                              <Link
-                                key={`view-${snapshot.lootboxID}`}
-                                to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
-                                target="_blank"
-                              >
-                                View
-                              </Link>
-                            </Tooltip>
-                          ),
-                        },
-                        {
-                          key: `stamp-${snapshot.id}`,
-                          label: (
-                            <Tooltip
-                              title="Generate viral and shareable graphics for this Lootbox"
-                              placement="left"
-                            >
-                              <Link
-                                key={`stamp-${snapshot.lootboxID}`}
-                                to={`/dashboard/stamp/lootbox/id/${snapshot.lootboxID}?tid=${tournament?.id}`}
-                                target="_blank"
-                              >
-                                Stamp
-                              </Link>
-                            </Tooltip>
-                          ),
-                        },
-                        {
-                          key: `visibility-up-${snapshot.id}`,
-                          label: (
-                            <Tooltip
-                              title="Increases the chances that this Lootbox will be seen in the Viral Onboarding"
-                              placement="left"
-                            >
-                              Show before
-                            </Tooltip>
-                          ),
-                          onClick: () => {
-                            handleEditLootboxTournamentSnapshots(
-                              tournament.id as TournamentID,
-                              [snapshot.id],
-                              {
-                                impressionPriority: snapshot.impressionPriority + 1,
-                              },
-                            );
-                          },
-                        },
-                        {
-                          key: `visibility-down-${snapshot.id}`,
-                          label: (
-                            <Tooltip
-                              title="Decreases the chances that this Lootbox will be seen in the Viral Onboarding"
-                              placement="left"
-                            >
-                              Show after
-                            </Tooltip>
-                          ),
-                          onClick: () => {
-                            handleEditLootboxTournamentSnapshots(
-                              tournament.id as TournamentID,
-                              [snapshot.id],
-                              {
-                                impressionPriority: snapshot.impressionPriority - 1,
-                              },
-                            );
-                          },
-                        },
-                        {
-                          key: `state-${snapshot.id}`,
-                          label:
-                            snapshot.status === LootboxTournamentStatus.Active ? (
-                              <Tooltip
-                                title="Your audience will not see this Lootbox and cannot claim it"
-                                placement="left"
-                              >
-                                Deactivate
-                              </Tooltip>
-                            ) : (
-                              <Tooltip
-                                title="This Lootbox will be visible and claimable by your audience"
-                                placement="left"
-                              >
-                                Activate
-                              </Tooltip>
-                            ),
-                          onClick: () => {
-                            handleEditLootboxTournamentSnapshots(
-                              tournament.id as TournamentID,
-                              [snapshot.id],
-                              {
-                                status:
-                                  snapshot.status === LootboxTournamentStatus.Active
-                                    ? LootboxTournamentStatus.Disabled
-                                    : LootboxTournamentStatus.Active,
-                              },
-                            );
-                          },
-                        },
-                        {
-                          key: `del-${snapshot.id}`,
-                          danger: true,
-                          label: (
-                            <Popconfirm
-                              title="Are you sure?"
-                              onConfirm={() =>
-                                handleDeleteLootboxTournamentSnapshots(
-                                  tournament.id as TournamentID,
-                                  [snapshot.id],
-                                )
-                              }
-                            >
-                              <Tooltip title="Delete this Lootbox from your event" placement="left">
-                                Delete
-                              </Tooltip>
-                            </Popconfirm>
-                          ),
-                        },
-                      ]}
-                    />
-                  );
-                  return (
-                    <Link
-                      key={`view-${snapshot.lootboxID}`}
-                      to={`/dashboard/lootbox/id/${snapshot.lootboxID}?tid=${eventID}`}
-                      target="_blank"
-                    >
-                      <Card
-                        key={snapshot.lootboxID}
-                        hoverable
-                        className={styles.card}
-                        title={
-                          <Checkbox
-                            key={`CB-${snapshot.lootboxID}`}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setBulkSelectedSnapshots((prev) => {
-                                  return [...prev, snapshot.id];
-                                });
-                              } else {
-                                setBulkSelectedSnapshots((prev) => {
-                                  return prev.filter((id) => id !== snapshot.id);
-                                });
-                              }
-                            }}
-                          />
-                        }
-                        extra={
-                          <Space size="middle">
-                            <Dropdown
-                              disabled={loadingBulkEditLootboxSnapshot}
-                              key={`ellipsis-${snapshot.lootboxID}`}
-                              overlay={editLootboxSnapshotMenu}
-                            >
-                              {loadingBulkEditLootboxSnapshot ? <Spin /> : <MenuOutlined />}
-                            </Dropdown>
-                          </Space>
-                        }
-                        cover={
-                          <img
-                            alt="example"
-                            src={snapshot.stampImage || ''}
-                            className={styles.cardImage}
-                          />
-                        }
-                      >
-                        <Meta
-                          title={snapshot.name}
-                          description={
-                            snapshot.status === LootboxTournamentStatus.Active ? (
-                              <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
-                                <Tag color="success">Active</Tag>
-                              </Tooltip>
-                            ) : (
-                              <Tooltip title="Inactive Lootboxes are not visible or redeemable by your audience">
-                                <Tag color="warning">Inactive</Tag>
-                              </Tooltip>
-                            )
-                          }
-                        />
-                      </Card>
-                    </Link>
-                  );
-                })}
-                {loadingLootboxEdges && <Card loading />}
-              </div>
-              <br />
-              {hasNextPage && (
-                <Button onClick={loadMore} style={{ margin: '0 auto' }}>
-                  Load more
-                </Button>
-              )}
-            </$Vertical>
-          )}
+          <LootboxGallery
+            mode="view-edit"
+            eventID={tournament.id as TournamentID}
+            pageSize={GALLERY_PAGE_SIZE}
+            loading={loadingTournamentLootboxes}
+            lootboxTournamentSnapshots={tournamentLootboxes}
+            onBulkDelete={handleDeleteLootboxTournamentSnapshots}
+            onBulkEdit={handleEditLootboxTournamentSnapshots}
+          />
           <br />
           <br />
           <$Horizontal justifyContent="space-between">
@@ -799,7 +399,7 @@ const EventPage: React.FC = () => {
             <Button
               type="primary"
               onClick={() => setIsReferralModalOpen(true)}
-              disabled={lootboxTournamentSnapshots.length === 0}
+              disabled={tournamentLootboxes.length === 0}
             >
               Invite Fans
             </Button>
@@ -1155,7 +755,7 @@ const EventPage: React.FC = () => {
           {simulatedAd && <DeviceSimulator creative={simulatedAd.creative} />}
         </Modal>
       )}
-      {lootboxTournamentSnapshots.length > 0 && (
+      {tournamentLootboxes.length > 0 && (
         <GenerateReferralModal
           isOpen={isReferralModalOpen}
           setIsOpen={setIsReferralModalOpen}
