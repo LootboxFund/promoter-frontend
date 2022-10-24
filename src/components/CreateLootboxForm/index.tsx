@@ -7,7 +7,7 @@ import {
   TournamentID,
 } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Affix, Button, Card, Empty, Form, Modal, notification, Typography } from 'antd';
+import { Affix, Button, Card, Empty, Form, Modal, notification, Spin, Typography } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
 import { $Horizontal, $ColumnGap, $Vertical } from '@/components/generics';
@@ -18,8 +18,11 @@ import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { useWeb3 } from '@/hooks/useWeb3';
 import LootboxPreview from '../LootboxPreview';
-import { ContractTransaction } from 'ethers';
-import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
+// import { ContractTransaction } from 'ethers';
+import {
+  // chainIdToHex,
+  getBlockExplorerUrl,
+} from '@/lib/chain';
 import { LootboxStatus } from '@/api/graphql/generated/types';
 import { shortenAddress } from '@/lib/address';
 // import * as _ from 'lodash';
@@ -38,10 +41,10 @@ interface LootboxBody {
   maxTickets: number;
   tag: string; // AKA symbol
   tournamentID?: TournamentID;
-  address?: Address;
+  address?: Address | null;
   status: LootboxStatus;
-  creatorAddress?: Address;
-  chainIDHex?: ChainIDHex;
+  creatorAddress?: Address | null;
+  chainIDHex?: ChainIDHex | null;
 }
 
 export interface CreateLootboxRequest {
@@ -53,7 +56,7 @@ export interface EditLootboxRequest {
 }
 
 interface OnSubmitCreateResponse {
-  tx: ContractTransaction;
+  // tx: ContractTransaction;
   lootboxID: LootboxID;
 }
 
@@ -85,7 +88,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const {
     affiliateUser: { id: affiliateUserID },
   } = useAffiliateUser();
-  const { currentAccount, network } = useWeb3();
+  // const { currentAccount, network } = useWeb3();
   const newMediaDestinationLogo = useRef('');
   const newMediaDestinationBackground = useRef('');
   const newThemeColor = useRef<string>();
@@ -123,6 +126,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         status: lootbox.status,
         creatorAddress: lootbox.creatorAddress,
         chainIDHex: lootbox.chainIDHex,
+        tournamentID: lootbox.tournamentID,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -131,7 +135,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
   const handleCreateFinish = useCallback(
     async (values) => {
-      if (!onSubmitCreate || !network) return;
+      if (!onSubmitCreate) return;
 
       const payload: CreateLootboxRequest = {
         payload: {
@@ -149,14 +153,21 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       };
 
       setPending(true);
+      notification.info({
+        key: 'loading-create-lootbox',
+        icon: <Spin />,
+        message: 'Creating Lootbox',
+        description: 'Please wait while we create your lootbox',
+        duration: 0,
+      });
       try {
-        const { tx, lootboxID: createdLootboxID } = await onSubmitCreate(payload);
+        const { lootboxID: createdLootboxID } = await onSubmitCreate(payload);
 
         if (!lockedToEdit) {
           setViewMode(true);
         }
-        const chainIDHex = chainIdToHex(network.chainId);
-        const explorerURL = getBlockExplorerUrl(chainIDHex);
+        // const chainIDHex = chainIdToHex(network.chainId);
+        // const explorerURL = getBlockExplorerUrl(chainIDHex);
 
         Modal.success({
           title: 'Success',
@@ -165,15 +176,15 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               <Typography.Text>
                 {mode === 'create' ? 'Lootbox created' : 'Lootbox updated'}
               </Typography.Text>
-              <br />
-              <Typography.Text>
+              {/* <br /> */}
+              {/* <Typography.Text>
                 <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank" rel="noreferrer">
                   View transaction on Block Explorer
                 </a>
               </Typography.Text>
               <br />
               <Typography.Text>Transaction Hash:</Typography.Text>
-              <Typography.Text copyable>{tx.hash}</Typography.Text>
+              <Typography.Text copyable>{tx.hash}</Typography.Text> */}
             </$Vertical>
           ),
           okText: 'Go to Lootbox',
@@ -192,8 +203,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           content: `${e.message}`,
         });
       } finally {
-        notification.close('metamask');
-        notification.close('pending-creation');
+        notification.close('loading-create-lootbox');
         setPending(false);
       }
     },
@@ -262,18 +272,18 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
-        ...(mode === 'create'
-          ? [
-              {
-                key: 'chain',
-                label: 'Network',
-                widget: SelectChain,
-                required: true,
-                tooltip:
-                  'The blockchain network that this Lootbox will reside on. The fan prize money must also be distributed on this same blockchain network.',
-              },
-            ]
-          : []),
+        // ...(mode === 'create'
+        //   ? [
+        //       {
+        //         key: 'chain',
+        //         label: 'Network',
+        //         widget: SelectChain,
+        //         required: true,
+        //         tooltip:
+        //           'The blockchain network that this Lootbox will reside on. The fan prize money must also be distributed on this same blockchain network.',
+        //       },
+        //     ]
+        //   : []),
         {
           key: 'name',
           label: 'Team Name',
@@ -486,7 +496,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   return (
     <Card style={{ flex: 1 }}>
       <$Horizontal>
-        {mode === 'create' && !currentAccount ? (
+        {/* {mode === 'create' && !currentAccount ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             imageStyle={{
@@ -506,80 +516,77 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           >
             <ConnectWalletButton />
           </Empty>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '500px' }}>
-            {viewMode && !lockedToEdit && !lockedToView && (
-              <Button
-                type="link"
-                onClick={() => setViewMode(false)}
-                style={{ alignSelf: 'flex-end' }}
-              >
-                Edit
-              </Button>
-            )}
-            <Form
-              layout="horizontal"
-              form={form}
-              onFinish={mode === 'create' ? handleCreateFinish : handleEditFinish}
-              onValuesChange={forceUpdate}
+        ) : ( */}
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '500px' }}>
+          {viewMode && !lockedToEdit && !lockedToView && (
+            <Button
+              type="link"
+              onClick={() => setViewMode(false)}
+              style={{ alignSelf: 'flex-end' }}
             >
+              Edit
+            </Button>
+          )}
+          <Form
+            layout="horizontal"
+            form={form}
+            onFinish={mode === 'create' ? handleCreateFinish : handleEditFinish}
+            onValuesChange={forceUpdate}
+          >
+            <fieldset>
+              <legend>{`Public Details`}</legend>
+              <FormBuilder form={form} meta={metaPublic()} viewMode={viewMode} />
+            </fieldset>
+            <br />
+            {!viewMode && (
               <fieldset>
-                <legend>{`Public Details`}</legend>
-                <FormBuilder form={form} meta={metaPublic()} viewMode={viewMode} />
+                <legend>{`Lootbox Design`}</legend>
+                <FormBuilder form={form} meta={metaCreative()} viewMode={viewMode} />
               </fieldset>
-              <br />
-              {!viewMode && (
-                <fieldset>
-                  <legend>{`Lootbox Design`}</legend>
-                  <FormBuilder form={form} meta={metaCreative()} viewMode={viewMode} />
-                </fieldset>
-              )}
-              {viewMode && (
-                <fieldset>
-                  <legend>{`Blockchain Details`}</legend>
-                  <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
-                </fieldset>
-              )}
-              {!viewMode && (
-                <fieldset>
-                  <legend>{`Submit`}</legend>
-                  <$Horizontal justifyContent="flex-end">
-                    <Form.Item className="form-footer" style={{ width: 'auto' }}>
-                      <Button
-                        onClick={() => {
-                          form.resetFields();
-                          if (!lockedToEdit) {
-                            setViewMode(true);
-                          }
-                          newMediaDestinationLogo.current = lootboxInfo.logoImage;
-                          newMediaDestinationBackground.current = lootboxInfo.backgroundImage;
-                          if (mode === 'create') {
-                            history.back();
-                          }
-                        }}
-                        style={{ marginRight: '15px' }}
-                      >
-                        Cancel
-                      </Button>
+            )}
+            {viewMode && (
+              <fieldset>
+                <legend>{`Blockchain Details`}</legend>
+                <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
+              </fieldset>
+            )}
+            {!viewMode && (
+              <fieldset>
+                <legend>{`Submit`}</legend>
+                <$Horizontal justifyContent="flex-end">
+                  <Form.Item className="form-footer" style={{ width: 'auto' }}>
+                    <Button
+                      onClick={() => {
+                        form.resetFields();
+                        if (!lockedToEdit) {
+                          setViewMode(true);
+                        }
+                        newMediaDestinationLogo.current = lootboxInfo.logoImage;
+                        newMediaDestinationBackground.current = lootboxInfo.backgroundImage;
+                        if (mode === 'create') {
+                          history.back();
+                        }
+                      }}
+                      style={{ marginRight: '15px' }}
+                    >
+                      Cancel
+                    </Button>
 
-                      {mode === 'create' && !currentAccount ? (
-                        <ConnectWalletButton />
-                      ) : mode === 'create' && !!currentAccount ? (
-                        <Button htmlType="submit" type="primary" disabled={pending}>
-                          {pending ? 'Creating...' : 'Create'}
-                        </Button>
-                      ) : (
-                        <Button htmlType="submit" type="primary" disabled={pending}>
-                          {pending ? 'Updating...' : 'Update'}
-                        </Button>
-                      )}
-                    </Form.Item>
-                  </$Horizontal>
-                </fieldset>
-              )}
-            </Form>
-          </div>
-        )}
+                    {mode === 'create' ? (
+                      <Button htmlType="submit" type="primary" disabled={pending}>
+                        {pending ? 'Creating...' : 'Create'}
+                      </Button>
+                    ) : (
+                      <Button htmlType="submit" type="primary" disabled={pending}>
+                        {pending ? 'Updating...' : 'Update'}
+                      </Button>
+                    )}
+                  </Form.Item>
+                </$Horizontal>
+              </fieldset>
+            )}
+          </Form>
+        </div>
         <$ColumnGap width="50px" />
         {viewMode ? (
           <LootboxPreview

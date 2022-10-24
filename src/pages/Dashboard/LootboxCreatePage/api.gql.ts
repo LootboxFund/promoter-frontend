@@ -35,3 +35,27 @@ export const MY_LOOTBOX_BY_NONCE = gql`
     }
   }
 `;
+
+export interface CreateLootboxResponseFE {
+  createLootbox:
+    | ResponseError
+    | { __typename: 'CreateLootboxResponseSuccess'; lootbox: { id: LootboxID } };
+}
+
+export const CREATE_LOOTBOX = gql`
+  mutation BulkEditLootboxTournamentSnapshots($payload: CreateLootboxPayload!) {
+    createLootbox(payload: $payload) {
+      ... on CreateLootboxResponseSuccess {
+        lootbox {
+          id
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;

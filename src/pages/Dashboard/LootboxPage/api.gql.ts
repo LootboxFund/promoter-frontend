@@ -1,12 +1,6 @@
-import { LootboxStatus } from '@/api/graphql/generated/types';
+import { LootboxStatus, ResponseError } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
-import {
-  Address,
-  ChainIDHex,
-  LootboxID,
-  LootboxStatus_Firestore,
-  UserID,
-} from '@wormgraph/helpers';
+import { Address, ChainIDHex, LootboxID, UserID } from '@wormgraph/helpers';
 
 export interface LootboxFE {
   address: Address;
