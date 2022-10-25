@@ -2,27 +2,12 @@ import CreateLootboxForm, { CreateLootboxRequest } from '@/components/CreateLoot
 import { $InfoDescription } from '@/components/generics';
 import { LootboxID, TournamentID } from '@wormgraph/helpers';
 import React, { useRef, useState } from 'react';
-// import { manifest } from '@/manifest';
 import { useLootboxFactory } from '@/hooks/useLootboxFactory';
-// import { startLootboxCreatedListener } from '@/api/firebase/functions';
 import useWeb3 from '@/hooks/useWeb3';
-// import { generateCreateLootboxNonce } from '@/lib/lootbox';
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
-// import { ContractTransaction } from 'ethers';
-// import { useLazyQuery, useMutation } from '@apollo/client';
 import { useMutation } from '@apollo/client';
-import {
-  // MyLootboxByNonceResponseSuccessFE,
-  // MY_LOOTBOX_BY_NONCE,
-  // MyLootboxByNonceResponseFE,
-  CREATE_LOOTBOX,
-  CreateLootboxResponseFE,
-} from './api.gql';
-import {
-  MutationCreateLootboxArgs,
-  // QueryMyLootboxByNonceArgs,
-} from '@/api/graphql/generated/types';
-// import { notification, Spin } from 'antd';
+import { CREATE_LOOTBOX, CreateLootboxResponseFE } from './api.gql';
+import { MutationCreateLootboxArgs } from '@/api/graphql/generated/types';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -39,34 +24,14 @@ export const extractURLState_LootboxCreatePage = (): MagicLinkParams => {
 };
 
 const LootboxCreatePage: React.FC = () => {
-  // const { chainId } = useAccount();
-  const { lootboxFactory } = useLootboxFactory();
   const [magicLinkParams, setMagicLinkParams] = useState<MagicLinkParams>(
     extractURLState_LootboxCreatePage(),
   );
-  const isPolling = useRef<boolean>(false);
-  const lootboxID = useRef<LootboxID | null>(null);
 
   const [createLootboxMutation, { loading: loadingLootboxCreate }] = useMutation<
     CreateLootboxResponseFE,
     MutationCreateLootboxArgs
   >(CREATE_LOOTBOX);
-
-  // const [geMyLootboxByNonce, { startPolling, stopPolling }] = useLazyQuery<
-  //   MyLootboxByNonceResponseFE,
-  //   QueryMyLootboxByNonceArgs
-  // >(MY_LOOTBOX_BY_NONCE, {
-  //   onCompleted: (data) => {
-  //     const createdLootbox = (data?.myLootboxByNonce as MyLootboxByNonceResponseSuccessFE)?.lootbox;
-  //     if (createdLootbox) {
-  //       if (isPolling && createdLootbox) {
-  //         stopPolling();
-  //         lootboxID.current = createdLootbox.id;
-  //         isPolling.current = false;
-  //       }
-  //     }
-  //   },
-  // });
 
   const createLootbox = async (
     request: CreateLootboxRequest,
@@ -102,116 +67,6 @@ const LootboxCreatePage: React.FC = () => {
 
     throw new Error('An error occured!');
   };
-
-  // const createLootbox = async (
-  //   request: CreateLootboxRequest,
-  // ): Promise<{ tx: ContractTransaction; lootboxID: LootboxID }> => {
-  //   const awaitLootboxCreated = async (nonce: string) => {
-  //     console.log('awaiting lootbox created', nonce);
-  //     geMyLootboxByNonce({ variables: { nonce } });
-  //     isPolling.current = true;
-  //     startPolling(3000);
-  //     const isDone: boolean = await new Promise(async (res, rej) => {
-  //       const timer = setTimeout(() => {
-  //         res(false);
-  //       }, 1000 * 60 * 8); // 8 minute timeout
-  //       while (isPolling.current) {
-  //         await new Promise((resolve, reject) =>
-  //           setTimeout(() => {
-  //             resolve(null);
-  //           }, 2000),
-  //         );
-  //       }
-  //       clearInterval(timer);
-  //       res(true);
-  //     });
-
-  //     if (!isDone) {
-  //       throw new Error(
-  //         `Timed out waiting for Lootbox to be created. Please check back later for your newly created LOOTBOX. Don't worry! Your Lootbox should be ready soon. `,
-  //       );
-  //     }
-  //     return true;
-  //   };
-
-  //   const chain = network?.chainId
-  //     ? manifest.chains.find((chain) => chain.chainIdDecimal === `${network?.chainId}`)
-  //     : undefined;
-
-  //   if (!lootboxFactory || !library?.provider || !chain) {
-  //     throw new Error('No lootbox factory');
-  //   }
-
-  //   const nonce = generateCreateLootboxNonce(); // Used to find the event in the backend
-
-  //   const blockNum = await library.getBlockNumber();
-
-  //   console.log('block num', blockNum);
-  //   console.log(`
-
-  //     request.payload.name = ${request.payload.name}
-  //     request.payload.name.slice(0, 11) = ${request.payload.name.slice(0, 11)}
-  //     request.payload.maxTickets = ${request.payload.maxTickets}
-  //     nonce = ${nonce}
-
-  //     `);
-
-  //   notification.info({
-  //     key: 'metamask',
-  //     message: 'Confirm the transaction in Metamask',
-  //     description: 'Please confirm the transaction in your Metamask wallet',
-  //     placement: 'top',
-  //     duration: null,
-  //   });
-
-  //   const res: ContractTransaction = await lootboxFactory.createLootbox(
-  //     request.payload.name,
-  //     request.payload.name.slice(0, 11),
-  //     request.payload.maxTickets,
-  //     nonce,
-  //   );
-
-  //   notification.close('metamask');
-
-  //   notification.open({
-  //     key: 'pending-creation',
-  //     message: 'Generating your Lootbox...',
-  //     description: 'Please be patient, this may take up to 1 minute.',
-  //     placement: 'top',
-  //     icon: <Spin />,
-  //     duration: null,
-  //   });
-
-  //   // Start the indexer
-  //   startLootboxCreatedListener({
-  //     listenAddress: lootboxFactory.address as Address,
-  //     fromBlock: blockNum,
-  //     chainIdHex: chain.chainIdHex,
-  //     payload: {
-  //       /** Used to find the correct lootbox */
-  //       nonce: nonce,
-  //       lootboxDescription: request.payload.description,
-  //       backgroundImage: request.payload.backgroundImage,
-  //       logoImage: request.payload.logoImage,
-  //       themeColor: request.payload.themeColor,
-  //       nftBountyValue: request.payload.nftBountyValue,
-  //       joinCommunityUrl: request.payload.joinCommunityUrl,
-  //       symbol: request.payload.tag,
-  //       tournamentID: magicLinkParams.tournamentID,
-  //     },
-  //   });
-
-  //   const wasSuccess = await awaitLootboxCreated(nonce);
-  //   console.log('Found lootbox with ID', lootboxID.current);
-
-  //   notification.close('pending-creation');
-
-  //   if (!wasSuccess || !lootboxID.current) {
-  //     throw new Error('Failed to create lootbox');
-  //   }
-
-  //   return { tx: res, lootboxID: lootboxID.current };
-  // };
 
   const renderHelpText = () => {
     return (

@@ -2,25 +2,28 @@ import type {
   ResponseError,
   QueryGetLootboxByIdArgs,
   MutationEditLootboxArgs,
+  QueryMyLootboxByNonceArgs,
 } from '@/api/graphql/generated/types';
-import { Button, Empty, Popconfirm } from 'antd';
+import { Button, Empty, Popconfirm, notification, Spin } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
-import { useMutation, useQuery } from '@apollo/client';
-import Spin from 'antd/lib/spin';
-import React, { useMemo, useState } from 'react';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   GET_LOOTBOX,
   GetLootboxFE,
   LootboxFE,
   EDIT_LOOTBOX,
   EditLootboxResponseSuccessFE,
+  MyLootboxByNonceResponseSuccessFE,
+  MY_LOOTBOX_BY_NONCE,
+  MyLootboxByNonceResponseFE,
 } from './api.gql';
 import styles from './index.less';
 import { useParams } from 'react-router-dom';
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
 import { $Horizontal, $InfoDescription } from '@/components/generics';
 import CreateLootboxForm, { EditLootboxRequest } from '@/components/CreateLootboxForm';
-import { LootboxID, TournamentID } from '@wormgraph/helpers';
+import { Address, ChainIDHex, LootboxID, TournamentID } from '@wormgraph/helpers';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { Link } from '@umijs/max';
 import DepositRewardForm, {
@@ -33,6 +36,9 @@ import useERC20 from '@/hooks/useERC20';
 import useWeb3 from '@/hooks/useWeb3';
 import { manifest } from '@/manifest';
 import { useAuth } from '@/api/firebase/useAuth';
+import { startLootboxCreatedListener } from '@/api/firebase/functions';
+import { generateCreateLootboxNonce } from '@/lib/lootbox';
+import { useLootboxFactory } from '@/hooks/useLootboxFactory';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -55,14 +61,44 @@ const LootboxPage: React.FC = () => {
     extractURLState_LootboxPage(),
   );
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
-  const { currentAccount } = useWeb3();
+  const { currentAccount, library, network } = useWeb3();
+  const { lootboxFactory } = useLootboxFactory();
+
+  const isPolling = useRef<boolean>(false);
+  const polledLootboxID = useRef<LootboxID | null>(null);
 
   // VIEW Lootbox
-  const { data, loading, error } = useQuery<
-    { getLootboxByID: GetLootboxFE | ResponseError },
-    QueryGetLootboxByIdArgs
-  >(GET_LOOTBOX, {
-    variables: { id: lootboxID || '' },
+  const {
+    data,
+    loading,
+    error,
+    refetch: refetchLootboxQuery,
+  } = useQuery<{ getLootboxByID: GetLootboxFE | ResponseError }, QueryGetLootboxByIdArgs>(
+    GET_LOOTBOX,
+    {
+      variables: { id: lootboxID || '' },
+    },
+  );
+
+  // Polling for Lootbox
+  const [geMyLootboxByNonce, { startPolling, stopPolling }] = useLazyQuery<
+    MyLootboxByNonceResponseFE,
+    QueryMyLootboxByNonceArgs
+  >(MY_LOOTBOX_BY_NONCE, {
+    onCompleted: (data) => {
+      const createdLootbox = (data?.myLootboxByNonce as MyLootboxByNonceResponseSuccessFE)?.lootbox;
+      if (
+        isPolling &&
+        createdLootbox &&
+        createdLootbox.id === lootboxID &&
+        !!createdLootbox.address
+      ) {
+        console.log('stop polling');
+        stopPolling();
+        polledLootboxID.current = createdLootbox.id;
+        isPolling.current = false;
+      }
+    },
   });
 
   // EDIT Lootbox
@@ -81,31 +117,28 @@ const LootboxPage: React.FC = () => {
   const { getAllowance, approveTokenAmount } = useERC20({
     chainIDHex: lootbox?.chainIdHex,
   });
-  const editLootbox = async (payload: EditLootboxRequest) => {
+  const editLootbox = async ({ payload }: EditLootboxRequest) => {
     console.log('EDIT LOOTBOX', payload);
 
     if (!lootboxID) {
       throw new Error('No Lootbox ID');
-    }
-    if (payload.payload.maxTickets) {
-      // TODO We need to update the web3 layer first
-      console.error('MAX TICKETS not implemented!');
     }
 
     const res = await editLootboxMutation({
       variables: {
         payload: {
           lootboxID: lootboxID,
-          name: payload.payload.name,
-          description: payload.payload.description,
-          joinCommunityUrl: payload.payload.joinCommunityUrl,
-          logo: payload.payload.logoImage,
-          backgroundImage: payload.payload.backgroundImage,
-          // maxTickets: payload.payload.maxTickets,
-          nftBountyValue: payload.payload.nftBountyValue,
-          status: payload.payload.status,
-          themeColor: payload.payload.themeColor,
-          // symbol: payload.payload.symbol,
+          name: payload.name,
+          description: payload.description,
+          joinCommunityUrl: payload.joinCommunityUrl,
+          logo: payload.logoImage,
+          backgroundImage: payload.backgroundImage,
+          // TODO: do update maxtickets when lootbox has been deployed to blockchain...
+          // This will require a web3 call
+          maxTickets: lootbox.address ? payload.maxTickets : null,
+          nftBountyValue: payload.nftBountyValue,
+          status: payload.status,
+          themeColor: payload.themeColor,
         },
       },
     });
@@ -113,6 +146,150 @@ const LootboxPage: React.FC = () => {
     if (!res?.data || res?.data?.editLootbox?.__typename === 'ResponseError') {
       // @ts-ignore
       throw new Error(res?.data?.editLootbox?.error?.message || 'An error occured');
+    }
+  };
+
+  const awaitLootboxCreated = async (nonce: string) => {
+    console.log('awaiting lootbox created', nonce);
+    geMyLootboxByNonce({ variables: { nonce } });
+    isPolling.current = true;
+    startPolling(3000);
+    const isDone: boolean = await new Promise(async (res, rej) => {
+      const timer = setTimeout(() => {
+        res(false);
+      }, 1000 * 60 * 8); // 8 minute timeout
+      while (isPolling.current) {
+        await new Promise((resolve, reject) =>
+          setTimeout(() => {
+            resolve(null);
+          }, 2000),
+        );
+      }
+      clearInterval(timer);
+      res(true);
+    });
+
+    if (!isDone) {
+      throw new Error(
+        `Timed out waiting for Lootbox to be created. Please check back later for your newly created LOOTBOX. Don't worry! Your Lootbox should be ready soon. `,
+      );
+    }
+    return true;
+  };
+
+  const createLootboxWeb3 = async (payload: {
+    chainIDHex: ChainIDHex;
+    name: string;
+    maxTickets: number;
+  }): Promise<{ tx: ContractTransaction; lootboxID: LootboxID }> => {
+    if (!lootboxID) {
+      throw new Error('No Lootbox ID');
+    }
+
+    const currentChain = network?.chainId
+      ? manifest.chains.find((chain) => chain.chainIdDecimal === `${network?.chainId}`)
+      : undefined;
+
+    const targetChain = payload?.chainIDHex
+      ? manifest.chains.find((chain) => chain.chainIdHex === payload.chainIDHex)
+      : undefined;
+
+    if (!lootboxFactory || !library?.provider) {
+      throw new Error('No lootbox factory');
+    }
+
+    if (
+      !currentChain ||
+      !currentChain.chainIdHex ||
+      !payload.chainIDHex ||
+      !targetChain ||
+      currentChain.chainIdHex !== payload.chainIDHex
+    ) {
+      console.log(`
+
+        Chain ID Mismatch
+
+        providerChainIDHex: ${currentChain?.chainIdHex}
+        requestChainIDHex: ${payload.chainIDHex}
+
+      `);
+      throw new Error(
+        `Wrong network${
+          targetChain?.chainName ? `. Please switch to ${targetChain.chainName}` : ''
+        }`,
+      );
+    }
+
+    try {
+      const nonce = generateCreateLootboxNonce(); // Used to find the event in the backend
+
+      const blockNum = await library.getBlockNumber();
+
+      console.log(`
+  
+        request.payload.name = ${payload.name}
+        request.payload.name.slice(0, 11) = ${payload.name.slice(0, 11)}
+        request.payload.maxTickets = ${payload.maxTickets}
+        nonce = ${nonce}
+  
+        `);
+
+      notification.info({
+        key: 'metamask',
+        message: 'Confirm the transaction in Metamask',
+        description: 'Please confirm the transaction in your Metamask wallet',
+        placement: 'top',
+        duration: null,
+      });
+
+      const res: ContractTransaction = await lootboxFactory.createLootbox(
+        payload.name,
+        payload.name.slice(0, 11),
+        payload.maxTickets,
+        lootboxID,
+        nonce,
+      );
+
+      notification.close('metamask');
+
+      notification.open({
+        key: 'pending-creation',
+        message: 'Generating your Lootbox...',
+        description: 'Please be patient, this may take up to 1 minute.',
+        placement: 'top',
+        icon: <Spin />,
+        duration: null,
+      });
+
+      // Start the indexer
+      startLootboxCreatedListener({
+        listenAddress: lootboxFactory.address as Address,
+        fromBlock: blockNum,
+        chainIdHex: targetChain.chainIdHex,
+        payload: {
+          /** Used to find the correct lootbox */
+          nonce: nonce,
+          lootboxID: lootboxID as LootboxID,
+          symbol: payload.name.slice(0, 11),
+        },
+      });
+
+      const wasSuccess = await awaitLootboxCreated(nonce);
+
+      notification.close('pending-creation');
+
+      if (!wasSuccess || !polledLootboxID.current) {
+        throw new Error('Failed to create lootbox');
+      }
+
+      refetchLootboxQuery();
+
+      return { tx: res, lootboxID: polledLootboxID.current };
+    } catch (err) {
+      notification.close('metamask');
+      notification.close('pending-creation');
+
+      throw err;
     }
   };
 
@@ -213,7 +390,7 @@ const LootboxPage: React.FC = () => {
   }
 
   const maxWidth = '1000px';
-  const doesUserHaveEditPermission = lootbox.creatorID === user?.id;
+  const doesUserHaveEditPermission = user?.id && lootbox.creatorID === user.id;
 
   return (
     <div style={{ maxWidth }}>
@@ -249,6 +426,7 @@ const LootboxPage: React.FC = () => {
           }}
           mode={doesUserHaveEditPermission ? 'view-edit' : 'view-only'}
           onSubmitEdit={editLootbox}
+          onCreateWeb3={createLootboxWeb3}
         />
       </div>
       <br />

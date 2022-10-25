@@ -7,7 +7,19 @@ import {
   TournamentID,
 } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Affix, Button, Card, Empty, Form, Modal, notification, Spin, Typography } from 'antd';
+import {
+  Affix,
+  Button,
+  Card,
+  Empty,
+  Form,
+  Modal,
+  notification,
+  Spin,
+  Steps,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
 import { $Horizontal, $ColumnGap, $Vertical } from '@/components/generics';
@@ -18,14 +30,11 @@ import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { useWeb3 } from '@/hooks/useWeb3';
 import LootboxPreview from '../LootboxPreview';
-// import { ContractTransaction } from 'ethers';
-import {
-  // chainIdToHex,
-  getBlockExplorerUrl,
-} from '@/lib/chain';
+import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
 import { LootboxStatus } from '@/api/graphql/generated/types';
 import { shortenAddress } from '@/lib/address';
-// import * as _ from 'lodash';
+import { InfoCircleTwoTone } from '@ant-design/icons';
+import { ContractTransaction } from 'ethers';
 
 // const DEFAULT_THEME_COLOR = '#00B0FB'
 const DEFAULT_THEME_COLOR = '#000000';
@@ -55,8 +64,18 @@ export interface EditLootboxRequest {
   payload: Omit<LootboxBody, 'address' | 'tag' | 'chainIDHex' | 'creatorAddress'>;
 }
 
+export interface CreateLootboxWeb3Request {
+  chainIDHex: ChainIDHex;
+  name: string;
+  maxTickets: number;
+}
+
 interface OnSubmitCreateResponse {
-  // tx: ContractTransaction;
+  lootboxID: LootboxID;
+}
+
+interface OnCreateLootboxWeb3Response {
+  tx: ContractTransaction;
   lootboxID: LootboxID;
 }
 
@@ -64,7 +83,8 @@ export type CreateLootboxFormProps = {
   lootbox?: LootboxBody;
   onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
   onSubmitEdit?: (payload: EditLootboxRequest) => Promise<void>;
-  mode: 'create' | 'edit-only' | 'view-edit' | 'view-only';
+  onCreateWeb3?: (payload: CreateLootboxWeb3Request) => Promise<OnCreateLootboxWeb3Response>;
+  mode: 'create' | 'create-web3' | 'edit-only' | 'view-edit' | 'view-only';
 };
 
 const LOOTBOX_INFO: LootboxBody = {
@@ -83,15 +103,17 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
   onSubmitCreate,
   onSubmitEdit,
+  onCreateWeb3,
   mode,
 }) => {
   const {
     affiliateUser: { id: affiliateUserID },
   } = useAffiliateUser();
-  // const { currentAccount, network } = useWeb3();
+  const { currentAccount, network } = useWeb3();
   const newMediaDestinationLogo = useRef('');
   const newMediaDestinationBackground = useRef('');
   const newThemeColor = useRef<string>();
+  const [currentStep, setCurrentStep] = useState(0);
 
   const [previewMediasLogo, setPreviewMediasLogo] = useState<string[]>([]);
   const [previewMediasBackground, setPreviewMediasBackground] = useState<string[]>([]);
@@ -166,8 +188,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         if (!lockedToEdit) {
           setViewMode(true);
         }
-        // const chainIDHex = chainIdToHex(network.chainId);
-        // const explorerURL = getBlockExplorerUrl(chainIDHex);
 
         Modal.success({
           title: 'Success',
@@ -176,15 +196,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               <Typography.Text>
                 {mode === 'create' ? 'Lootbox created' : 'Lootbox updated'}
               </Typography.Text>
-              {/* <br /> */}
-              {/* <Typography.Text>
-                <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank" rel="noreferrer">
-                  View transaction on Block Explorer
-                </a>
-              </Typography.Text>
-              <br />
-              <Typography.Text>Transaction Hash:</Typography.Text>
-              <Typography.Text copyable>{tx.hash}</Typography.Text> */}
             </$Vertical>
           ),
           okText: 'Go to Lootbox',
@@ -208,6 +219,69 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       }
     },
     [onSubmitCreate],
+  );
+
+  const handleCreateWeb3 = useCallback(
+    async (values) => {
+      console.log('create web3', values);
+      if (!onCreateWeb3) return;
+      if (!network) return;
+
+      const payload: CreateLootboxWeb3Request = {
+        name: values.name,
+        maxTickets: values.maxTickets,
+        chainIDHex: values.chain,
+      };
+
+      setPending(true);
+
+      try {
+        const { lootboxID: createdLootboxID, tx } = await onCreateWeb3(payload);
+
+        if (!lockedToEdit) {
+          setViewMode(true);
+        }
+        const chainIDHex = chainIdToHex(network.chainId);
+        const explorerURL = getBlockExplorerUrl(chainIDHex);
+
+        Modal.success({
+          title: 'Success',
+          content: (
+            <$Vertical>
+              <Typography.Text>
+                {mode === 'create' ? 'Lootbox created' : 'Lootbox updated'}
+              </Typography.Text>
+              <br />
+              <Typography.Text>
+                <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank" rel="noreferrer">
+                  View transaction on Block Explorer
+                </a>
+              </Typography.Text>
+              <br />
+              <Typography.Text>Transaction Hash:</Typography.Text>
+              <Typography.Text copyable>{tx.hash}</Typography.Text>
+            </$Vertical>
+          ),
+          okText: 'Go to Lootbox',
+          onOk: () => {
+            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}${
+              lootbox?.tournamentID ? `?tid=${lootbox.tournamentID}` : ''
+            }`;
+          },
+        });
+      } catch (e: any) {
+        if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
+          return;
+        }
+        Modal.error({
+          title: 'Failure',
+          content: `${e.message}`,
+        });
+      } finally {
+        setPending(false);
+      }
+    },
+    [onCreateWeb3],
   );
 
   const handleEditFinish = useCallback(async (values) => {
@@ -272,18 +346,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
-        // ...(mode === 'create'
-        //   ? [
-        //       {
-        //         key: 'chain',
-        //         label: 'Network',
-        //         widget: SelectChain,
-        //         required: true,
-        //         tooltip:
-        //           'The blockchain network that this Lootbox will reside on. The fan prize money must also be distributed on this same blockchain network.',
-        //       },
-        //     ]
-        //   : []),
         {
           key: 'name',
           label: 'Team Name',
@@ -446,77 +508,135 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       columns: 1,
       disabled: pending,
       initialValues: lootboxInfo,
-      fields: [
-        {
-          key: 'network',
-          label: 'Network',
-          viewWidget: () => (
-            <Typography.Text>
-              {lootboxInfo.chainIDHex ? chainIdHexToName(lootboxInfo.chainIDHex) : 'Unknown'}
-            </Typography.Text>
-          ),
-        },
-        {
-          key: 'blockchainExplorer',
-          label: 'Lootbox Address',
-          // @ts-ignore
-          viewWidget: () => (
-            <Typography.Link
-              href={`${explorerURL}/address/${lootboxInfo.address}`}
-              target="_blank"
-              rel="noreferrer"
-              copyable
-              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-            >
-              {shortenAddress(lootboxInfo.address || '')}
-            </Typography.Link>
-          ),
-        },
-        {
-          key: 'lootboxOwner',
-          label: 'Owner Address',
-          // @ts-ignore
-          viewWidget: () => (
-            <Typography.Link
-              href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
-              target="_blank"
-              rel="noreferrer"
-              copyable
-              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-            >
-              {shortenAddress(lootboxInfo.creatorAddress || '')}
-            </Typography.Link>
-          ),
-        },
-      ],
+      fields: viewMode
+        ? [
+            {
+              key: 'network',
+              label: 'Network',
+              viewWidget: () => (
+                <Typography.Text>
+                  {lootboxInfo.chainIDHex ? chainIdHexToName(lootboxInfo.chainIDHex) : 'Unknown'}
+                </Typography.Text>
+              ),
+            },
+            {
+              key: 'blockchainExplorer',
+              label: 'Lootbox Address',
+              // @ts-ignore
+              viewWidget: () => (
+                <Typography.Link
+                  href={`${explorerURL}/address/${lootboxInfo.address}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  copyable
+                  style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                >
+                  {shortenAddress(lootboxInfo.address || '')}
+                </Typography.Link>
+              ),
+            },
+            {
+              key: 'lootboxOwner',
+              label: 'Owner Address',
+              // @ts-ignore
+              viewWidget: () => (
+                <Typography.Link
+                  href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  copyable
+                  style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                >
+                  {shortenAddress(lootboxInfo.creatorAddress || '')}
+                </Typography.Link>
+              ),
+            },
+          ]
+        : [
+            {
+              key: 'chain',
+              label: 'Network',
+              widget: SelectChain,
+              required: true,
+              tooltip:
+                'The blockchain network that this Lootbox will reside on. The fan prize money must also be distributed on this same blockchain network.',
+            },
+            {
+              key: 'name',
+              label: 'Team Name',
+              disabled: true,
+              rules: [
+                {
+                  max: 30,
+                  message: 'Name should be less than 30 characters',
+                },
+              ],
+              tooltip:
+                'The display name of the Lootbox. Typically this is the Team name or a variation, since a Lootbox is only used for a single event.',
+            },
+            {
+              key: 'maxTickets',
+              label: 'Max Tickets',
+              disabled: true,
+              widget: 'number',
+              tooltip: 'The maximum number of tickets available for distribution.',
+            },
+          ],
     };
 
     return meta;
   };
+
+  const getWizardMeta = () => {
+    const result = {
+      steps: [
+        {
+          title: 'Lootbox Details',
+          subSteps: [
+            {
+              title: 'Public Details',
+              meta: metaPublic() as any,
+            },
+          ],
+        },
+      ],
+    };
+
+    if (!viewMode) {
+      result.steps[0].subSteps.push({
+        title: 'Lootbox Design',
+        meta: metaCreative() as any,
+      });
+    }
+
+    result.steps.push({
+      title: 'Deploy to Blockchain',
+      subSteps: [
+        {
+          title: 'Blockchain Details',
+          meta: metaBlockchain() as any,
+        },
+      ],
+    });
+
+    return result;
+  };
+
+  const wizardMeta = getWizardMeta();
+
+  const onStepChange = (value: number) => {
+    form.resetFields();
+    setCurrentStep(value);
+  };
+
+  const openBlockChainDeployer = () => {
+    setCurrentStep(1);
+    setViewMode(false);
+  };
+
   return (
     <Card style={{ flex: 1 }}>
       <$Horizontal>
-        {/* {mode === 'create' && !currentAccount ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            imageStyle={{
-              height: 60,
-            }}
-            description={
-              <span style={{ maxWidth: '200px' }}>
-                {`You must connect your Metamask wallet before you can create a LOOTBOX`}
-              </span>
-            }
-            style={{
-              padding: '50px',
-              flex: 1,
-              minWidth: '500px',
-              borderRadius: '10px',
-            }}
-          >
-            <ConnectWalletButton />
-          </Empty>
-        ) : ( */}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '500px' }}>
           {viewMode && !lockedToEdit && !lockedToView && (
             <Button
@@ -530,24 +650,90 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           <Form
             layout="horizontal"
             form={form}
-            onFinish={mode === 'create' ? handleCreateFinish : handleEditFinish}
+            onFinish={
+              mode === 'create'
+                ? handleCreateFinish
+                : currentStep === 1
+                ? handleCreateWeb3
+                : handleEditFinish
+            }
             onValuesChange={forceUpdate}
           >
-            <fieldset>
-              <legend>{`Public Details`}</legend>
-              <FormBuilder form={form} meta={metaPublic()} viewMode={viewMode} />
-            </fieldset>
-            <br />
-            {!viewMode && (
-              <fieldset>
-                <legend>{`Lootbox Design`}</legend>
-                <FormBuilder form={form} meta={metaCreative()} viewMode={viewMode} />
-              </fieldset>
+            {!viewMode && mode !== 'create' && (
+              <div>
+                <Steps current={currentStep} onChange={onStepChange}>
+                  {wizardMeta.steps.map((s) => (
+                    <Steps.Step key={s.title} title={s.title} />
+                  ))}
+                </Steps>
+                <br />
+              </div>
             )}
+
+            {wizardMeta.steps[currentStep].subSteps.map((s, idx) => {
+              if (!currentAccount && currentStep === 1) {
+                return (
+                  <Empty
+                    key="connect-wallet-empty"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    imageStyle={{
+                      height: 60,
+                    }}
+                    description={
+                      <span style={{ maxWidth: '200px' }}>
+                        {`You must connect your Metamask wallet before you can create a LOOTBOX`}
+                      </span>
+                    }
+                    style={{
+                      padding: '50px',
+                      flex: 1,
+                      minWidth: '500px',
+                      borderRadius: '10px',
+                    }}
+                  >
+                    <ConnectWalletButton ghost />
+                  </Empty>
+                );
+              }
+              return (
+                <fieldset key={`step-${currentStep}-${idx}`}>
+                  <legend>{s.title}</legend>
+                  <FormBuilder form={form} meta={s.meta} viewMode={viewMode} />
+                </fieldset>
+              );
+            })}
+
             {viewMode && (
               <fieldset>
                 <legend>{`Blockchain Details`}</legend>
-                <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
+                {!!lootboxInfo?.address ? (
+                  <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
+                ) : (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    imageStyle={{
+                      height: 60,
+                    }}
+                    description={
+                      <span style={{ maxWidth: '200px' }}>
+                        {`This LOOTBOX has not been deployed to the blockchain yet`}
+                        &nbsp;
+                        <Tooltip title="This Lootbox can not pay out rewards to fans until it is deployed on the Blockchain. To deploy this Lootbox, you must install MetaMask and connect your wallet by clicking below.">
+                          <InfoCircleTwoTone />
+                        </Tooltip>
+                      </span>
+                    }
+                    style={{
+                      padding: '20px',
+                      margin: '0px',
+                      flex: 1,
+                      minWidth: '500px',
+                      borderRadius: '10px',
+                    }}
+                  >
+                    <Button onClick={openBlockChainDeployer}>Deploy to Blockchain</Button>
+                  </Empty>
+                )}
               </fieldset>
             )}
             {!viewMode && (
@@ -563,6 +749,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                         }
                         newMediaDestinationLogo.current = lootboxInfo.logoImage;
                         newMediaDestinationBackground.current = lootboxInfo.backgroundImage;
+                        setCurrentStep(0);
                         if (mode === 'create') {
                           history.back();
                         }
@@ -576,9 +763,19 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       <Button htmlType="submit" type="primary" disabled={pending}>
                         {pending ? 'Creating...' : 'Create'}
                       </Button>
-                    ) : (
+                    ) : currentStep === 0 ? (
                       <Button htmlType="submit" type="primary" disabled={pending}>
                         {pending ? 'Updating...' : 'Update'}
+                      </Button>
+                    ) : currentStep === 1 && !currentAccount ? (
+                      <ConnectWalletButton style={{ display: 'inline' }} />
+                    ) : (
+                      <Button
+                        htmlType="submit"
+                        type="primary"
+                        disabled={pending || !currentAccount}
+                      >
+                        {pending ? 'Deploying' : 'Deploy'}
                       </Button>
                     )}
                   </Form.Item>

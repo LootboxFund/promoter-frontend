@@ -1,6 +1,6 @@
 import { LootboxStatus, ResponseError } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
-import { Address, ChainIDHex, LootboxID, UserID } from '@wormgraph/helpers';
+import { Address, ChainIDHex, LootboxCreatedNonce, LootboxID, UserID } from '@wormgraph/helpers';
 
 export interface LootboxFE {
   address: Address;
@@ -70,6 +70,43 @@ export const EDIT_LOOTBOX = gql`
       ... on EditLootboxResponseSuccess {
         lootbox {
           id
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
+
+export interface LootboxCreatedFE {
+  id: LootboxID;
+  creationNonce: LootboxCreatedNonce | null;
+  name: string;
+  address: Address | null;
+}
+
+export type MyLootboxByNonceResponseSuccessFE = {
+  __typename?: 'MyLootboxByNonceResponseSuccess';
+  lootbox: LootboxCreatedFE;
+};
+
+export type MyLootboxByNonceResponseFE = {
+  myLootboxByNonce: MyLootboxByNonceResponseSuccessFE | ResponseError;
+};
+
+export const MY_LOOTBOX_BY_NONCE = gql`
+  query MyLootboxByNonce($nonce: ID!) {
+    myLootboxByNonce(nonce: $nonce) {
+      ... on MyLootboxByNonceResponseSuccess {
+        lootbox {
+          id
+          address
+          creationNonce
+          name
         }
       }
       ... on ResponseError {
