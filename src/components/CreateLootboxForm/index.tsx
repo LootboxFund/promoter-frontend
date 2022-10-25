@@ -18,6 +18,7 @@ import {
   notification,
   Spin,
   Steps,
+  Tag,
   Tooltip,
   Typography,
 } from 'antd';
@@ -423,6 +424,29 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 options: Object.values(LootboxStatus),
                 tooltip:
                   "The Lootbox's current status. Sold out Lootboxes still appear on the Viral Onboarding loop, but cannot be claimed. Disbaled Lootboxes will not be visible.",
+                viewWidget: () => {
+                  if (lootboxInfo?.status === LootboxStatus.SoldOut) {
+                    return (
+                      <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
+                        <Tag color="warning">Sold Out</Tag>
+                      </Tooltip>
+                    );
+                  }
+
+                  if (lootboxInfo?.status === LootboxStatus.Disabled) {
+                    return (
+                      <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
+                        <Tag color="error">Disabled</Tag>
+                      </Tooltip>
+                    );
+                  }
+
+                  return (
+                    <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
+                      <Tag color="success">Active</Tag>
+                    </Tooltip>
+                  );
+                },
               },
             ]
           : []),

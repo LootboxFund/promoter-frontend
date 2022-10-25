@@ -18,8 +18,10 @@ import {
   Input,
   Row,
   Col,
+  notification,
+  Spin,
 } from 'antd';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import GenerateReferralModal from '../GenerateReferralModal';
 import styles from './index.less';
 
@@ -64,6 +66,19 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
     [],
   );
   const [loadingAction, setLoadingAction] = useState(false);
+
+  useEffect(() => {
+    if (loadingAction) {
+      notification.info({
+        key: 'loading-action',
+        icon: <Spin />,
+        message: 'Loading... Please wait.',
+        duration: 0,
+      });
+    } else {
+      notification.close('loading-action');
+    }
+  }, [loadingAction]);
 
   const isAllChecked = useMemo(() => {
     return bulkSelectedSnapshots.length === props.lootboxTournamentSnapshots.length;
@@ -159,6 +174,7 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
       return;
     }
     setLoadingAction(true);
+
     try {
       await props.onBulkEdit(props.eventID, snapshotIDs, {
         status: payload.status,

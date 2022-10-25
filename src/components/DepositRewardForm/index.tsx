@@ -1,6 +1,6 @@
 import { Address, ChainIDHex, chainIdHexToName, LootboxID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Empty, Form, Modal, Spin, Tabs, Typography } from 'antd';
+import { Button, Card, Empty, Form, Modal, Spin, Tabs, Tooltip, Typography } from 'antd';
 import { useCallback, useState } from 'react';
 import { $Horizontal, $Vertical } from '@/components/generics';
 import ConnectWalletButton from '../ConnectWalletButton';
@@ -164,8 +164,8 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
                 <b>Please wait while we confirm your transaction.</b>
               </span>
               <br />
-              <br />
               <Spin className={styles.spin} />
+              <br />
             </$Vertical>
           ),
           okButtonProps: { style: { display: 'none' } },
@@ -198,6 +198,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           ),
           okButtonProps: { style: { display: 'initial' } },
           okCancel: false,
+          onOk: resetForm,
         });
       } catch (e: any) {
         if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
@@ -216,6 +217,10 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
     [onSubmitReward, onTokenApprove],
   );
 
+  const resetForm = () => {
+    form.resetFields();
+  };
+
   const getMeta = () => {
     const infoMeta = {
       columns: 1,
@@ -228,11 +233,9 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           widget: 'select',
           options: ['Native', 'ERC20'] as RewardType[],
           initialValue: 'Native',
-          widgetProps: { style: { width: '120px' } },
+          widgetProps: { style: { width: '180px' } },
           preserving: true,
-          onChange: (evt: any) => {
-            form.setFieldValue('amount', 0);
-          },
+          onChange: () => form.setFieldValue('amount', 0),
         },
         {
           key: 'amount',
@@ -240,9 +243,11 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           widget: 'number',
           required: true,
           preserving: true,
+          widgetProps: { style: { width: '180px' } },
           rules: [
             {
               validator: (_rule: any, value: any, _callback: any) => {
+                console.log('validate?', value);
                 return new Promise((resolve, reject) => {
                   setTimeout(() => {
                     if (value <= 0) {
@@ -261,7 +266,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
 
     const rewardType = form.getFieldValue('rewardType') as RewardType;
 
-    if (!!form.getFieldValue('rewardType') && rewardType === 'ERC20') {
+    if (!!rewardType && rewardType === 'ERC20') {
       infoMeta.fields.push({
         key: 'tokenAddress',
         label: 'ERC20 Contract Address',
@@ -304,6 +309,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         >
           <fieldset>
             <br />
+            {/* <legend style={{ textAlign: 'center' }}>Deposit Rewards to Fans</legend> */}
             <FormBuilder form={form} meta={meta} />
           </fieldset>
           <fieldset>
@@ -312,18 +318,26 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
               className="form-footer"
               style={{ textAlign: 'right' }}
             >
+              {currentAccount ? (
+                <>
+                  <$Horizontal justifyContent="flex-start">
+                    <Typography.Text copyable>
+                      <span>💳</span>&nbsp;
+                      <Tooltip title={currentAccount}>{shortenAddress(currentAccount)}</Tooltip>
+                    </Typography.Text>
+                  </$Horizontal>
+                  <br />
+                </>
+              ) : null}
               {!currentAccount ? (
                 <ConnectWalletButton />
               ) : (
-                <$Horizontal justifyContent="space-between">
-                  {currentAccount ? (
-                    <Typography.Text copyable>
-                      <span style={{ fontStyle: 'italic' }}>You</span>{' '}
-                      {shortenAddress(currentAccount)}
-                    </Typography.Text>
-                  ) : null}
+                <$Horizontal justifyContent="flex-start">
                   <Button htmlType="submit" type="primary" disabled={loading}>
                     {loading ? 'Loading...' : 'Deposit'}
+                  </Button>
+                  <Button type="text" onClick={resetForm}>
+                    Clear
                   </Button>
                 </$Horizontal>
               )}
@@ -374,7 +388,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           flex: 1,
         }}
       >
-        <ConnectWalletButton />
+        <ConnectWalletButton ghost type="default" />
       </Empty>
     );
   } else if (chainIDHex !== userChainIDHex) {
@@ -412,7 +426,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           minWidth: '500px',
         }}
       >
-        <Tabs items={tabItems} />
+        <Tabs items={tabItems} centered />
       </div>
     </Card>
   );
