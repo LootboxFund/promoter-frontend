@@ -27,7 +27,7 @@ import styles from './index.less';
 
 interface LootboxSnapshotFE {
   id: LootboxTournamentSnapshotID;
-  address: Address;
+  address: Address | null;
   lootboxID: LootboxID;
   stampImage: string;
   status: LootboxTournamentStatus;
@@ -92,9 +92,9 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
     } else {
       return props.lootboxTournamentSnapshots.filter(
         (snap) =>
-          snap.name.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
-          snap.id.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
-          snap.address.toLowerCase().indexOf(searchString.toLowerCase()) > -1,
+          snap.name?.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
+          snap.id?.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
+          (snap.address && snap.address.toLowerCase().indexOf(searchString.toLowerCase()) > -1),
       );
     }
   }, [currentPage, props.lootboxTournamentSnapshots, props.pageSize, searchString]);
