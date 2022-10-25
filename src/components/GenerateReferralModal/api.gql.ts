@@ -62,7 +62,7 @@ export interface CreateReferralFE {
     description?: string;
     tournamentDate?: string | number;
     lootboxSnapshots?: {
-      address: Address;
+      address: Address | null;
       stampImage: string;
     }[];
   };
