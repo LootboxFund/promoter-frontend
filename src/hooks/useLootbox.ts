@@ -4,7 +4,7 @@ import { Contract, ContractTransaction, ethers } from 'ethers';
 import { useWeb3 } from './useWeb3';
 
 interface UseLootboxProps {
-  address: Address;
+  address?: Address;
 }
 
 interface UseLootboxResult {

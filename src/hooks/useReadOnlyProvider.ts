@@ -4,7 +4,7 @@ import { providers } from 'ethers';
 import { useMemo } from 'react';
 
 interface ReadOnlyProviderParams {
-  chainIDHex: ChainIDHex;
+  chainIDHex?: ChainIDHex;
 }
 export const useReadOnlyProvider = ({ chainIDHex }: ReadOnlyProviderParams) => {
   const provider = useMemo<providers.JsonRpcProvider | null>(() => {

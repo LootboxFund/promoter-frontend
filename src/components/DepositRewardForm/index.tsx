@@ -409,7 +409,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           flex: 1,
         }}
       >
-        <Button type="primary" onClick={() => switchNetwork(chainIDHex)}>
+        <Button type="default" onClick={() => switchNetwork(chainIDHex)}>
           Switch Network
         </Button>
       </Empty>

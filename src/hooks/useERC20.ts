@@ -3,7 +3,7 @@ import { ContractTransaction, ethers } from 'ethers';
 import useReadOnlyProvider from './useReadOnlyProvider';
 import useWeb3 from './useWeb3';
 
-export const useERC20 = ({ chainIDHex }: { chainIDHex: ChainIDHex }) => {
+export const useERC20 = ({ chainIDHex }: { chainIDHex?: ChainIDHex }) => {
   const { library, currentAccount } = useWeb3();
   const { provider } = useReadOnlyProvider({ chainIDHex });
 

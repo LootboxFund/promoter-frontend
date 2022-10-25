@@ -3,8 +3,8 @@ import { gql } from '@apollo/client';
 import { Address, ChainIDHex, LootboxCreatedNonce, LootboxID, UserID } from '@wormgraph/helpers';
 
 export interface LootboxFE {
-  address: Address;
-  chainIdHex: ChainIDHex;
+  address: Address | null;
+  chainIdHex: ChainIDHex | null;
   name: string;
   description: string;
   status: LootboxStatus;
@@ -13,10 +13,10 @@ export interface LootboxFE {
   maxTickets: number;
   stampImage: string;
   themeColor: string;
-  symbol: string;
+  symbol: string | null;
   backgroundImage: string;
   logo: string;
-  creatorAddress: Address;
+  creatorAddress: Address | null;
   creatorID: UserID;
 }
 

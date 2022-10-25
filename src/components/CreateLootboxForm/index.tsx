@@ -267,6 +267,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         const chainIDHex = chainIdToHex(network.chainId);
         const explorerURL = getBlockExplorerUrl(chainIDHex);
 
+        resetForm();
+        setShowDeploySuccess(true);
+
         Modal.success({
           title: 'Success',
           content: (
@@ -284,10 +287,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             </$Vertical>
           ),
           okText: 'Finish',
-          onOk: () => {
-            resetForm();
-            setShowDeploySuccess(true);
-          },
         });
       } catch (e: any) {
         if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
@@ -763,7 +762,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   {isOnBlockChain && !isLootboxDeployed && (
                     <>
                       <Alert
-                        type="info"
+                        type="success"
                         message="Ready to launch your LOOTBOX? There will a one-time gas fee that LOOTBOX does not control or receive."
                       />
                       <br />

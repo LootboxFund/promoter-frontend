@@ -4,7 +4,7 @@ import type {
   MutationEditLootboxArgs,
   QueryMyLootboxByNonceArgs,
 } from '@/api/graphql/generated/types';
-import { Button, Empty, Popconfirm, notification, Spin } from 'antd';
+import { Button, Empty, Popconfirm, notification, Spin, Tooltip } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import React, { useMemo, useRef, useState } from 'react';
@@ -39,6 +39,7 @@ import { useAuth } from '@/api/firebase/useAuth';
 import { startLootboxCreatedListener } from '@/api/firebase/functions';
 import { generateCreateLootboxNonce } from '@/lib/lootbox';
 import { useLootboxFactory } from '@/hooks/useLootboxFactory';
+import { InfoCircleTwoTone } from '@ant-design/icons';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -113,9 +114,9 @@ const LootboxPage: React.FC = () => {
     return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
   }, [data]);
 
-  const { depositERC20, depositNative } = useLootbox({ address: lootbox?.address });
+  const { depositERC20, depositNative } = useLootbox({ address: lootbox?.address || undefined });
   const { getAllowance, approveTokenAmount } = useERC20({
-    chainIDHex: lootbox?.chainIdHex,
+    chainIDHex: lootbox?.chainIdHex || undefined,
   });
   const editLootbox = async ({ payload }: EditLootboxRequest) => {
     console.log('EDIT LOOTBOX', payload);
@@ -325,6 +326,10 @@ const LootboxPage: React.FC = () => {
       throw new Error('Connect your Wallet');
     }
 
+    if (!lootbox.address) {
+      throw new Error('Lootbox has not been deployed to the Blockchain yet');
+    }
+
     if (!ethers.utils.isAddress(tokenAddress)) {
       throw new Error('Invalid token address');
     }
@@ -335,6 +340,14 @@ const LootboxPage: React.FC = () => {
   };
 
   const approveAllowance = async (payload: RewardSponsorsPayload): Promise<ContractTransaction> => {
+    if (!currentAccount) {
+      throw new Error('Connect your Wallet');
+    }
+
+    if (!lootbox.address) {
+      throw new Error('Lootbox has not been deployed to the Blockchain yet');
+    }
+
     if (payload.rewardType === 'Native') {
       // Dont need to approve these
       throw new Error('Native tokens do not need approval');
@@ -342,10 +355,6 @@ const LootboxPage: React.FC = () => {
 
     if (!payload.tokenAddress || !ethers.utils.isAddress(payload.tokenAddress)) {
       throw new Error('Invalid token address');
-    }
-
-    if (!currentAccount) {
-      throw new Error('Connect your Wallet');
     }
 
     const tx = await approveTokenAmount(
@@ -376,13 +385,7 @@ const LootboxPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <PageContainer>
-        <div className={styles.loading_container}>
-          <Spin />
-        </div>
-      </PageContainer>
-    );
+    return <PageContainer ghost loading />;
   } else if (error || !data?.getLootboxByID) {
     return <span>{error?.message || ''}</span>;
   } else if (data?.getLootboxByID.__typename === 'ResponseError') {
@@ -417,7 +420,7 @@ const LootboxPage: React.FC = () => {
             joinCommunityUrl: lootbox.joinCommunityUrl || '',
             name: lootbox.name,
             maxTickets: lootbox.maxTickets,
-            tag: lootbox.symbol,
+            tag: lootbox.symbol || lootbox.name.slice(0, 11),
             tournamentID: magicLinkParams.tournamentID as TournamentID | undefined,
             status: lootbox.status,
             address: lootbox.address,
@@ -493,13 +496,37 @@ const LootboxPage: React.FC = () => {
       </$Horizontal>
       <br />
       {renderDepositHelpText()}
-      <DepositRewardForm
-        chainIDHex={lootbox.chainIdHex}
-        onSubmitReward={rewardSponsors}
-        onTokenApprove={approveAllowance}
-        onCheckAllowance={isWithinAllowance}
-        lootboxID={(lootboxID || '') as LootboxID}
-      />
+      {!lootbox.address || !lootbox.chainIdHex ? (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          imageStyle={{
+            height: 60,
+          }}
+          description={
+            <span style={{ maxWidth: '200px' }}>
+              {`This LOOTBOX has not been deployed to the blockchain yet`}
+              &nbsp;
+              <Tooltip title="This Lootbox can not pay out rewards to fans until it is deployed on the Blockchain. To deploy this Lootbox, you must install MetaMask and connect your wallet by clicking below.">
+                <InfoCircleTwoTone />
+              </Tooltip>
+            </span>
+          }
+          style={{
+            flex: 1,
+            padding: '100px',
+            border: '1px solid rgba(0,0,0,0.1)',
+          }}
+        ></Empty>
+      ) : (
+        <DepositRewardForm
+          chainIDHex={lootbox.chainIdHex}
+          onSubmitReward={rewardSponsors}
+          onTokenApprove={approveAllowance}
+          onCheckAllowance={isWithinAllowance}
+          lootboxID={(lootboxID || '') as LootboxID}
+        />
+      )}
+
       <GenerateReferralModal
         isOpen={isReferralModalOpen}
         setIsOpen={setIsReferralModalOpen}
