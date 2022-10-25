@@ -9,6 +9,7 @@ import {
 import FormBuilder from 'antd-form-builder';
 import {
   Affix,
+  Alert,
   Button,
   Card,
   Empty,
@@ -70,6 +71,10 @@ export interface CreateLootboxWeb3Request {
   maxTickets: number;
 }
 
+export interface MagicLinkParams {
+  tournamentID?: TournamentID;
+}
+
 interface OnSubmitCreateResponse {
   lootboxID: LootboxID;
 }
@@ -81,6 +86,7 @@ interface OnCreateLootboxWeb3Response {
 
 export type CreateLootboxFormProps = {
   lootbox?: LootboxBody;
+  magicLinkParams?: MagicLinkParams;
   onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
   onSubmitEdit?: (payload: EditLootboxRequest) => Promise<void>;
   onCreateWeb3?: (payload: CreateLootboxWeb3Request) => Promise<OnCreateLootboxWeb3Response>;
@@ -101,6 +107,7 @@ const LOOTBOX_INFO: LootboxBody = {
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
+  magicLinkParams,
   onSubmitCreate,
   onSubmitEdit,
   onCreateWeb3,
@@ -123,8 +130,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const [viewMode, setViewMode] = useState(true);
   const [pending, setPending] = useState(false);
   const [lootboxInfo, setLootboxInfo] = useState<LootboxBody>(LOOTBOX_INFO);
+  const [showDeploySuccess, setShowDeploySuccess] = useState(false);
   const lockedToEdit = mode === 'create' || mode === 'edit-only';
   const lockedToView = mode === 'view-only';
+  const isLootboxDeployed = !!lootboxInfo.address;
+  const isOnBlockChain = currentStep === 1;
 
   useEffect(() => {
     if (lockedToEdit) {
@@ -154,6 +164,19 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       newMediaDestinationBackground.current = lootbox.backgroundImage;
     }
   }, [lootbox]);
+
+  const resetForm = () => {
+    form.resetFields();
+    if (!lockedToEdit) {
+      setViewMode(true);
+    }
+    newMediaDestinationLogo.current = lootboxInfo.logoImage;
+    newMediaDestinationBackground.current = lootboxInfo.backgroundImage;
+    setCurrentStep(0);
+    if (mode === 'create') {
+      history.back();
+    }
+  };
 
   const handleCreateFinish = useCallback(
     async (values) => {
@@ -201,7 +224,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           okText: 'Go to Lootbox',
           onOk: () => {
             window.location.href = `/dashboard/lootbox/id/${createdLootboxID}${
-              lootbox?.tournamentID ? `?tid=${lootbox.tournamentID}` : ''
+              magicLinkParams?.tournamentID ? `?tid=${magicLinkParams.tournamentID}` : ''
             }`;
           },
         });
@@ -223,7 +246,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
   const handleCreateWeb3 = useCallback(
     async (values) => {
-      console.log('create web3', values);
       if (!onCreateWeb3) return;
       if (!network) return;
 
@@ -236,7 +258,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       setPending(true);
 
       try {
-        const { lootboxID: createdLootboxID, tx } = await onCreateWeb3(payload);
+        const { tx } = await onCreateWeb3(payload);
 
         if (!lockedToEdit) {
           setViewMode(true);
@@ -248,9 +270,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           title: 'Success',
           content: (
             <$Vertical>
-              <Typography.Text>
-                {mode === 'create' ? 'Lootbox created' : 'Lootbox updated'}
-              </Typography.Text>
+              <Typography.Text>Lootbox deployed</Typography.Text>
               <br />
               <Typography.Text>
                 <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank" rel="noreferrer">
@@ -262,11 +282,10 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               <Typography.Text copyable>{tx.hash}</Typography.Text>
             </$Vertical>
           ),
-          okText: 'Go to Lootbox',
+          okText: 'Finish',
           onOk: () => {
-            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}${
-              lootbox?.tournamentID ? `?tid=${lootbox.tournamentID}` : ''
-            }`;
+            resetForm();
+            setShowDeploySuccess(true);
           },
         });
       } catch (e: any) {
@@ -503,6 +522,16 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     return meta;
   };
   const metaBlockchain = () => {
+    console.log(`
+
+      Meta BlockChain
+
+      chainIDHex: ${lootboxInfo.chainIDHex}
+      address: ${lootboxInfo.address}
+      creatorAddress: ${lootboxInfo.creatorAddress}
+
+    
+    `);
     const explorerURL = lootboxInfo.chainIDHex ? getBlockExplorerUrl(lootboxInfo.chainIDHex) : null;
     const meta = {
       columns: 1,
@@ -531,7 +560,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   copyable
                   style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
-                  {shortenAddress(lootboxInfo.address || '')}
+                  <Tooltip title={lootboxInfo.address}>
+                    {shortenAddress(lootboxInfo.address || '')}
+                  </Tooltip>
                 </Typography.Link>
               ),
             },
@@ -547,7 +578,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   copyable
                   style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
-                  {shortenAddress(lootboxInfo.creatorAddress || '')}
+                  <Tooltip title={lootboxInfo.creatorAddress}>
+                    {shortenAddress(lootboxInfo.creatorAddress || '')}
+                  </Tooltip>
                 </Typography.Link>
               ),
             },
@@ -555,11 +588,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         : [
             {
               key: 'chain',
-              label: 'Network',
+              label: 'Choose a Network',
               widget: SelectChain,
               required: true,
               tooltip:
-                'The blockchain network that this Lootbox will reside on. The fan prize money must also be distributed on this same blockchain network.',
+                'The blockchain network that this Lootbox lives on. The fan prize money must also be distributed on this same blockchain network. Pro Tip: Polygon hos low gas fees.',
             },
             {
               key: 'name',
@@ -653,13 +686,13 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             onFinish={
               mode === 'create'
                 ? handleCreateFinish
-                : currentStep === 1
+                : isOnBlockChain
                 ? handleCreateWeb3
                 : handleEditFinish
             }
             onValuesChange={forceUpdate}
           >
-            {!viewMode && mode !== 'create' && (
+            {!viewMode && mode !== 'create' && !isLootboxDeployed && (
               <div>
                 <Steps current={currentStep} onChange={onStepChange}>
                   {wizardMeta.steps.map((s) => (
@@ -671,7 +704,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             )}
 
             {wizardMeta.steps[currentStep].subSteps.map((s, idx) => {
-              if (!currentAccount && currentStep === 1) {
+              if (isLootboxDeployed && isOnBlockChain) {
+                return null;
+              }
+
+              if (!currentAccount && isOnBlockChain) {
                 return (
                   <Empty
                     key="connect-wallet-empty"
@@ -695,9 +732,19 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   </Empty>
                 );
               }
+
               return (
                 <fieldset key={`step-${currentStep}-${idx}`}>
                   <legend>{s.title}</legend>
+                  {isOnBlockChain && !isLootboxDeployed && (
+                    <>
+                      <Alert
+                        type="info"
+                        message="Ready to launch your LOOTBOX? There will a one-time gas fee that LOOTBOX does not control or receive."
+                      />
+                      <br />
+                    </>
+                  )}
                   <FormBuilder form={form} meta={s.meta} viewMode={viewMode} />
                 </fieldset>
               );
@@ -706,6 +753,18 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             {viewMode && (
               <fieldset>
                 <legend>{`Blockchain Details`}</legend>
+                {showDeploySuccess && (
+                  <>
+                    <Alert
+                      type="success"
+                      message="Lootbox deployed successfully"
+                      showIcon
+                      closable
+                      onClose={() => setShowDeploySuccess(false)}
+                    />
+                    <br />
+                  </>
+                )}
                 {!!lootboxInfo?.address ? (
                   <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
                 ) : (
@@ -738,24 +797,10 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             )}
             {!viewMode && (
               <fieldset>
-                <legend>{`Submit`}</legend>
+                {!isOnBlockChain && !isLootboxDeployed && <legend>{`Submit`}</legend>}
                 <$Horizontal justifyContent="flex-end">
                   <Form.Item className="form-footer" style={{ width: 'auto' }}>
-                    <Button
-                      onClick={() => {
-                        form.resetFields();
-                        if (!lockedToEdit) {
-                          setViewMode(true);
-                        }
-                        newMediaDestinationLogo.current = lootboxInfo.logoImage;
-                        newMediaDestinationBackground.current = lootboxInfo.backgroundImage;
-                        setCurrentStep(0);
-                        if (mode === 'create') {
-                          history.back();
-                        }
-                      }}
-                      style={{ marginRight: '15px' }}
-                    >
+                    <Button onClick={resetForm} style={{ marginRight: '15px' }}>
                       Cancel
                     </Button>
 
@@ -763,13 +808,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       <Button htmlType="submit" type="primary" disabled={pending}>
                         {pending ? 'Creating...' : 'Create'}
                       </Button>
-                    ) : currentStep === 0 ? (
-                      <Button htmlType="submit" type="primary" disabled={pending}>
-                        {pending ? 'Updating...' : 'Update'}
-                      </Button>
-                    ) : currentStep === 1 && !currentAccount ? (
+                    ) : isOnBlockChain && !isLootboxDeployed && !currentAccount ? (
                       <ConnectWalletButton style={{ display: 'inline' }} />
-                    ) : (
+                    ) : isOnBlockChain && !isLootboxDeployed && currentAccount ? (
                       <Button
                         htmlType="submit"
                         type="primary"
@@ -777,7 +818,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       >
                         {pending ? 'Deploying' : 'Deploy'}
                       </Button>
-                    )}
+                    ) : !isOnBlockChain ? (
+                      <Button htmlType="submit" type="primary" disabled={pending}>
+                        {pending ? 'Updating...' : 'Update'}
+                      </Button>
+                    ) : null}
                   </Form.Item>
                 </$Horizontal>
               </fieldset>

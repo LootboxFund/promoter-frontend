@@ -1,17 +1,14 @@
-import CreateLootboxForm, { CreateLootboxRequest } from '@/components/CreateLootboxForm';
+import CreateLootboxForm, {
+  CreateLootboxRequest,
+  MagicLinkParams,
+} from '@/components/CreateLootboxForm';
 import { $InfoDescription } from '@/components/generics';
 import { LootboxID, TournamentID } from '@wormgraph/helpers';
-import React, { useRef, useState } from 'react';
-import { useLootboxFactory } from '@/hooks/useLootboxFactory';
-import useWeb3 from '@/hooks/useWeb3';
+import React, { useState } from 'react';
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
 import { useMutation } from '@apollo/client';
 import { CREATE_LOOTBOX, CreateLootboxResponseFE } from './api.gql';
 import { MutationCreateLootboxArgs } from '@/api/graphql/generated/types';
-
-interface MagicLinkParams {
-  tournamentID?: TournamentID;
-}
 
 export const extractURLState_LootboxCreatePage = (): MagicLinkParams => {
   const url = new URL(window.location.href);
@@ -91,7 +88,11 @@ const LootboxCreatePage: React.FC = () => {
       <BreadCrumbDynamic breadLine={breadLine} />
       {renderHelpText()}
       <div style={{ maxWidth: '1000px' }}>
-        <CreateLootboxForm onSubmitCreate={createLootbox} mode="create" />
+        <CreateLootboxForm
+          onSubmitCreate={createLootbox}
+          mode="create"
+          magicLinkParams={magicLinkParams}
+        />
       </div>
     </div>
   );
