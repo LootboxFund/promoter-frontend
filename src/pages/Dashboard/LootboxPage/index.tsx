@@ -40,6 +40,7 @@ import { startLootboxCreatedListener } from '@/api/firebase/functions';
 import { generateCreateLootboxNonce } from '@/lib/lootbox';
 import { useLootboxFactory } from '@/hooks/useLootboxFactory';
 import { InfoCircleTwoTone } from '@ant-design/icons';
+import { shortenAddress } from '@/lib/address';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -114,15 +115,65 @@ const LootboxPage: React.FC = () => {
     return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
   }, [data]);
 
-  const { depositERC20, depositNative } = useLootbox({ address: lootbox?.address || undefined });
+  const { depositERC20, depositNative, changeMaxTickets } = useLootbox({
+    address: lootbox?.address || undefined,
+  });
   const { getAllowance, approveTokenAmount } = useERC20({
     chainIDHex: lootbox?.chainIdHex || undefined,
   });
   const editLootbox = async ({ payload }: EditLootboxRequest) => {
-    console.log('EDIT LOOTBOX', payload);
-
     if (!lootboxID) {
       throw new Error('No Lootbox ID');
+    }
+
+    if (payload.maxTickets && lootbox.address) {
+      try {
+        // The only person who can change MaxTickets is the one with the DAO role
+        // Typically, the DAO_ROLE is the issuing entity
+        if (
+          lootbox?.creatorAddress &&
+          currentAccount &&
+          lootbox.creatorAddress.toLowerCase() !== currentAccount.toLowerCase()
+        ) {
+          throw new Error(
+            `Only the wallet of the LOOTBOX creator can change the Max Tickets. Try switching to address ${shortenAddress(
+              lootbox.creatorAddress,
+            )}.`,
+          );
+        }
+
+        // MaxTickets lives on the web3 & web2 layer
+        // First we will update the contract because thats the most brittle lol
+        notification.info({
+          key: 'max-tix-metamask',
+          message: 'Complete the transaction in MetaMask',
+          description:
+            'Please complete this transaction in your wallet. Updating LOOTBOX max tickets changes the Blockchain and requires a small fee that LOOTBOX does not control or receive.',
+          duration: 0,
+          placement: 'top',
+        });
+        const tx = await changeMaxTickets(payload.maxTickets);
+        notification.close('max-tix-metamask');
+        notification.info({
+          key: 'loading-change-max-tickets',
+          icon: <Spin />,
+          message: 'Changing Max Tickets',
+          description:
+            'Please wait while we change your LOOTBOX Max Tickets. This happens on the blockchain and it might take a minute.',
+          duration: 0,
+          placement: 'top',
+        });
+        await tx.wait();
+        notification.close('loading-change-max-tickets');
+        notification.success({
+          key: 'max-tix-success',
+          message: 'Max Tickets Successfully changed on the Blockchain',
+        });
+      } catch (err) {
+        notification.close('max-tix-metamask');
+        notification.close('loading-change-max-tickets');
+        throw err;
+      }
     }
 
     const res = await editLootboxMutation({
@@ -134,9 +185,7 @@ const LootboxPage: React.FC = () => {
           joinCommunityUrl: payload.joinCommunityUrl,
           logo: payload.logoImage,
           backgroundImage: payload.backgroundImage,
-          // TODO: do update maxtickets when lootbox has been deployed to blockchain...
-          // This will require a web3 call
-          maxTickets: lootbox.address ? payload.maxTickets : null,
+          maxTickets: payload.maxTickets,
           nftBountyValue: payload.nftBountyValue,
           status: payload.status,
           themeColor: payload.themeColor,
@@ -206,14 +255,6 @@ const LootboxPage: React.FC = () => {
       !targetChain ||
       currentChain.chainIdHex !== payload.chainIDHex
     ) {
-      console.log(`
-
-        Chain ID Mismatch
-
-        providerChainIDHex: ${currentChain?.chainIdHex}
-        requestChainIDHex: ${payload.chainIDHex}
-
-      `);
       throw new Error(
         `Wrong network${
           targetChain?.chainName ? `. Please switch to ${targetChain.chainName}` : ''
@@ -231,7 +272,6 @@ const LootboxPage: React.FC = () => {
         request.payload.name = ${payload.name}
         request.payload.name.slice(0, 11) = ${payload.name.slice(0, 11)}
         request.payload.maxTickets = ${payload.maxTickets}
-        nonce = ${nonce}
   
         `);
 
@@ -426,6 +466,7 @@ const LootboxPage: React.FC = () => {
             address: lootbox.address,
             creatorAddress: lootbox.creatorAddress,
             chainIDHex: lootbox.chainIdHex,
+            runningCompletedClaims: lootbox.runningCompletedClaims,
           }}
           mode={doesUserHaveEditPermission ? 'view-edit' : 'view-only'}
           onSubmitEdit={editLootbox}

@@ -18,6 +18,7 @@ export interface LootboxFE {
   logo: string;
   creatorAddress: Address | null;
   creatorID: UserID;
+  runningCompletedClaims: number;
 }
 
 export interface GetLootboxFE {
@@ -45,6 +46,7 @@ export const GET_LOOTBOX = gql`
           logo
           creatorAddress
           creatorID
+          runningCompletedClaims
         }
       }
       ... on ResponseError {

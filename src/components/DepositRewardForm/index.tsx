@@ -323,7 +323,9 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
                   <$Horizontal justifyContent="flex-start">
                     <Typography.Text copyable>
                       <span>💳</span>&nbsp;
-                      <Tooltip title={currentAccount}>{shortenAddress(currentAccount)}</Tooltip>
+                      <Tooltip title={`Your connected wallet: ${currentAccount}`}>
+                        {shortenAddress(currentAccount)}
+                      </Tooltip>
                     </Typography.Text>
                   </$Horizontal>
                   <br />

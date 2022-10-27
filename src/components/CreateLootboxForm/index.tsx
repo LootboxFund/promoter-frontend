@@ -56,10 +56,14 @@ interface LootboxBody {
   status: LootboxStatus;
   creatorAddress?: Address | null;
   chainIDHex?: ChainIDHex | null;
+  runningCompletedClaims: number;
 }
 
 export interface CreateLootboxRequest {
-  payload: Omit<LootboxBody, 'address' | 'status' | 'chainIDHex' | 'creatorAddress'>;
+  payload: Omit<
+    LootboxBody,
+    'address' | 'status' | 'chainIDHex' | 'creatorAddress' | 'runningCompletedClaims'
+  >;
 }
 
 export interface EditLootboxRequest {
@@ -105,6 +109,7 @@ const LOOTBOX_INFO: LootboxBody = {
   maxTickets: 100,
   tag: '',
   status: LootboxStatus.Active,
+  runningCompletedClaims: 0,
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
@@ -160,6 +165,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         creatorAddress: lootbox.creatorAddress,
         chainIDHex: lootbox.chainIDHex,
         tournamentID: lootbox.tournamentID,
+        runningCompletedClaims: lootbox.runningCompletedClaims,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -303,61 +309,77 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     [onCreateWeb3],
   );
 
-  const handleEditFinish = useCallback(async (values) => {
-    if (!onSubmitEdit) return;
-    const request = { payload: {} } as EditLootboxRequest;
+  const handleEditFinish = useCallback(
+    async (values) => {
+      if (!onSubmitEdit) return;
+      const request = { payload: {} } as EditLootboxRequest;
 
-    if (values.name) {
-      request.payload.name = values.name;
-    }
-    if (values.description) {
-      request.payload.description = values.description;
-    }
-    if (newMediaDestinationBackground.current) {
-      request.payload.backgroundImage = newMediaDestinationBackground.current;
-    }
-    if (newMediaDestinationLogo.current) {
-      request.payload.logoImage = newMediaDestinationLogo.current;
-    }
-    if (values.logoImage) {
-      request.payload.logoImage = newMediaDestinationLogo.current;
-    }
-    if (newThemeColor.current) {
-      request.payload.themeColor = newThemeColor.current;
-    }
-    if (values.nftBountyValue) {
-      request.payload.nftBountyValue = values.nftBountyValue;
-    }
-    if (values.joinCommunityUrl) {
-      request.payload.joinCommunityUrl = values.joinCommunityUrl;
-    }
-    if (values.status) {
-      request.payload.status = values.status;
-    }
-    if (values.maxTickets) {
-      request.payload.maxTickets = values.maxTickets;
-    }
-
-    setPending(true);
-    try {
-      await onSubmitEdit(request);
-      setPending(false);
-      if (!lockedToEdit) {
-        setViewMode(true);
+      if (values.name && values.name !== lootboxInfo.name) {
+        request.payload.name = values.name;
       }
-      Modal.success({
-        title: 'Success',
-        content: 'Lootbox updated',
-      });
-      setPending(false);
-    } catch (e: any) {
-      Modal.error({
-        title: 'Failure',
-        content: `${e.message}`,
-      });
-      setPending(false);
-    }
-  }, []);
+      if (values.description && values.description !== lootboxInfo.description) {
+        request.payload.description = values.description;
+      }
+      if (
+        newMediaDestinationBackground.current &&
+        newMediaDestinationBackground.current !== lootboxInfo.backgroundImage
+      ) {
+        request.payload.backgroundImage = newMediaDestinationBackground.current;
+      }
+      if (
+        newMediaDestinationLogo.current &&
+        newMediaDestinationLogo.current !== lootboxInfo.logoImage
+      ) {
+        request.payload.logoImage = newMediaDestinationLogo.current;
+      }
+      if (values.logoImage && values.logoImage !== lootboxInfo.logoImage) {
+        request.payload.logoImage = newMediaDestinationLogo.current;
+      }
+      if (newThemeColor.current && newThemeColor.current !== lootboxInfo.themeColor) {
+        request.payload.themeColor = newThemeColor.current;
+      }
+      if (values.nftBountyValue && values.nftBountyValue !== lootboxInfo.nftBountyValue) {
+        request.payload.nftBountyValue = values.nftBountyValue;
+      }
+      if (values.joinCommunityUrl && values.joinCommunityUrl !== lootboxInfo.joinCommunityUrl) {
+        request.payload.joinCommunityUrl = values.joinCommunityUrl;
+      }
+      if (values.status && values.status !== lootboxInfo.status) {
+        request.payload.status = values.status;
+      }
+      if (values.maxTickets && values.maxTickets !== lootboxInfo.maxTickets) {
+        request.payload.maxTickets = values.maxTickets;
+      }
+
+      setPending(true);
+      try {
+        if (Object.keys(request.payload).length === 0) {
+          throw new Error('Nothing to change');
+        }
+        await onSubmitEdit(request);
+        setPending(false);
+        if (!lockedToEdit) {
+          setViewMode(true);
+        }
+        Modal.success({
+          title: 'Success',
+          content: 'Lootbox updated',
+        });
+      } catch (e: any) {
+        if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
+          return;
+        }
+        console.error(e);
+        Modal.error({
+          title: 'Failure',
+          content: `${e?.message?.slice(0, 200) || ''}`,
+        });
+      } finally {
+        setPending(false);
+      }
+    },
+    [lootboxInfo, onSubmitEdit],
+  );
 
   const metaPublic = () => {
     const meta = {
@@ -399,8 +421,28 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           label: 'Max Tickets',
           required: true,
           widget: 'number',
-          tooltip: 'The maximum number of tickets available for distribution.',
+          tooltip:
+            'The maximum number of tickets available for distribution. This determines the payout percentage of your Lootbox. For example, if you set this to 100 tickets, then depositing $100 USD into the LOOTBOX will reward $1 USD per ticket.',
         },
+        ...(viewMode
+          ? [
+              {
+                key: 'runningCompletedClaims',
+                label: '# Tickets Claimed',
+                tooltip:
+                  'The number of tickets claimed by fans. When this reaches the max tickets, the LOOTBOX will automatically become sold out.',
+                viewWidget: () => {
+                  console.log('lootboxInfo', lootboxInfo);
+                  return (
+                    <Typography.Text>
+                      {lootboxInfo?.runningCompletedClaims || 0} /{' '}
+                      {lootboxInfo?.maxTickets || 'N/A'}
+                    </Typography.Text>
+                  );
+                },
+              },
+            ]
+          : []),
         {
           key: 'joinCommunityUrl',
           label: 'Community URL',
@@ -690,6 +732,13 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     setViewMode(false);
   };
 
+  const showConnectButton =
+    !viewMode &&
+    !!lootboxInfo.address &&
+    !!form.getFieldValue('maxTickets') &&
+    lootboxInfo.maxTickets !== form.getFieldValue('maxTickets') &&
+    !currentAccount;
+
   return (
     <Card style={{ flex: 1 }}>
       <$Horizontal>
@@ -827,7 +876,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       Cancel
                     </Button>
 
-                    {mode === 'create' ? (
+                    {showConnectButton ? (
+                      <ConnectWalletButton style={{ display: 'inline' }} />
+                    ) : mode === 'create' ? (
                       <Button htmlType="submit" type="primary" disabled={pending}>
                         {pending ? 'Creating...' : 'Create'}
                       </Button>
