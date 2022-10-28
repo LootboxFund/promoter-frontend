@@ -169,9 +169,12 @@ const LootboxPage: React.FC = () => {
           key: 'max-tix-success',
           message: 'Max Tickets Successfully changed on the Blockchain',
         });
-      } catch (err) {
+      } catch (err: any) {
         notification.close('max-tix-metamask');
         notification.close('loading-change-max-tickets');
+        if (err?.reason) {
+          throw new Error(err.reason);
+        }
         throw err;
       }
     }

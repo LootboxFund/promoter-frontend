@@ -37,6 +37,7 @@ import { LootboxStatus } from '@/api/graphql/generated/types';
 import { shortenAddress } from '@/lib/address';
 import { InfoCircleTwoTone } from '@ant-design/icons';
 import { ContractTransaction } from 'ethers';
+import InputMaxTickets, { TargetMaxTicketsWidgetProps } from './InputMaxTickets';
 
 // const DEFAULT_THEME_COLOR = '#00B0FB'
 const DEFAULT_THEME_COLOR = '#000000';
@@ -67,7 +68,7 @@ export interface CreateLootboxRequest {
 }
 
 export interface EditLootboxRequest {
-  payload: Omit<LootboxBody, 'address' | 'tag' | 'chainIDHex' | 'creatorAddress'>;
+  payload: Partial<Omit<LootboxBody, 'address' | 'tag' | 'chainIDHex' | 'creatorAddress'>>;
 }
 
 export interface CreateLootboxWeb3Request {
@@ -253,18 +254,38 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
   const handleCreateWeb3 = useCallback(
     async (values) => {
+      const targetMaxTickets = values?._max_tickets_widget?.targetMaxTickets as number | undefined;
       if (!onCreateWeb3) return;
       if (!network) return;
 
-      const payload: CreateLootboxWeb3Request = {
-        name: values.name,
-        maxTickets: values.maxTickets,
-        chainIDHex: values.chain,
-      };
-
       setPending(true);
-
       try {
+        if (!targetMaxTickets) {
+          throw new Error('Please enter Max Tickets');
+        }
+
+        if (targetMaxTickets % 1 != 0) {
+          throw new Error('Max Tickets must be an integer');
+        }
+
+        const payload: CreateLootboxWeb3Request = {
+          name: values.name,
+          maxTickets: targetMaxTickets,
+          chainIDHex: values.chain,
+        };
+
+        if (targetMaxTickets !== lootboxInfo.maxTickets) {
+          if (!onSubmitEdit) return;
+          console.log('change max tickets...');
+
+          // CHANGE MAX TICKETS IN WEB2
+          await onSubmitEdit({
+            payload: {
+              maxTickets: targetMaxTickets,
+            },
+          });
+        }
+
         const { tx } = await onCreateWeb3(payload);
 
         if (!lockedToEdit) {
@@ -372,7 +393,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         console.error(e);
         Modal.error({
           title: 'Failure',
-          content: `${e?.message?.slice(0, 200) || ''}`,
+          content: e?.message,
         });
       } finally {
         setPending(false);
@@ -432,7 +453,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 tooltip:
                   'The number of tickets claimed by fans. When this reaches the max tickets, the LOOTBOX will automatically become sold out.',
                 viewWidget: () => {
-                  console.log('lootboxInfo', lootboxInfo);
                   return (
                     <Typography.Text>
                       {lootboxInfo?.runningCompletedClaims || 0} /{' '}
@@ -587,16 +607,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     return meta;
   };
   const metaBlockchain = () => {
-    console.log(`
-
-      Meta BlockChain
-
-      chainIDHex: ${lootboxInfo.chainIDHex}
-      address: ${lootboxInfo.address}
-      creatorAddress: ${lootboxInfo.creatorAddress}
-
-    
-    `);
     const explorerURL = lootboxInfo.chainIDHex ? getBlockExplorerUrl(lootboxInfo.chainIDHex) : null;
     const meta = {
       columns: 1,
@@ -673,11 +683,18 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 'The display name of the Lootbox. Typically this is the Team name or a variation, since a Lootbox is only used for a single event.',
             },
             {
-              key: 'maxTickets',
+              key: '_max_tickets_widget',
               label: 'Max Tickets',
-              disabled: true,
-              widget: 'number',
-              tooltip: 'The maximum number of tickets available for distribution.',
+              required: true,
+              forwardeRef: true,
+              initialValue: {
+                targetMaxTickets: lootboxInfo.runningCompletedClaims,
+                _maxTickets: lootboxInfo.maxTickets,
+                _runningClaims: lootboxInfo.runningCompletedClaims,
+              } as TargetMaxTicketsWidgetProps,
+              tooltip:
+                'The maximum number of tickets available for distribution. This determines the payout percentage of your Lootbox. For example, if you set this to 100 tickets, then depositing $100 USD into the LOOTBOX will reward $1 USD per ticket.',
+              widget: InputMaxTickets,
             },
           ],
     };
