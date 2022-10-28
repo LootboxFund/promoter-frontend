@@ -18,14 +18,16 @@ import {
   Input,
   Row,
   Col,
+  notification,
+  Spin,
 } from 'antd';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import GenerateReferralModal from '../GenerateReferralModal';
 import styles from './index.less';
 
 interface LootboxSnapshotFE {
   id: LootboxTournamentSnapshotID;
-  address: Address;
+  address: Address | null;
   lootboxID: LootboxID;
   stampImage: string;
   status: LootboxTournamentStatus;
@@ -65,6 +67,19 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
   );
   const [loadingAction, setLoadingAction] = useState(false);
 
+  useEffect(() => {
+    if (loadingAction) {
+      notification.info({
+        key: 'loading-action',
+        icon: <Spin />,
+        message: 'Loading... Please wait.',
+        duration: 0,
+      });
+    } else {
+      notification.close('loading-action');
+    }
+  }, [loadingAction]);
+
   const isAllChecked = useMemo(() => {
     return bulkSelectedSnapshots.length === props.lootboxTournamentSnapshots.length;
   }, [bulkSelectedSnapshots, props.lootboxTournamentSnapshots]);
@@ -77,9 +92,9 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
     } else {
       return props.lootboxTournamentSnapshots.filter(
         (snap) =>
-          snap.name.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
-          snap.id.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
-          snap.address.toLowerCase().indexOf(searchString.toLowerCase()) > -1,
+          snap.name?.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
+          snap.id?.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
+          (snap.address && snap.address.toLowerCase().indexOf(searchString.toLowerCase()) > -1),
       );
     }
   }, [currentPage, props.lootboxTournamentSnapshots, props.pageSize, searchString]);
@@ -159,6 +174,7 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
       return;
     }
     setLoadingAction(true);
+
     try {
       await props.onBulkEdit(props.eventID, snapshotIDs, {
         status: payload.status,

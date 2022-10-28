@@ -4,7 +4,7 @@ import { Contract, ContractTransaction, ethers } from 'ethers';
 import { useWeb3 } from './useWeb3';
 
 interface UseLootboxProps {
-  address: Address;
+  address?: Address;
 }
 
 interface UseLootboxResult {
@@ -14,6 +14,7 @@ interface UseLootboxResult {
     amount: ethers.BigNumber,
     tokenAddress: Address,
   ) => Promise<ethers.ContractTransaction>;
+  changeMaxTickets: (maxTickets: number) => Promise<ethers.ContractTransaction>;
 }
 
 export const useLootbox = ({ address }: UseLootboxProps): UseLootboxResult => {
@@ -45,5 +46,13 @@ export const useLootbox = ({ address }: UseLootboxProps): UseLootboxResult => {
     ) as Promise<ethers.ContractTransaction>;
   };
 
-  return { lootbox, depositNative, depositERC20 };
+  const changeMaxTickets = async (maxTickets: number): Promise<ContractTransaction> => {
+    const signer = library?.getSigner(currentAccount);
+    if (!lootbox || !signer) {
+      throw new Error('Connect MetaMask');
+    }
+    return lootbox.changeMaxTickets(maxTickets) as Promise<ethers.ContractTransaction>;
+  };
+
+  return { lootbox, depositNative, depositERC20, changeMaxTickets };
 };
