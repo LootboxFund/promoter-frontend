@@ -360,7 +360,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
 
   const meta = getMeta();
   // TODO: make this dynamic
-  const isUserTournamentHost = true;
+  const isUserTournamentHost = false; // TEMP: disabled for now
 
   const tabItems = [
     {
