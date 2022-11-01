@@ -1,11 +1,16 @@
 import { Address, ChainIDHex, chainIdHexToName, LootboxID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
 import {
+  Alert,
   Button,
   Card,
   Empty,
   Form,
   Modal,
+  notification,
+  Popconfirm,
+  Result,
+  Space,
   Spin,
   Table,
   Tabs,
@@ -23,6 +28,8 @@ import { shortenAddress } from '@/lib/address';
 import styles from './index.less';
 import useERC20 from '@/hooks/useERC20';
 import { Deposit } from '@/hooks/useLootbox';
+import { NotificationOutlined } from '@ant-design/icons';
+import { LootboxFE } from '@/pages/Dashboard/LootboxPage/api.gql';
 
 type RewardType = 'Native' | 'ERC20';
 
@@ -40,21 +47,25 @@ export interface CheckAllowancePayload {
 export type DepositRewardForm = {
   chainIDHex: ChainIDHex;
   lootboxID: LootboxID;
+  lootbox: LootboxFE;
   lootboxDeposits: Deposit[];
   onSubmitReward: (payload: RewardSponsorsPayload) => Promise<ContractTransaction>;
   onTokenApprove: (payload: RewardSponsorsPayload) => Promise<ContractTransaction | null>;
   onCheckAllowance: (payload: CheckAllowancePayload) => Promise<boolean>;
   refetchDeposits: () => Promise<void>;
+  sendEmails: () => Promise<void>;
 };
 
 const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   lootboxID,
   chainIDHex,
   lootboxDeposits,
+  lootbox,
   onSubmitReward,
   onTokenApprove,
   onCheckAllowance,
   refetchDeposits,
+  sendEmails,
 }) => {
   const { currentAccount, library, network, switchNetwork } = useWeb3();
   const [form] = Form.useForm();
@@ -64,8 +75,43 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   const { getBalance, getNativeBalance, parseAmount } = useERC20({
     chainIDHex,
   });
+  const [loadingEmails, setLoadingEmails] = useState(false);
 
   const userChainIDHex = network?.chainId ? chainIdToHex(network.chainId) : null;
+
+  const handleNotifyVictors = async () => {
+    console.log('notify victors');
+    setLoadingEmails(true);
+    try {
+      if (lootboxDeposits.length === 0) {
+        throw new Error(
+          'Lootbox has no deposits. You should deposit first, before notifying fans.',
+        );
+      }
+
+      notification.info({
+        key: 'sending-email',
+        icon: <Spin />,
+        message: 'Sending emails...',
+        duration: 0,
+        placement: 'top',
+      });
+
+      await sendEmails();
+      Modal.success({
+        title: 'Emails sent!',
+        content: 'Emails have been sent to all victors.',
+      });
+    } catch (err) {
+      Modal.error({
+        title: 'Failure',
+        content: `${(err as any | undefined)?.message || 'An error occured'}`,
+      });
+    } finally {
+      notification.close('sending-email');
+      setLoadingEmails(false);
+    }
+  };
 
   const handleOnRewardSubmit = useCallback(
     async (values) => {
@@ -313,6 +359,8 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   };
 
   const meta = getMeta();
+  // TODO: make this dynamic
+  const isUserTournamentHost = true;
 
   const tabItems = [
     {
@@ -336,7 +384,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
               flex: 1,
             }}
           >
-            <ConnectWalletButton ghost type="default" />
+            <ConnectWalletButton type="default" />
           </Empty>
         ) : chainIDHex !== userChainIDHex ? (
           <Empty
@@ -475,6 +523,47 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           />
         ),
     },
+    ...(isUserTournamentHost
+      ? [
+          {
+            label: 'Notify Fans',
+            key: 'notifyFans',
+            children: lootbox?.tournamentSnapshot?.timestamps?.depositEmailSentAt ? (
+              <Result
+                status="success"
+                title="Fans have been notified!"
+                subTitle={`Emails have been sent to fans on ${new Date(
+                  lootbox.tournamentSnapshot.timestamps.depositEmailSentAt,
+                )}`}
+              />
+            ) : (
+              <Result
+                icon={<NotificationOutlined />}
+                title="Notify ticket holders to claim their rewards"
+                subTitle="This will send an email to all ticket holders with a valid email address"
+                extra={
+                  <Space direction="vertical" size="large">
+                    <Alert
+                      showIcon
+                      type="warning"
+                      message={'You can only do this once per Lootbox'}
+                    />
+                    <Popconfirm
+                      title={`Are you sure? This will send an email to all ticket holders with a valid email address. You can only do this once.`}
+                      disabled={loadingEmails}
+                      onConfirm={handleNotifyVictors}
+                    >
+                      <Button type="primary" loading={loadingEmails} disabled={loadingEmails}>
+                        Notify Fans
+                      </Button>
+                    </Popconfirm>
+                  </Space>
+                }
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (

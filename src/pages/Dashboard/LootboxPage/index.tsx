@@ -3,6 +3,7 @@ import type {
   QueryGetLootboxByIdArgs,
   MutationEditLootboxArgs,
   QueryMyLootboxByNonceArgs,
+  LootboxTournamentSnapshotArgs,
 } from '@/api/graphql/generated/types';
 import { Button, Empty, Popconfirm, notification, Spin, Tooltip } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
@@ -36,7 +37,7 @@ import useERC20 from '@/hooks/useERC20';
 import useWeb3 from '@/hooks/useWeb3';
 import { manifest } from '@/manifest';
 import { useAuth } from '@/api/firebase/useAuth';
-import { startLootboxCreatedListener } from '@/api/firebase/functions';
+import { sendLootboxTournamentEmails, startLootboxCreatedListener } from '@/api/firebase/functions';
 import { generateCreateLootboxNonce } from '@/lib/lootbox';
 import { useLootboxFactory } from '@/hooks/useLootboxFactory';
 import { InfoCircleTwoTone } from '@ant-design/icons';
@@ -75,12 +76,12 @@ const LootboxPage: React.FC = () => {
     loading,
     error,
     refetch: refetchLootboxQuery,
-  } = useQuery<{ getLootboxByID: GetLootboxFE | ResponseError }, QueryGetLootboxByIdArgs>(
-    GET_LOOTBOX,
-    {
-      variables: { id: lootboxID || '' },
-    },
-  );
+  } = useQuery<
+    { getLootboxByID: GetLootboxFE | ResponseError },
+    QueryGetLootboxByIdArgs & LootboxTournamentSnapshotArgs
+  >(GET_LOOTBOX, {
+    variables: { id: lootboxID || '', tournamentID: magicLinkParams?.tournamentID || '' },
+  });
 
   // Polling for Lootbox
   const [geMyLootboxByNonce, { startPolling, stopPolling }] = useLazyQuery<
@@ -427,6 +428,28 @@ const LootboxPage: React.FC = () => {
     return tx;
   };
 
+  const sendTournamentEmails = async () => {
+    if (!magicLinkParams.tournamentID) {
+      throw new Error('No tournament');
+    }
+    if (!lootboxID) {
+      throw new Error('No Lootbox');
+    }
+    if (!lootbox.chainIdHex) {
+      throw new Error('Lootbox has not been deployed to the Blockchain yet');
+    }
+
+    const res = await sendLootboxTournamentEmails({
+      lootboxID: lootboxID as LootboxID,
+      tournamentID: magicLinkParams.tournamentID as TournamentID,
+      chainIDHex: lootbox.chainIdHex as ChainIDHex,
+    });
+
+    refetchLootboxQuery();
+
+    return res.data;
+  };
+
   const breadLine = [
     { title: 'Dashboard', route: '/dashboard' },
     { title: 'Event', route: `/dashboard/events/id/${magicLinkParams.tournamentID}` },
@@ -583,10 +606,12 @@ const LootboxPage: React.FC = () => {
         <DepositRewardForm
           lootboxDeposits={deposits}
           chainIDHex={lootbox.chainIdHex}
+          lootbox={lootbox}
           onSubmitReward={rewardSponsors}
           onTokenApprove={approveAllowance}
           onCheckAllowance={isWithinAllowance}
           refetchDeposits={handleDepositLoad}
+          sendEmails={sendTournamentEmails}
           lootboxID={(lootboxID || '') as LootboxID}
         />
       )}
