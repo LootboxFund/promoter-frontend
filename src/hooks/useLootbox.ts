@@ -1,10 +1,25 @@
-import { Address } from '@wormgraph/helpers';
+import { chainIdToHex } from '@/lib/chain';
+import { promiseChain } from '@/lib/promise';
+import { Address, BLOCKCHAINS, ChainIDHex, chainIdHexToSlug } from '@wormgraph/helpers';
 import LootboxABI from '@wormgraph/helpers/lib/abi/LootboxCosmic.json';
 import { Contract, ContractTransaction, ethers } from 'ethers';
+import useERC20 from './useERC20';
+import useReadOnlyProvider from './useReadOnlyProvider';
 import { useWeb3 } from './useWeb3';
 
 interface UseLootboxProps {
   address?: Address;
+  chainIDHex?: ChainIDHex;
+}
+
+export interface DepositFragment {
+  tokenAddress: Address;
+  tokenAmount: string;
+}
+
+export interface Deposit extends DepositFragment {
+  tokenSymbol: string;
+  decimal: string;
 }
 
 interface UseLootboxResult {
@@ -15,19 +30,29 @@ interface UseLootboxResult {
     tokenAddress: Address,
   ) => Promise<ethers.ContractTransaction>;
   changeMaxTickets: (maxTickets: number) => Promise<ethers.ContractTransaction>;
+  getLootboxDeposits: () => Promise<Deposit[]>;
 }
 
-export const useLootbox = ({ address }: UseLootboxProps): UseLootboxResult => {
-  const { currentAccount, library } = useWeb3();
-  const lootbox = address ? new Contract(address, LootboxABI, library?.getSigner()) : null;
+export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootboxResult => {
+  const { currentAccount, library, network } = useWeb3();
+  const { provider } = useReadOnlyProvider({ chainIDHex });
+  const { getDecimals, getSymbol } = useERC20({ chainIDHex });
+  const lootbox = address ? new Contract(address, LootboxABI, provider || undefined) : null;
+  const chainSlug = chainIDHex ? chainIdHexToSlug(chainIDHex) : null;
+  const chain = chainSlug ? BLOCKCHAINS[chainSlug] : null;
 
   const depositNative = async (amount: ethers.BigNumber): Promise<ContractTransaction> => {
     const signer = library?.getSigner(currentAccount);
-    if (!lootbox || !signer) {
+    if (!lootbox || !signer || !network?.chainId) {
       throw new Error('Connect MetaMask');
     }
 
-    return lootbox.depositEarningsNative({
+    const connectedChainIDHex = chainIdToHex(network.chainId);
+    if (chainIDHex && connectedChainIDHex && connectedChainIDHex !== chainIDHex) {
+      throw new Error(`Wrong network, please connect ${chainIDHex}`);
+    }
+
+    return lootbox.connect(signer).depositEarningsNative({
       value: amount,
     }) as Promise<ethers.ContractTransaction>;
   };
@@ -37,22 +62,99 @@ export const useLootbox = ({ address }: UseLootboxProps): UseLootboxResult => {
     tokenAddress: Address,
   ): Promise<ContractTransaction> => {
     const signer = library?.getSigner(currentAccount);
-    if (!lootbox || !signer) {
+    if (!lootbox || !signer || !network?.chainId) {
       throw new Error('Connect MetaMask');
     }
-    return lootbox.depositEarningsErc20(
-      tokenAddress,
-      amount.toString(),
-    ) as Promise<ethers.ContractTransaction>;
+
+    const connectedChainIDHex = chainIdToHex(network.chainId);
+    if (chainIDHex && connectedChainIDHex && connectedChainIDHex !== chainIDHex) {
+      throw new Error(`Wrong network, please connect ${chainIDHex}`);
+    }
+
+    return lootbox
+      .connect(signer)
+      .depositEarningsErc20(tokenAddress, amount.toString()) as Promise<ethers.ContractTransaction>;
   };
 
   const changeMaxTickets = async (maxTickets: number): Promise<ContractTransaction> => {
     const signer = library?.getSigner(currentAccount);
-    if (!lootbox || !signer) {
+    if (!lootbox || !signer || !network?.chainId) {
       throw new Error('Connect MetaMask');
     }
-    return lootbox.changeMaxTickets(maxTickets) as Promise<ethers.ContractTransaction>;
+
+    const connectedChainIDHex = chainIdToHex(network.chainId);
+    if (chainIDHex && connectedChainIDHex && connectedChainIDHex !== chainIDHex) {
+      throw new Error(`Wrong network, please connect ${chainIDHex}`);
+    }
+
+    return lootbox
+      .connect(signer)
+      .changeMaxTickets(maxTickets) as Promise<ethers.ContractTransaction>;
   };
 
-  return { lootbox, depositNative, depositERC20, changeMaxTickets };
+  const getLootboxDeposits = async (): Promise<Deposit[]> => {
+    if (!lootbox) {
+      return [];
+    }
+
+    const erc20Mapping: { [key: Address]: { symbol: string; decimals: string } } = {};
+
+    const convertDepositFragmentToDeposit = async (fragment: DepositFragment) => {
+      let symbol: string;
+      let decimal: string;
+      if (erc20Mapping[fragment.tokenAddress]) {
+        symbol = erc20Mapping[fragment.tokenAddress].symbol;
+        decimal = erc20Mapping[fragment.tokenAddress].decimals;
+      } else {
+        if (fragment.tokenAddress === ethers.constants.AddressZero) {
+          symbol = chain?.nativeCurrency.symbol || 'ETH';
+          decimal = `${chain?.nativeCurrency.decimals}` || '18';
+        } else {
+          try {
+            symbol = await getSymbol(fragment.tokenAddress);
+          } catch (err) {
+            symbol = fragment.tokenAddress?.slice(0, 4) + '...' || '';
+          }
+          try {
+            const decimalBN = await getDecimals(fragment.tokenAddress);
+            decimal = decimalBN.toString();
+          } catch (err) {
+            decimal = '18';
+          }
+        }
+      }
+      return {
+        tokenSymbol: symbol,
+        tokenAmount: fragment.tokenAmount,
+        tokenAddress: fragment.tokenAddress,
+        decimal: decimal,
+      };
+    };
+    try {
+      const deposits = await lootbox.viewAllDeposits();
+
+      const res: DepositFragment[] = [];
+      for (let deposit of deposits) {
+        if (deposit?.nativeTokenAmount && deposit?.nativeTokenAmount?.gt('0')) {
+          res.push({
+            tokenAddress: ethers.constants.AddressZero as Address,
+            tokenAmount: deposit.nativeTokenAmount.toString(),
+          });
+        }
+        if (deposit?.erc20TokenAmount && deposit?.erc20TokenAmount?.gt('0')) {
+          res.push({
+            tokenAddress: deposit.erc20Token,
+            tokenAmount: deposit.erc20TokenAmount.toString(),
+          });
+        }
+      }
+      const fullDeposits = await promiseChain(res.map(convertDepositFragmentToDeposit));
+      return fullDeposits;
+    } catch (err) {
+      console.error('Error loading deposits', err);
+      return [];
+    }
+  };
+
+  return { lootbox, depositNative, depositERC20, changeMaxTickets, getLootboxDeposits };
 };

@@ -1,6 +1,18 @@
 import { Address, ChainIDHex, chainIdHexToName, LootboxID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Empty, Form, Modal, Spin, Tabs, Tooltip, Typography } from 'antd';
+import {
+  Button,
+  Card,
+  Empty,
+  Form,
+  Modal,
+  Spin,
+  Table,
+  Tabs,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { useCallback, useState } from 'react';
 import { $Horizontal, $Vertical } from '@/components/generics';
 import ConnectWalletButton from '../ConnectWalletButton';
@@ -10,7 +22,7 @@ import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
 import { shortenAddress } from '@/lib/address';
 import styles from './index.less';
 import useERC20 from '@/hooks/useERC20';
-import { manifest } from '@/manifest';
+import { Deposit } from '@/hooks/useLootbox';
 
 type RewardType = 'Native' | 'ERC20';
 
@@ -28,17 +40,21 @@ export interface CheckAllowancePayload {
 export type DepositRewardForm = {
   chainIDHex: ChainIDHex;
   lootboxID: LootboxID;
+  lootboxDeposits: Deposit[];
   onSubmitReward: (payload: RewardSponsorsPayload) => Promise<ContractTransaction>;
   onTokenApprove: (payload: RewardSponsorsPayload) => Promise<ContractTransaction | null>;
   onCheckAllowance: (payload: CheckAllowancePayload) => Promise<boolean>;
+  refetchDeposits: () => Promise<void>;
 };
 
 const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   lootboxID,
   chainIDHex,
+  lootboxDeposits,
   onSubmitReward,
   onTokenApprove,
   onCheckAllowance,
+  refetchDeposits,
 }) => {
   const { currentAccount, library, network, switchNetwork } = useWeb3();
   const [form] = Form.useForm();
@@ -178,6 +194,8 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         }
         await tx.wait();
 
+        refetchDeposits();
+
         console.log('tx', tx.hash);
         const explorerURL = getBlockExplorerUrl(chainIDHex);
         controlledModal.update({
@@ -300,123 +318,164 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
     {
       label: 'Reward Sponsors',
       key: 'deposit-form',
-      children: (
-        <Form
-          layout="horizontal"
-          form={form}
-          onFinish={handleOnRewardSubmit}
-          onValuesChange={forceUpdate}
-        >
-          <fieldset>
-            <br />
-            {/* <legend style={{ textAlign: 'center' }}>Deposit Rewards to Fans</legend> */}
-            <FormBuilder form={form} meta={meta} />
-          </fieldset>
-          <fieldset>
-            <Form.Item
-              wrapperCol={{ span: 16, offset: 8 }}
-              className="form-footer"
-              style={{ textAlign: 'right' }}
-            >
-              {currentAccount ? (
-                <>
+      children:
+        !currentAccount || !userChainIDHex ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            imageStyle={{
+              height: 60,
+            }}
+            description={
+              <Typography.Text style={{ maxWidth: '200px' }}>
+                {`You must connect your Metamask wallet before you can deposit rewards`}
+              </Typography.Text>
+            }
+            style={{
+              padding: '50px',
+              border: '1px solid rgba(0,0,0,0.1)',
+              flex: 1,
+            }}
+          >
+            <ConnectWalletButton ghost type="default" />
+          </Empty>
+        ) : chainIDHex !== userChainIDHex ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            imageStyle={{
+              height: 60,
+            }}
+            description={
+              <Typography.Text style={{ maxWidth: '200px' }}>
+                {`Please switch networks to ${chainIdHexToName(chainIDHex)} to deposit rewards`}
+              </Typography.Text>
+            }
+            style={{
+              padding: '50px',
+              border: '1px solid rgba(0,0,0,0.1)',
+              flex: 1,
+            }}
+          >
+            <Button type="default" onClick={() => switchNetwork(chainIDHex)}>
+              Switch Network
+            </Button>
+          </Empty>
+        ) : (
+          <Form
+            layout="horizontal"
+            form={form}
+            onFinish={handleOnRewardSubmit}
+            onValuesChange={forceUpdate}
+          >
+            <fieldset>
+              <br />
+              {/* <legend style={{ textAlign: 'center' }}>Deposit Rewards to Fans</legend> */}
+              <FormBuilder form={form} meta={meta} />
+            </fieldset>
+            <fieldset>
+              <Form.Item
+                wrapperCol={{ span: 16, offset: 8 }}
+                className="form-footer"
+                style={{ textAlign: 'right' }}
+              >
+                {currentAccount ? (
+                  <>
+                    <$Horizontal justifyContent="flex-start">
+                      <Typography.Text copyable>
+                        <span>💳</span>&nbsp;
+                        <Tooltip title={`Your connected wallet: ${currentAccount}`}>
+                          {shortenAddress(currentAccount)}
+                        </Tooltip>
+                      </Typography.Text>
+                    </$Horizontal>
+                    <br />
+                  </>
+                ) : null}
+                {!currentAccount ? (
+                  <ConnectWalletButton />
+                ) : (
                   <$Horizontal justifyContent="flex-start">
-                    <Typography.Text copyable>
-                      <span>💳</span>&nbsp;
-                      <Tooltip title={`Your connected wallet: ${currentAccount}`}>
-                        {shortenAddress(currentAccount)}
-                      </Tooltip>
-                    </Typography.Text>
+                    <Button htmlType="submit" type="primary" disabled={loading}>
+                      {loading ? 'Loading...' : 'Deposit'}
+                    </Button>
+                    <Button type="text" onClick={resetForm}>
+                      Clear
+                    </Button>
                   </$Horizontal>
-                  <br />
-                </>
-              ) : null}
-              {!currentAccount ? (
-                <ConnectWalletButton />
-              ) : (
-                <$Horizontal justifyContent="flex-start">
-                  <Button htmlType="submit" type="primary" disabled={loading}>
-                    {loading ? 'Loading...' : 'Deposit'}
-                  </Button>
-                  <Button type="text" onClick={resetForm}>
-                    Clear
-                  </Button>
-                </$Horizontal>
-              )}
-            </Form.Item>
-          </fieldset>
-        </Form>
-      ),
+                )}
+              </Form.Item>
+            </fieldset>
+          </Form>
+        ),
     }, // remember to pass the key prop
     {
       label: 'Deposit History',
       key: 'deposit-history',
-      children: (
-        <$Vertical spacing={4}>
+      children:
+        lootboxDeposits.length > 0 ? (
+          <Table
+            dataSource={lootboxDeposits}
+            columns={[
+              {
+                title: 'Token',
+                dataIndex: 'tokenSymbol',
+                key: 'tokenSymbol',
+              },
+              {
+                title: 'Amount',
+                dataIndex: 'tokenAmount',
+                key: 'amount',
+                render: (amount: string, record: Deposit) => {
+                  return `${ethers.utils.formatUnits(amount, record.decimal)} ${
+                    record.tokenSymbol
+                  }`;
+                },
+              },
+              {
+                title: 'Type',
+                render: (_value: any, record: Deposit) => {
+                  return (
+                    <Tooltip
+                      title={
+                        record.tokenAddress === ethers.constants.AddressZero
+                          ? 'Deposit was in Native currency (i.e. Matic or ETH)'
+                          : 'Deposit was in ERC20 token'
+                      }
+                    >
+                      {record.tokenAddress === ethers.constants.AddressZero ? (
+                        <Tag color="success">Native</Tag>
+                      ) : (
+                        <Tag color="processing">ERC20</Tag>
+                      )}
+                    </Tooltip>
+                  );
+                },
+              },
+              {
+                title: 'Address',
+                dataIndex: 'tokenAddress',
+                key: 'tokenAddress',
+                render: (address: string) => {
+                  if (address === ethers.constants.AddressZero) {
+                    return null;
+                  }
+                  return (
+                    <Tooltip title={address}>
+                      <Typography.Text copyable>{shortenAddress(address)}</Typography.Text>
+                    </Tooltip>
+                  );
+                },
+              },
+            ]}
+          />
+        ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              <$Vertical spacing={2}>
-                <Typography.Link
-                  href={`${manifest.microfrontends.webflow.cosmicLootboxPage}?lid=${lootboxID}`}
-                  target="_blank"
-                >
-                  View Deposit History
-                </Typography.Link>
-              </$Vertical>
-            }
+            description={<Typography.Text>No deposits have been made yet</Typography.Text>}
             style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
           />
-        </$Vertical>
-      ),
+        ),
     },
   ];
-
-  if (!currentAccount || !userChainIDHex) {
-    return (
-      <Empty
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-        imageStyle={{
-          height: 60,
-        }}
-        description={
-          <span style={{ maxWidth: '200px' }}>
-            {`You must connect your Metamask wallet before you can deposit rewards`}
-          </span>
-        }
-        style={{
-          padding: '50px',
-          border: '1px solid rgba(0,0,0,0.1)',
-          flex: 1,
-        }}
-      >
-        <ConnectWalletButton ghost type="default" />
-      </Empty>
-    );
-  } else if (chainIDHex !== userChainIDHex) {
-    return (
-      <Empty
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-        imageStyle={{
-          height: 60,
-        }}
-        description={
-          <span style={{ maxWidth: '200px' }}>
-            {`Please switch networks to ${chainIdHexToName(chainIDHex)} to deposit rewards`}
-          </span>
-        }
-        style={{
-          padding: '50px',
-          border: '1px solid rgba(0,0,0,0.1)',
-          flex: 1,
-        }}
-      >
-        <Button type="default" onClick={() => switchNetwork(chainIDHex)}>
-          Switch Network
-        </Button>
-      </Empty>
-    );
-  }
 
   return (
     <Card>

@@ -7,7 +7,7 @@ import type {
 import { Button, Empty, Popconfirm, notification, Spin, Tooltip } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   GET_LOOTBOX,
   GetLootboxFE,
@@ -30,7 +30,7 @@ import DepositRewardForm, {
   CheckAllowancePayload,
   RewardSponsorsPayload,
 } from '@/components/DepositRewardForm';
-import { useLootbox } from '@/hooks/useLootbox';
+import { Deposit, useLootbox } from '@/hooks/useLootbox';
 import { ContractTransaction, ethers } from 'ethers';
 import useERC20 from '@/hooks/useERC20';
 import useWeb3 from '@/hooks/useWeb3';
@@ -65,7 +65,7 @@ const LootboxPage: React.FC = () => {
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const { currentAccount, library, network } = useWeb3();
   const { lootboxFactory } = useLootboxFactory();
-
+  const [deposits, setDeposits] = useState<Deposit[]>([]);
   const isPolling = useRef<boolean>(false);
   const polledLootboxID = useRef<LootboxID | null>(null);
 
@@ -115,9 +115,27 @@ const LootboxPage: React.FC = () => {
     return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
   }, [data]);
 
-  const { depositERC20, depositNative, changeMaxTickets } = useLootbox({
+  const { depositERC20, depositNative, changeMaxTickets, getLootboxDeposits } = useLootbox({
     address: lootbox?.address || undefined,
+    chainIDHex: lootbox?.chainIdHex || undefined,
   });
+
+  const handleDepositLoad = async () => {
+    return getLootboxDeposits()
+      .then((deposits) => {
+        setDeposits(deposits);
+      })
+      .catch((err) => {
+        console.error('error fetching deposits', err);
+      });
+  };
+
+  useEffect(() => {
+    if (lootbox?.address && lootbox?.chainIdHex) {
+      handleDepositLoad();
+    }
+  }, [lootbox?.address, lootbox?.chainIdHex]);
+
   const { getAllowance, approveTokenAmount } = useERC20({
     chainIDHex: lootbox?.chainIdHex || undefined,
   });
@@ -563,10 +581,12 @@ const LootboxPage: React.FC = () => {
         ></Empty>
       ) : (
         <DepositRewardForm
+          lootboxDeposits={deposits}
           chainIDHex={lootbox.chainIdHex}
           onSubmitReward={rewardSponsors}
           onTokenApprove={approveAllowance}
           onCheckAllowance={isWithinAllowance}
+          refetchDeposits={handleDepositLoad}
           lootboxID={(lootboxID || '') as LootboxID}
         />
       )}
