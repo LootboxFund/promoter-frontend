@@ -19,6 +19,11 @@ export interface LootboxFE {
   creatorAddress: Address | null;
   creatorID: UserID;
   runningCompletedClaims: number;
+  tournamentSnapshot: {
+    timestamps: {
+      depositEmailSentAt?: number | null;
+    };
+  } | null;
 }
 
 export interface GetLootboxFE {
@@ -27,7 +32,7 @@ export interface GetLootboxFE {
 }
 
 export const GET_LOOTBOX = gql`
-  query Query($id: ID!) {
+  query Query($id: ID!, $tournamentID: ID) {
     getLootboxByID(id: $id) {
       ... on LootboxResponseSuccess {
         lootbox {
@@ -47,6 +52,11 @@ export const GET_LOOTBOX = gql`
           creatorAddress
           creatorID
           runningCompletedClaims
+          tournamentSnapshot(tournamentID: $tournamentID) {
+            timestamps {
+              depositEmailSentAt
+            }
+          }
         }
       }
       ... on ResponseError {
