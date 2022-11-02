@@ -83,8 +83,8 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
               <div className={styles.fANPRIZE500PHP}>
                 <span className={styles.fANPRIZE500Container}>
                   <p className={styles.fANPRIZE}>
-                    <span className={styles.pHPSpan}>
-                      <span>{`FAN PRIZE `}</span>
+                    <span className={styles.free}>
+                      <span>{`FREE `}</span>
                     </span>
                   </p>
                   <p className={styles.pHP}>
@@ -149,8 +149,8 @@ const StampLootbox_Classic: React.FC<StampLootbox_Classic_Props> = ({
                 {tournamentTitle}
               </span>
               <div className={styles.fANPRIZEDiv}>
-                <span className={styles.pHPSpan}>
-                  <span>{`FAN PRIZE `}</span>
+                <span className={styles.free}>
+                  <span>{`FREE `}</span>
                   <span className={styles.span}>{` `}</span>
                 </span>
               </div>

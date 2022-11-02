@@ -21,12 +21,13 @@ import {
   UpdateAffiliateDetailsResponseSuccess,
   Affiliate,
 } from '../../../api/graphql/generated/types';
-import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics';
+import { $Horizontal, $InfoDescription, $Vertical, $ColumnGap } from '@/components/generics';
 import EditAffiliateForm from '@/components/EditAffiliateForm';
 import { AffiliateID } from '@wormgraph/helpers';
 import { Image } from 'antd';
 import { UPDATE_AFFILIATE } from './api.gql';
 import ConnectWalletButton from '@/components/ConnectWalletButton';
+import SwitchToAdvertiserButton from '@/components/SwitchToAdvertiserButton';
 
 const AccountPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();
@@ -140,11 +141,13 @@ const AccountPage: React.FC = () => {
             <Image width={200} src={affiliate.avatar || ''} />
           </$Horizontal>
           <br />
+          <ConnectWalletButton />
+          <br />
           <$Horizontal spacing={2}>
+            <SwitchToAdvertiserButton />
             <Button onClick={() => loginOut()} type="ghost">
               Logout
             </Button>
-            <ConnectWalletButton />
           </$Horizontal>
         </div>
       )}
