@@ -5,6 +5,7 @@ import type {
 } from '@/api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics';
+import SwitchToAdvertiserButton from '@/components/SwitchToAdvertiserButton';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
@@ -79,9 +80,12 @@ const OffersPage: React.FC = () => {
               onSearch={setSearchString}
               style={{ width: 200 }}
             />
-            <Link to="/marketplace/browse">
-              <Button>Add Offer</Button>
-            </Link>
+            <$Horizontal spacing={2}>
+              <SwitchToAdvertiserButton buttonText="Create Own Offer" />
+              <Link to="/marketplace/browse">
+                <Button type="primary">Add Marketplace Offer</Button>
+              </Link>
+            </$Horizontal>
           </$Horizontal>
           <br />
           {offers.length === 0 && (

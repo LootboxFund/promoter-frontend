@@ -12,9 +12,13 @@ import { manifest } from '../../manifest';
 
 export type SwitchToAdvertiserButtonProps = {
   buttonType?: 'primary' | 'default' | 'link' | 'text' | 'ghost';
+  buttonText?: string;
 };
 
-const SwitchToAdvertiserButton: React.FC<SwitchToAdvertiserButtonProps> = ({ buttonType }) => {
+const SwitchToAdvertiserButton: React.FC<SwitchToAdvertiserButtonProps> = ({
+  buttonType,
+  buttonText,
+}) => {
   const [loading, setLoading] = useState(false);
   const { upgradeToAdvertiser } = useAuth();
   // GET ADVERTISER
@@ -39,13 +43,13 @@ const SwitchToAdvertiserButton: React.FC<SwitchToAdvertiserButtonProps> = ({ but
   };
   return (
     <Popconfirm
-      title="To run ads, you will need to switch to the Advertiser App and login there with the same account. Would you like to open it in a new tab?"
+      title="To create offers and run ads, you will need to switch to the Advertiser App and login there with the same account. Would you like to open it in a new tab?"
       onConfirm={onConfirm}
       okText="Confirm"
       cancelText="Cancel"
     >
       <Button loading={loading} type={buttonType || 'ghost'}>
-        Switch to Advertiser
+        {buttonText || 'Switch to Advertiser'}
       </Button>
     </Popconfirm>
   );
