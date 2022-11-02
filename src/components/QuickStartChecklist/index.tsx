@@ -74,7 +74,6 @@ const data = [
     description: 'Customize a Lootbox using the branding of your favorite team.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/lootbox/create',
     isAdvanced: false,
     key: 'create-first-lootbox',
   },
@@ -237,7 +236,7 @@ const QuickStartChecklist: React.FC<QuickStartChecklistProps> = ({}) => {
                     {item.title}
                   </a>
                 ) : (
-                  <a>{item.title}</a>
+                  <span>{item.title}</span>
                 )
               }
               description={item.description}
