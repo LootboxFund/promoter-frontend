@@ -100,7 +100,7 @@ const EventPage: React.FC = () => {
   const [rateCard, setRateCard] = useState<RateCardModalInput | null>(null);
   const [offerToAddPromoter, setOfferToAddPromoter] = useState<DealConfigTournament | null>(null);
   const [tournament, setTournament] = useState<Tournament>();
-  const [showTableOfContents, setShowTableOfContents] = useState(true);
+  const [showTableOfContents, setShowTableOfContents] = useState(false);
   const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
