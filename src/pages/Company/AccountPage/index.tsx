@@ -109,7 +109,9 @@ const AccountPage: React.FC = () => {
         in the recruitment marketplace for advertisers to give you access to good offers. To learn
         more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3DAcgjp" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );

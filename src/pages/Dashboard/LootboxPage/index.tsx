@@ -302,11 +302,11 @@ const LootboxPage: React.FC = () => {
       });
 
       console.log(`
-  
+
         request.payload.name = ${payload.name}
         request.payload.name.slice(0, 11) = ${payload.name.slice(0, 11)}
         request.payload.maxTickets = ${payload.maxTickets}
-  
+
         `);
 
       notification.info({
@@ -358,8 +358,9 @@ const LootboxPage: React.FC = () => {
   const renderDepositHelpText = () => {
     return (
       <$InfoDescription>
-        Reward your sponsors by depositing native or ERC20 tokens back into this Lootbox. Rewards
-        can only be redeemed if they own an NFT ticket minted from your Lootbox.
+        {`Reward your sponsors by depositing native or ERC20 tokens back into this Lootbox. Rewards
+        can only be redeemed if they own an NFT ticket minted from your Lootbox. `}
+        <a>View Tutorial</a>
       </$InfoDescription>
     );
   };
@@ -461,7 +462,9 @@ const LootboxPage: React.FC = () => {
         {`This is the Lootbox Control Panel for ${lootbox.name}. You can invite team members, invite fans, generate marketing graphics, deposit rewards and view analytics.`}{' '}
         To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3h6epvZ" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );
@@ -529,7 +532,8 @@ const LootboxPage: React.FC = () => {
         </Popconfirm>
       </$Horizontal>
       <$InfoDescription maxWidth={maxWidth}>
-        The team captain is responsible for inviting team members to their Lootbox.
+        {`The team captain is responsible for inviting team members to their Lootbox. `}
+        <a>View Tutorial</a>
       </$InfoDescription>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -565,7 +569,8 @@ const LootboxPage: React.FC = () => {
         </$Horizontal>
       </$Horizontal>
       <$InfoDescription maxWidth={maxWidth}>
-        View who helped distribute tickets for this team.
+        {`View who helped distribute tickets for this team. `}
+        <a>View Tutorial</a>
       </$InfoDescription>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}

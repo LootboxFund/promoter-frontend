@@ -243,8 +243,9 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <Tabs.TabPane tab="Regular Invite" key={ReferralType.Genesis}>
           <h3>Regular Invite</h3>
           <$InfoDescription fontSize="0.8rem">
-            Regular invites will allow fans to redeem 1 ticket each for this event. Event organizers
-            should use regular invites.
+            {`Regular invites will allow fans to redeem 1 ticket each for this event. Event organizers
+            should use regular invites. `}
+            <a>View Tutorial</a>
           </$InfoDescription>
           <$Vertical>
             <label
@@ -292,8 +293,9 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
         <Tabs.TabPane tab="Viral Invite" key={ReferralType.Viral}>
           <h3>Viral Invite</h3>
           <$InfoDescription fontSize="0.8rem">
-            Viral Invites act like regular invites, but will also reward a bonus ticket to the
-            person who shared the invite link. Only fans should use viral invite links.
+            {`Viral Invites act like regular invites, but will also reward a bonus ticket to the
+            person who shared the invite link. Only fans should use viral invite links. `}
+            <a>View Tutorial</a>
           </$InfoDescription>
           <$Vertical>
             <label

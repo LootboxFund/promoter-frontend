@@ -71,7 +71,9 @@ const LootboxCreatePage: React.FC = () => {
         A LOOTBOX is used to print fan tickets and reward them with prizes. You can customize your
         LOOTBOX with cool designs - each ticket is a collectible NFT. To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3DyNQXz" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );

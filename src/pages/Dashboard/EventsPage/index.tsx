@@ -56,7 +56,9 @@ const EventsPage: React.FC = () => {
         {`This page lists all your current and past events. Click the "Create Event" button to make new ones.`}{' '}
         To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3NsSMC4" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );

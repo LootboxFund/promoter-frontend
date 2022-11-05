@@ -380,7 +380,8 @@ const EventPage: React.FC = () => {
             </Space>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
-            Each Lootbox represents a team competing in the event.
+            {`Each Lootbox represents a team competing in the event. `}
+            <a>View Tutorial</a>
           </$InfoDescription>
 
           <LootboxGallery
@@ -405,7 +406,8 @@ const EventPage: React.FC = () => {
             </Button>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
-            {`Lootbox tickets are distributed to fans & audience members.`}
+            {`Lootbox tickets are distributed to fans & audience members. `}
+            <a>View Tutorial</a>
           </$InfoDescription>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -426,7 +428,8 @@ const EventPage: React.FC = () => {
             </Popconfirm>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
-            {`Earn revenue from the video ads played on Lootbox tickets.`}
+            {`Earn revenue from the video ads played on Lootbox tickets. `}
+            <a>View Tutorial</a>
           </$InfoDescription>
           {!tournament.dealConfigs || tournament.dealConfigs.length === 0 ? (
             <Empty

@@ -829,7 +829,14 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                     <>
                       <Alert
                         type="success"
-                        message="Ready to launch your LOOTBOX? There will a one-time gas fee that LOOTBOX does not control or receive."
+                        message={
+                          <span>
+                            {
+                              'Ready to launch your LOOTBOX? There will a one-time gas fee that LOOTBOX does not control or receive. '
+                            }
+                            <a>View Tutorial</a>
+                          </span>
+                        }
                       />
                       <br />
                     </>

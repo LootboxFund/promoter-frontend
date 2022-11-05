@@ -142,7 +142,9 @@ const RecruitPromotersPage: React.FC = () => {
         tickets. Recruiting a promoter gives you to option to share revenue with them. To learn
         more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3Uiu6hM" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );
