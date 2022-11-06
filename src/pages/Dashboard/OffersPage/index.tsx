@@ -124,7 +124,10 @@ const OffersPage: React.FC = () => {
                       <img alt="example" src={offer.image || ''} className={styles.cardImage} />
                     }
                   >
-                    <Meta title={offer.title} description={`$${minEarn}-$${maxEarn} Each`} />
+                    <Meta
+                      title={offer.title}
+                      description={`$${minEarn.toFixed(2)}-$${maxEarn.toFixed(2)} Each`}
+                    />
                   </Card>
                 </Link>
               );

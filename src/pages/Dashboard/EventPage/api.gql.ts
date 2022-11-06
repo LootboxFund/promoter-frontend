@@ -26,6 +26,7 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
             advertiserID
             advertiserName
             advertiserAvatar
+            strategy
             adSets {
               id
               name

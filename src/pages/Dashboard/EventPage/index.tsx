@@ -74,6 +74,8 @@ import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { manifest } from '@/manifest';
 import LootboxGallery from '@/components/LootboxGallery';
+import AirdropControlPanel from '@/components/AirdropControlPanel';
+import { OfferStrategyType } from '../../../api/graphql/generated/types';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -459,7 +461,11 @@ const EventPage: React.FC = () => {
             );
 
             return (
-              <Card id={`offer-${dealConfig.offerID}`} key={dealConfig.offerID}>
+              <Card
+                id={`offer-${dealConfig.offerID}`}
+                key={dealConfig.offerID}
+                style={{ marginBottom: '20px' }}
+              >
                 <$Horizontal justifyContent="space-between">
                   <$Vertical style={{ marginBottom: '30px' }}>
                     <h3>{dealConfig.offerName}</h3>
@@ -685,6 +691,16 @@ const EventPage: React.FC = () => {
                         })}
                     </div>
                   </Tabs.TabPane>
+                  {dealConfig.strategy === OfferStrategyType.Airdrop && (
+                    <Tabs.TabPane tab="Airdrop" key="3">
+                      {eventID && (
+                        <AirdropControlPanel
+                          tournamentID={eventID as TournamentID}
+                          offerID={dealConfig.offerID as OfferID}
+                        />
+                      )}
+                    </Tabs.TabPane>
+                  )}
                 </Tabs>
               </Card>
             );
