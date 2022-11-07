@@ -4,6 +4,24 @@ export const LIST_POTENTIAL_AIRDROP_CLAIMERS = gql`
   query ListPotentialAirdropClaimers($payload: ListPotentialAirdropClaimersPayload!) {
     listPotentialAirdropClaimers(payload: $payload) {
       ... on ListPotentialAirdropClaimersResponseSuccess {
+        offer {
+          id
+          title
+          description
+          image
+          advertiserID
+          airdropMetadata {
+            oneLiner
+            value
+            instructionsLink
+            questionOne
+            questionOneType
+            questionTwo
+            questionTwoType
+            excludedOffers
+            batchCount
+          }
+        }
         potentialClaimers {
           userID
           username
