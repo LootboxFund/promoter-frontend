@@ -8,7 +8,6 @@ import { useQuery } from '@apollo/client';
 import {
   Address,
   AdvertiserID,
-  AirdropQuestionFieldType,
   LootboxID,
   OfferID,
   TournamentID,
@@ -304,7 +303,7 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
       </div>
     );
   }
-
+  console.log(`offer = `, offer);
   return (
     <div style={{ width: '100%', padding: '5px' }}>
       <$Horizontal justifyContent="space-between">
@@ -377,42 +376,49 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
           })}
         />
       </$Vertical>
-      <Modal
-        title="Deploy an Airdrop"
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        footer={[
-          <Button key="cancel" onClick={() => setIsModalOpen(false)}>
-            Cancel
-          </Button>,
-        ]}
-      >
-        <AirdropDeployModal
-          offerID={offerID}
-          tournamentID={tournamentID}
-          title={offer?.title || ''}
-          oneLiner={offer?.airdropMetadata?.oneLiner || ''}
-          value={offer?.airdropMetadata?.value || ''}
-          instructionsLink={offer?.airdropMetadata?.instructionsLink || ''}
-          questionFields={[
-            {
-              question: offer?.airdropMetadata?.questionOne || '',
-              type:
-                (offer?.airdropMetadata?.questionOneType as AirdropQuestionFieldType.Text) ||
-                AirdropQuestionFieldType.Text,
-            },
-            {
-              question: offer?.airdropMetadata?.questionTwo || '',
-              type:
-                (offer?.airdropMetadata?.questionTwoType as AirdropQuestionFieldType.Text) ||
-                AirdropQuestionFieldType.Text,
-            },
+      {offer && (
+        <Modal
+          title="Deploy an Airdrop Batch"
+          open={isModalOpen}
+          onCancel={() => setIsModalOpen(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </Button>,
           ]}
-          batchNumber={(offer?.airdropMetadata?.batchCount || 0) + 1}
-          toggleModal={(bool: boolean) => setIsModalOpen(bool)}
-          selectedClaimers={selectedUsers}
-        />
-      </Modal>
+          bodyStyle={{
+            maxWidth: '800px',
+            padding: '40px',
+          }}
+          width="800px"
+        >
+          <AirdropDeployModal
+            offerID={offerID}
+            tournamentID={tournamentID}
+            title={offer?.title || ''}
+            oneLiner={offer?.airdropMetadata?.oneLiner || ''}
+            value={offer?.airdropMetadata?.value || ''}
+            instructionsLink={offer?.airdropMetadata?.instructionsLink || ''}
+            // questionFields={[
+            //   {
+            //     question: offer?.airdropMetadata?.questionOne || '',
+            //     type:
+            //       (offer?.airdropMetadata?.questionOneType as AirdropQuestionFieldType.Text) ||
+            //       AirdropQuestionFieldType.Text,
+            //   },
+            //   {
+            //     question: offer?.airdropMetadata?.questionTwo || '',
+            //     type:
+            //       (offer?.airdropMetadata?.questionTwoType as AirdropQuestionFieldType.Text) ||
+            //       AirdropQuestionFieldType.Text,
+            //   },
+            // ]}
+            batchNumber={(offer?.airdropMetadata?.batchCount || 0) + 1}
+            toggleModal={(bool: boolean) => setIsModalOpen(bool)}
+            selectedClaimers={selectedUsers}
+          />
+        </Modal>
+      )}
     </div>
   );
 };

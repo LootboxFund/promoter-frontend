@@ -14,10 +14,10 @@ export const LIST_POTENTIAL_AIRDROP_CLAIMERS = gql`
             oneLiner
             value
             instructionsLink
-            questionOne
-            questionOneType
-            questionTwo
-            questionTwoType
+            questions {
+              question
+              type
+            }
             excludedOffers
             batchCount
           }
