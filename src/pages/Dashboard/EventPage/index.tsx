@@ -638,6 +638,7 @@ const EventPage: React.FC = () => {
                                     if (adSet.ad) {
                                       setSimulatedAd({
                                         title: `Offer "${dealConfig.offerName}" - Ad Set "${adSet.name}"`,
+                                        // @ts-ignore
                                         placement: adSet.placement,
                                         creative: {
                                           themeColor: adSet.ad.themeColor,

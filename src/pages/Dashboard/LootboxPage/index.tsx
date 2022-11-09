@@ -319,6 +319,8 @@ const LootboxPage: React.FC = () => {
 
       console.log(`
 
+      lootboxFactory.address = ${lootboxFactory.address}
+
       await lootboxFactory.createLootbox(
         payload.name = ${payload.name},
         payload.name.slice(0, 11) = ${payload.name.slice(0, 11)},
