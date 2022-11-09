@@ -317,6 +317,18 @@ const LootboxPage: React.FC = () => {
         duration: null,
       });
 
+      console.log(`
+
+      await lootboxFactory.createLootbox(
+        payload.name = ${payload.name},
+        payload.name.slice(0, 11) = ${payload.name.slice(0, 11)},
+        payload.maxTickets = ${payload.maxTickets},
+        lootboxID = ${lootboxID},
+        nonce = ${nonce},
+      );
+
+
+      `);
       const res: ContractTransaction = await lootboxFactory.createLootbox(
         payload.name,
         payload.name.slice(0, 11),
@@ -480,7 +492,7 @@ const LootboxPage: React.FC = () => {
 
   const maxWidth = '1000px';
   const doesUserHaveEditPermission = user?.id && lootbox.creatorID === user.id;
-
+  console.log(`lootbox = `, lootbox);
   return (
     <div style={{ maxWidth }}>
       <BreadCrumbDynamic breadLine={breadLine} />
@@ -514,6 +526,7 @@ const LootboxPage: React.FC = () => {
             chainIDHex: lootbox.chainIdHex,
             runningCompletedClaims: lootbox.runningCompletedClaims,
           }}
+          airdropMetadata={lootbox.airdropMetadata}
           mode={doesUserHaveEditPermission ? 'view-edit' : 'view-only'}
           onSubmitEdit={editLootbox}
           onCreateWeb3={createLootboxWeb3}

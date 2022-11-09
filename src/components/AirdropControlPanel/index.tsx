@@ -387,10 +387,10 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             </Button>,
           ]}
           bodyStyle={{
-            maxWidth: '800px',
+            maxWidth: '900px',
             padding: '40px',
           }}
-          width="800px"
+          width="900px"
         >
           <AirdropDeployModal
             offerID={offerID}
@@ -399,23 +399,13 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             oneLiner={offer?.airdropMetadata?.oneLiner || ''}
             value={offer?.airdropMetadata?.value || ''}
             instructionsLink={offer?.airdropMetadata?.instructionsLink || ''}
-            // questionFields={[
-            //   {
-            //     question: offer?.airdropMetadata?.questionOne || '',
-            //     type:
-            //       (offer?.airdropMetadata?.questionOneType as AirdropQuestionFieldType.Text) ||
-            //       AirdropQuestionFieldType.Text,
-            //   },
-            //   {
-            //     question: offer?.airdropMetadata?.questionTwo || '',
-            //     type:
-            //       (offer?.airdropMetadata?.questionTwoType as AirdropQuestionFieldType.Text) ||
-            //       AirdropQuestionFieldType.Text,
-            //   },
-            // ]}
             batchNumber={(offer?.airdropMetadata?.batchCount || 0) + 1}
             toggleModal={(bool: boolean) => setIsModalOpen(bool)}
             selectedClaimers={selectedUsers}
+            exitClear={() => {
+              setIsModalOpen(false);
+              setSelectedUsers([]);
+            }}
           />
         </Modal>
       )}

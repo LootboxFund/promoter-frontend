@@ -33,11 +33,12 @@ import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { useWeb3 } from '@/hooks/useWeb3';
 import LootboxPreview from '../LootboxPreview';
 import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
-import { LootboxStatus } from '@/api/graphql/generated/types';
+import { LootboxAirdropMetadata, LootboxStatus } from '@/api/graphql/generated/types';
 import { shortenAddress } from '@/lib/address';
 import { InfoCircleTwoTone } from '@ant-design/icons';
 import { ContractTransaction } from 'ethers';
 import InputMaxTickets, { TargetMaxTicketsWidgetProps } from './InputMaxTickets';
+import { Link } from '@umijs/max';
 
 // const DEFAULT_THEME_COLOR = '#00B0FB'
 const DEFAULT_THEME_COLOR = '#000000';
@@ -92,6 +93,7 @@ interface OnCreateLootboxWeb3Response {
 
 export type CreateLootboxFormProps = {
   lootbox?: LootboxBody;
+  airdropMetadata?: LootboxAirdropMetadata;
   magicLinkParams?: MagicLinkParams;
   onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
   onSubmitEdit?: (payload: EditLootboxRequest) => Promise<void>;
@@ -118,6 +120,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   onSubmitCreate,
   onSubmitEdit,
   onCreateWeb3,
+  airdropMetadata,
   mode,
 }) => {
   const {
@@ -285,7 +288,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             },
           });
         }
-
+        console.log(`deploy lootbox payload = `, payload);
         const { tx } = await onCreateWeb3(payload);
 
         if (!lockedToEdit) {
@@ -488,29 +491,92 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 viewWidget: () => {
                   if (lootboxInfo?.status === LootboxStatus.SoldOut) {
                     return (
-                      <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
-                        <Tag color="warning">Sold Out</Tag>
-                      </Tooltip>
+                      <$Horizontal>
+                        <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
+                          <Tag color="warning">Sold Out</Tag>
+                        </Tooltip>
+                        {airdropMetadata && <Tag color="processing">Airdrop</Tag>}
+                      </$Horizontal>
                     );
                   }
 
                   if (lootboxInfo?.status === LootboxStatus.Disabled) {
                     return (
-                      <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
-                        <Tag color="error">Disabled</Tag>
-                      </Tooltip>
+                      <$Horizontal>
+                        <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
+                          <Tag color="error">Disabled</Tag>
+                        </Tooltip>
+                        {airdropMetadata && <Tag color="processing">Airdrop</Tag>}
+                      </$Horizontal>
                     );
                   }
 
                   return (
-                    <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
-                      <Tag color="success">Active</Tag>
-                    </Tooltip>
+                    <$Horizontal>
+                      <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
+                        <Tag color="success">Active</Tag>
+                      </Tooltip>
+                      {airdropMetadata && <Tag color="processing">Airdrop</Tag>}
+                    </$Horizontal>
                   );
                 },
               },
             ]
           : []),
+      ],
+    };
+
+    return meta;
+  };
+  console.log(`airdropMetadata`, airdropMetadata);
+  const metaAirdrop = () => {
+    if (!airdropMetadata) {
+      return {
+        columns: 1,
+        disabled: true,
+        fields: [],
+      };
+    }
+    const meta = {
+      columns: 1,
+      disabled: true,
+      fields: [
+        {
+          key: 'title',
+          label: 'Batch Name',
+          tooltip: 'The internal name of the Airdrop Batch.',
+          viewWidget: () => <span>{airdropMetadata.title}</span>,
+        },
+        {
+          key: 'value',
+          label: 'Reward Value',
+          tooltip: 'The advertised value of the airdrop reward',
+          viewWidget: () => <span>{airdropMetadata.value}</span>,
+        },
+        {
+          key: 'oneLiner',
+          label: 'One Liner',
+          tooltip: 'The one line description shown to users',
+          viewWidget: () => <span>{airdropMetadata.oneLiner}</span>,
+        },
+        {
+          key: 'instructionsLink',
+          label: 'Instructions',
+          tooltip: 'The link to the instructions on how to claim this Airdrop',
+          viewWidget: () => (
+            <a href={airdropMetadata.instructionsLink || ''} target="_blank" rel="noreferrer">
+              {airdropMetadata.instructionsLink}
+            </a>
+          ),
+        },
+        {
+          key: 'viewOffer',
+          label: 'Origin',
+          tooltip: 'The original offer that this Airdrop is from',
+          viewWidget: () => (
+            <Link to={`/dashboard/offers/id/${airdropMetadata.offerID}`}>View Offer</Link>
+          ),
+        },
       ],
     };
 
@@ -790,6 +856,14 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 </Steps>
                 <br />
               </div>
+            )}
+
+            {viewMode && airdropMetadata && (
+              <fieldset key={`step-${currentStep}-airdrop`}>
+                <legend>Airdrop Details</legend>
+                <FormBuilder form={form} meta={metaAirdrop()} viewMode={true} />
+                <br />
+              </fieldset>
             )}
 
             {wizardMeta.steps[currentStep].subSteps.map((s, idx) => {
