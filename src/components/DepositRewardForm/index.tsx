@@ -30,6 +30,7 @@ import useERC20 from '@/hooks/useERC20';
 import { Deposit } from '@/hooks/useLootbox';
 import { NotificationOutlined } from '@ant-design/icons';
 import { LootboxFE } from '@/pages/Dashboard/LootboxPage/api.gql';
+import { useAuth } from '@/api/firebase/useAuth';
 
 type RewardType = 'Native' | 'ERC20';
 
@@ -67,6 +68,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   refetchDeposits,
   sendEmails,
 }) => {
+  const { user } = useAuth();
   const { currentAccount, library, network, switchNetwork } = useWeb3();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -359,8 +361,9 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   };
 
   const meta = getMeta();
-  // TODO: make this dynamic
-  const isUserTournamentHost = false; // TEMP: disabled for now
+  // Determines if user can send deposit email out
+  const isUserTournamentHost =
+    user?.id && lootbox?.tournamentSnapshot && user.id === lootbox.tournamentSnapshot.creatorID;
 
   const tabItems = [
     {
