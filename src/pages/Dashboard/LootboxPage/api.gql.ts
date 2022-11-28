@@ -20,6 +20,7 @@ export interface LootboxFE {
   creatorID: UserID;
   runningCompletedClaims: number;
   tournamentSnapshot: {
+    creatorID: UserID;
     timestamps: {
       depositEmailSentAt?: number | null;
     };
@@ -53,6 +54,7 @@ export const GET_LOOTBOX = gql`
           creatorID
           runningCompletedClaims
           tournamentSnapshot(tournamentID: $tournamentID) {
+            creatorID
             timestamps {
               depositEmailSentAt
             }
