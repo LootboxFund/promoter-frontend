@@ -482,7 +482,7 @@ const EventPage: React.FC = () => {
                         Add Promoter
                       </Button>
                     </$Horizontal>
-                    {uniqueActivations.map((uniqueActivationID) => {
+                    {uniqueActivations.map((uniqueActivationID: string) => {
                       const uniqueActivation = dealConfig.rateQuoteConfigs.find(
                         (rqc) => rqc.activationID === uniqueActivationID,
                       );
@@ -633,7 +633,7 @@ const EventPage: React.FC = () => {
                                 <Button
                                   key={`${dealConfig.offerID}-${adSet.id}-view`}
                                   type="primary"
-                                  onClick={(e) => {
+                                  onClick={(e: any) => {
                                     e.preventDefault();
                                     if (adSet.ad) {
                                       setSimulatedAd({
@@ -657,7 +657,7 @@ const EventPage: React.FC = () => {
                                 <Popconfirm
                                   key={`${dealConfig.offerID}-${adSet.id}-button`}
                                   title="Are you sure to remove this Ad from your Event?"
-                                  onConfirm={async (e) => {
+                                  onConfirm={async (e: any) => {
                                     console.log(`eventID = `, eventID);
                                     if (eventID) {
                                       isLoading = true;
@@ -677,7 +677,7 @@ const EventPage: React.FC = () => {
                                   cancelText="Cancel"
                                 >
                                   <Button
-                                    onClick={(e) => e.preventDefault()}
+                                    onClick={(e: any) => e.preventDefault()}
                                     loading={isLoading}
                                     style={{ width: '85%' }}
                                   >
