@@ -288,6 +288,18 @@ const LootboxPage: React.FC = () => {
       const nonce = generateCreateLootboxNonce(); // Used to find the event in the backend
 
       const blockNum = await library.getBlockNumber();
+      // Start the indexer
+      await startLootboxCreatedListener({
+        listenAddress: lootboxFactory.address as Address,
+        fromBlock: blockNum,
+        chainIdHex: targetChain.chainIdHex,
+        payload: {
+          /** Used to find the correct lootbox */
+          nonce: nonce,
+          lootboxID: lootboxID as LootboxID,
+          symbol: payload.name.slice(0, 11),
+        },
+      });
 
       console.log(`
   
@@ -322,19 +334,6 @@ const LootboxPage: React.FC = () => {
         placement: 'top',
         icon: <Spin />,
         duration: null,
-      });
-
-      // Start the indexer
-      startLootboxCreatedListener({
-        listenAddress: lootboxFactory.address as Address,
-        fromBlock: blockNum,
-        chainIdHex: targetChain.chainIdHex,
-        payload: {
-          /** Used to find the correct lootbox */
-          nonce: nonce,
-          lootboxID: lootboxID as LootboxID,
-          symbol: payload.name.slice(0, 11),
-        },
       });
 
       const wasSuccess = await awaitLootboxCreated(nonce);
