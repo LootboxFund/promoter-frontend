@@ -10,7 +10,7 @@ import {
   CreateLootboxResponseFE,
   CREATE_LOOTBOX,
 } from '@/pages/Dashboard/LootboxCreatePage/api.gql';
-import { MutationCreateLootboxArgs } from '@/api/graphql/generated/types';
+import { LootboxType, MutationCreateLootboxArgs } from '@/api/graphql/generated/types';
 import AirdropCreateLootbox from '../AirdropCreateLootbox';
 import { Link } from '@umijs/max';
 import { GET_TOURNAMENT_LOOTBOXES } from '@/pages/Dashboard/EventPage/api.gql';
@@ -166,6 +166,7 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
           maxTickets: request.payload.maxTickets,
           themeColor: request.payload.themeColor,
           tournamentID: tournamentID,
+          type: LootboxType.Airdrop,
           airdropMetadata: {
             batch: batchNumber,
             offerID: offerID,
@@ -174,6 +175,7 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
             value: request.payload.nftBountyValue,
             instructionsLink: airdropMetadata.instructionsLink,
             tournamentID: tournamentID,
+            claimers: selectedClaimers,
           },
         },
       },

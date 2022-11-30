@@ -141,7 +141,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         duration: 0,
       });
       try {
-        await onSubmitCreate(payload);
+        const { lootboxID } = await onSubmitCreate(payload);
+        console.log(`Look at this lootbox = ${lootboxID}`);
       } catch (e: any) {
         if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
           return;
