@@ -74,6 +74,7 @@ import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { manifest } from '@/manifest';
 import LootboxGallery from '@/components/LootboxGallery';
+import EventAnalytics from '@/components/EventAnalytics';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -407,11 +408,9 @@ const EventPage: React.FC = () => {
           <$InfoDescription maxWidth={maxWidth}>
             {`Lootbox tickets are distributed to fans & audience members.`}
           </$InfoDescription>
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="Analytics Coming Soon"
-            style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
-          />
+          <Card>
+            <EventAnalytics eventID={tournament.id as TournamentID} />
+          </Card>
           <br />
           <br />
           <$Horizontal justifyContent="space-between">
