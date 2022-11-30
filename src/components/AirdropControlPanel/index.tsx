@@ -364,20 +364,22 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
         <Table
           // @ts-ignore
           columns={columns}
-          dataSource={matchingUsers.map((potentialClaimer) => {
-            return {
-              userID: potentialClaimer.userID,
-              username: potentialClaimer.username,
-              avatar: potentialClaimer.avatar,
-              tournamentID: potentialClaimer.tournamentID,
-              advertiserID: potentialClaimer.advertiserID,
-              offerID: potentialClaimer.offerID,
-              status: potentialClaimer.status,
-              lootboxID: potentialClaimer.lootboxID,
-              lootboxAddress: potentialClaimer.lootboxAddress,
-              batchAlias: potentialClaimer.batchAlias,
-            };
-          })}
+          dataSource={matchingUsers
+            .sort((a, b) => (a.status ? 1 : -1))
+            .map((potentialClaimer) => {
+              return {
+                userID: potentialClaimer.userID,
+                username: potentialClaimer.username,
+                avatar: potentialClaimer.avatar,
+                tournamentID: potentialClaimer.tournamentID,
+                advertiserID: potentialClaimer.advertiserID,
+                offerID: potentialClaimer.offerID,
+                status: potentialClaimer.status,
+                lootboxID: potentialClaimer.lootboxID,
+                lootboxAddress: potentialClaimer.lootboxAddress,
+                batchAlias: potentialClaimer.batchAlias,
+              };
+            })}
         />
       </$Vertical>
       {offer && (
