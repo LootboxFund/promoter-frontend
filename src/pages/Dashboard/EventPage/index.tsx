@@ -54,6 +54,7 @@ import {
   Table,
   Tabs,
   Tooltip,
+  Typography,
 } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import type { ColumnsType } from 'antd/lib/table';
@@ -600,6 +601,20 @@ const EventPage: React.FC = () => {
                         />
                       );
                     })}
+                    {dealConfig.rateQuoteConfigs.length === 0 && (
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        imageStyle={{
+                          height: 60,
+                        }}
+                        description="This Offer has no activations in it. The advertiser may choose to add some."
+                        style={{
+                          padding: '50px',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          flex: 1,
+                        }}
+                      />
+                    )}
                   </Tabs.TabPane>
                   <Tabs.TabPane tab="Ad Placements" key="2">
                     <$Horizontal justifyContent="flex-end">

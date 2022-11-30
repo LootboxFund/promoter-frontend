@@ -109,7 +109,9 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
   const addRemoveAllUsersToSelected = (included: boolean) => {
     if (included) {
       setSelectAllUsers(true);
-      setSelectedUsers(potentialClaimers.map((user) => user.userID as UserID));
+      setSelectedUsers(
+        potentialClaimers.filter((u) => !u.status).map((user) => user.userID as UserID),
+      );
     } else {
       setSelectAllUsers(false);
       setSelectedUsers([]);
@@ -127,16 +129,17 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
         ),
         dataIndex: 'tokenSymbol',
         key: 'tokenSymbol',
-        render: (_, record) => (
-          <Checkbox
-            checked={selectedUsers.includes(record.userID)}
-            onClick={(e: any) => {
-              console.log(record);
-              console.log(e.target.checked);
-              addRemoveUserToSelected(record.userID, e.target.checked);
-            }}
-          />
-        ),
+        render: (_, record) =>
+          record.status ? null : (
+            <Checkbox
+              checked={selectedUsers.includes(record.userID)}
+              onClick={(e: any) => {
+                console.log(record);
+                console.log(e.target.checked);
+                addRemoveUserToSelected(record.userID, e.target.checked);
+              }}
+            />
+          ),
       },
       {
         title: 'Username',
@@ -249,7 +252,8 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             return (
               <Link
                 key={`${record.lootboxID}-${record.userID}`}
-                to={`/dashboard/stamp/lootbox/id/${record.lootboxID}?tid=${tournamentID}`}
+                to={`/dashboard/lootbox/id/${record.lootboxID}?tid=${tournamentID}`}
+                target="_blank"
               >
                 {record.batchAlias}
               </Link>
@@ -303,7 +307,7 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
       </div>
     );
   }
-  console.log(`offer = `, offer);
+
   return (
     <div style={{ width: '100%', padding: '5px' }}>
       <$Horizontal justifyContent="space-between">
@@ -317,7 +321,7 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             <a>View Tutorial</a>
           </$InfoDescription>
         </$Vertical>
-        <Button>Download CSV</Button>
+        <Button disabled>{`Download CSV (coming soon)`}</Button>
       </$Horizontal>
       <$Vertical>
         <$Horizontal justifyContent="space-between">
