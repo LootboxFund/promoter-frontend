@@ -374,7 +374,9 @@ const LootboxPage: React.FC = () => {
       <$InfoDescription>
         {`Reward your sponsors by depositing native or ERC20 tokens back into this Lootbox. Rewards
         can only be redeemed if they own an NFT ticket minted from your Lootbox. `}
-        <a>View Tutorial</a>
+        <a href="https://lootbox.fyi/3GDQqyQ" target="_blank" rel="noreferrer">
+          View Tutorial
+        </a>
       </$InfoDescription>
     );
   };
@@ -539,7 +541,15 @@ const LootboxPage: React.FC = () => {
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Team Members</h2>
         <Popconfirm
-          title="Invite a team member to this LOOTBOX by sending them a magic invite link. They will automatically be onboarded by clicking the link."
+          title={
+            <span>
+              Invite a team member to this LOOTBOX by sending them a magic invite link. They will
+              automatically be onboarded by clicking the link.{' '}
+              <a href="https://lootbox.fyi/3AH1sPV" target="_blank" rel="noreferrer">
+                Watch Tutorial.
+              </a>
+            </span>
+          }
           onConfirm={() => console.log('confirm')}
           okText="Copy Invite Link"
         >
@@ -548,7 +558,9 @@ const LootboxPage: React.FC = () => {
       </$Horizontal>
       <$InfoDescription maxWidth={maxWidth}>
         {`The team captain is responsible for inviting team members to their Lootbox. `}
-        <a>View Tutorial</a>
+        <a href="https://lootbox.fyi/3u6tK2K" target="_blank" rel="noreferrer">
+          View Tutorial
+        </a>
       </$InfoDescription>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -563,7 +575,15 @@ const LootboxPage: React.FC = () => {
         style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
       >
         <Popconfirm
-          title="Invite a team member to this LOOTBOX by sending them a magic invite link. They will automatically be onboarded by clicking the link."
+          title={
+            <span>
+              Invite a team member to this LOOTBOX by sending them a magic invite link. They will
+              automatically be onboarded by clicking the link.{' '}
+              <a href="https://lootbox.fyi/3AH1sPV" target="_blank" rel="noreferrer">
+                Watch Tutorial.
+              </a>
+            </span>
+          }
           onConfirm={() => console.log('confirm')}
           okText="Copy Invite Link"
         >
@@ -585,7 +605,9 @@ const LootboxPage: React.FC = () => {
       </$Horizontal>
       <$InfoDescription maxWidth={maxWidth}>
         {`View who helped distribute tickets for this team. `}
-        <a>View Tutorial</a>
+        <a href="https://lootbox.fyi/3VyEhzg" target="_blank" rel="noreferrer">
+          View Tutorial
+        </a>
       </$InfoDescription>
       <Empty
         image={Empty.PRESENTED_IMAGE_SIMPLE}

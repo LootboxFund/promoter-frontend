@@ -318,7 +318,9 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             {
               'Airdrop rewards to fans who have claimed tickets from your event. Only showing users deemed eligible by the advertiser. '
             }
-            <a>View Tutorial</a>
+            <a href="https://google.com" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
         </$Vertical>
         <Button disabled>{`Download CSV (coming soon)`}</Button>

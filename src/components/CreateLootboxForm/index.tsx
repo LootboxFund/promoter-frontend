@@ -908,7 +908,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                             {
                               'Ready to launch your LOOTBOX? There will a one-time gas fee that LOOTBOX does not control or receive. '
                             }
-                            <a>View Tutorial</a>
+                            <a href="https://google.com" target="_blank" rel="noreferrer">
+                              View Tutorial
+                            </a>
                           </span>
                         }
                       />

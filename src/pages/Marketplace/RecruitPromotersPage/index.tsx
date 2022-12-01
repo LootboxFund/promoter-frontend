@@ -108,7 +108,14 @@ const RecruitPromotersPage: React.FC = () => {
         return (
           <Space size="middle">
             <Popconfirm
-              title={`To invite ${record.name} to your Event, copy their Promoter ID "${record.id}" and add them from your Event Page. Make sure you message them on social media to coordinate.`}
+              title={
+                <span>
+                  {`To invite ${record.name} to your Event, copy their Promoter ID "${record.id}" and add them from your Event Page. Make sure you message them on social media to coordinate. `}
+                  <a href="https://lootbox.fyi/3Vk57vC" target="_blank" rel="noreferrer">
+                    View Tutorial
+                  </a>
+                </span>
+              }
               onConfirm={() => {
                 navigator.clipboard.writeText(record.id);
                 message.success('Copied Promoter ID to clipboard');
@@ -122,7 +129,9 @@ const RecruitPromotersPage: React.FC = () => {
               cancelText={record.website ? 'Go To Socials' : 'Cancel'}
               style={{ maxWidth: '500px' }}
             >
-              <a>Recruit Promoter</a>
+              <a href="https://google.com" target="_blank" rel="noreferrer">
+                Recruit Promoter
+              </a>
             </Popconfirm>
             {record.website && (
               <a href={record.website} target="_blank" rel="noreferrer">
@@ -142,7 +151,7 @@ const RecruitPromotersPage: React.FC = () => {
         tickets. Recruiting a promoter gives you to option to share revenue with them. To learn
         more,{' '}
         <span>
-          <a href="https://lootbox.fyi/3Uiu6hM" target="_blank" rel="noreferrer">
+          <a href="https://lootbox.fyi/3u6SPL2" target="_blank" rel="noreferrer">
             click here for a tutorial.
           </a>
         </span>

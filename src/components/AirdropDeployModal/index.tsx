@@ -255,7 +255,9 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
           <$Vertical>
             <b>Step 3 - Deposit Rewards</b>
             <$InfoDescription fontSize="0.8rem" marginBottom="0px">
-              Lorem ipsum solar descartes
+              Your Airdrop has been deployed and the fans have received their ticket claims. Now you
+              must deposit the actual rewards into the Lootbox and send the email blast. Click the
+              below button to view your Airdrop Lootbox.
             </$InfoDescription>
             <br />
             <div

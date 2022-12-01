@@ -58,7 +58,9 @@ const OffersPage: React.FC = () => {
         an advertisers product or service. To get more,{' '}
         <Link to="/marketplace/browse">visit the marketplace.</Link> To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3EJQmLb" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );

@@ -61,7 +61,7 @@ const EventCreatePage: React.FC = () => {
         EventBrite, CommunityGaming or Twitch. LOOTBOX is compatible with all of them. To learn
         more,{' '}
         <span>
-          <a href="https://lootbox.fyi/3DweKiU" target="_blank" rel="noreferrer">
+          <a href="https://lootbox.fyi/3NsSMC4" target="_blank" rel="noreferrer">
             click here for a tutorial.
           </a>
         </span>

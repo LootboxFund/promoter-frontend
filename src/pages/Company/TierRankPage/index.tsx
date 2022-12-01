@@ -259,7 +259,9 @@ const TierRankPage: React.FC = () => {
         prevent bad actors from tainting the marketplace. Trust is earned by doing a good job. To
         learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3hgoCG2" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );

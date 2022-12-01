@@ -284,7 +284,9 @@ const EventPage: React.FC = () => {
         }". You can manage partners, revenue & Lootboxes as well as view analytics.`}{' '}
         To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3EXeo6W" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );
@@ -384,7 +386,9 @@ const EventPage: React.FC = () => {
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
             {`Each Lootbox represents a team competing in the event. `}
-            <a>View Tutorial</a>
+            <a href="https://lootbox.fyi/3tSzDAy" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
 
           <LootboxGallery
@@ -410,7 +414,9 @@ const EventPage: React.FC = () => {
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
             {`Lootbox tickets are distributed to fans & audience members. `}
-            <a>View Tutorial</a>
+            <a href="https://lootbox.fyi/3tWupE0" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -432,7 +438,9 @@ const EventPage: React.FC = () => {
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
             {`Earn revenue from the video ads played on Lootbox tickets. `}
-            <a>View Tutorial</a>
+            <a href="https://lootbox.fyi/3Xw9fdp" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
           {!tournament.dealConfigs || tournament.dealConfigs.length === 0 ? (
             <Empty
@@ -619,7 +627,14 @@ const EventPage: React.FC = () => {
                   <Tabs.TabPane tab="Ad Placements" key="2">
                     <$Horizontal justifyContent="flex-end">
                       <Popconfirm
-                        title="Go to the Offer Page to include new Ad Sets into this Event"
+                        title={
+                          <span>
+                            Go to the Offer Page to include new Ad Sets into this Event. Or{' '}
+                            <a href="https://lootbox.fyi/3EJQmLb" target="_blank" rel="noreferrer">
+                              Watch Tutorial.
+                            </a>
+                          </span>
+                        }
                         onConfirm={() => history.push(`/dashboard/offers/id/${dealConfig.offerID}`)}
                         okText="Go to Offer"
                         showCancel={false}

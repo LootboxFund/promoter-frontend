@@ -245,7 +245,9 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
           <$InfoDescription fontSize="0.8rem">
             {`Regular invites will allow fans to redeem 1 ticket each for this event. Event organizers
             should use regular invites. `}
-            <a>View Tutorial</a>
+            <a href="https://lootbox.fyi/3tYiGVs" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
           <$Vertical>
             <label
@@ -295,7 +297,9 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
           <$InfoDescription fontSize="0.8rem">
             {`Viral Invites act like regular invites, but will also reward a bonus ticket to the
             person who shared the invite link. Only fans should use viral invite links. `}
-            <a>View Tutorial</a>
+            <a href="https://lootbox.fyi/3ubgWs2" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
           <$Vertical>
             <label
@@ -345,7 +349,10 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
           <h3>Participation Rewards</h3>
           <$InfoDescription fontSize="0.8rem">
             Participation rewards are tickets that can be given to anyone, even if they already got
-            their 1 free ticket. Learn more by <a>watching this tutorial.</a>
+            their 1 free ticket. Learn more by{' '}
+            <a href="https://lootbox.fyi/3OM3GDn" target="_blank" rel="noreferrer">
+              watching this tutorial.
+            </a>
           </$InfoDescription>
           <$Vertical>
             <label
