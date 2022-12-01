@@ -54,6 +54,7 @@ import {
   Table,
   Tabs,
   Tooltip,
+  Typography,
 } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import type { ColumnsType } from 'antd/lib/table';
@@ -75,6 +76,8 @@ import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { manifest } from '@/manifest';
 import LootboxGallery from '@/components/LootboxGallery';
 import EventAnalytics from '@/components/EventAnalytics';
+import AirdropControlPanel from '@/components/AirdropControlPanel';
+import { OfferStrategyType } from '../../../api/graphql/generated/types';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -101,7 +104,7 @@ const EventPage: React.FC = () => {
   const [rateCard, setRateCard] = useState<RateCardModalInput | null>(null);
   const [offerToAddPromoter, setOfferToAddPromoter] = useState<DealConfigTournament | null>(null);
   const [tournament, setTournament] = useState<Tournament>();
-  const [showTableOfContents, setShowTableOfContents] = useState(true);
+  const [showTableOfContents, setShowTableOfContents] = useState(false);
   const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
@@ -282,7 +285,9 @@ const EventPage: React.FC = () => {
         }". You can manage partners, revenue & Lootboxes as well as view analytics.`}{' '}
         To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3EXeo6W" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );
@@ -381,7 +386,10 @@ const EventPage: React.FC = () => {
             </Space>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
-            Each Lootbox represents a team competing in the event.
+            {`Each Lootbox represents a team competing in the event. `}
+            <a href="https://lootbox.fyi/3tSzDAy" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
 
           <LootboxGallery
@@ -406,7 +414,10 @@ const EventPage: React.FC = () => {
             </Button>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
-            {`Lootbox tickets are distributed to fans & audience members.`}
+            {`Lootbox tickets are distributed to fans & audience members. `}
+            <a href="https://lootbox.fyi/3tWupE0" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
           <Card>
             <EventAnalytics eventID={tournament.id as TournamentID} />
@@ -425,7 +436,10 @@ const EventPage: React.FC = () => {
             </Popconfirm>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
-            {`Earn revenue from the video ads played on Lootbox tickets.`}
+            {`Earn revenue from the video ads played on Lootbox tickets. `}
+            <a href="https://lootbox.fyi/3Xw9fdp" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
           </$InfoDescription>
           {!tournament.dealConfigs || tournament.dealConfigs.length === 0 ? (
             <Empty
@@ -455,7 +469,11 @@ const EventPage: React.FC = () => {
             );
 
             return (
-              <Card id={`offer-${dealConfig.offerID}`} key={dealConfig.offerID}>
+              <Card
+                id={`offer-${dealConfig.offerID}`}
+                key={dealConfig.offerID}
+                style={{ marginBottom: '20px' }}
+              >
                 <$Horizontal justifyContent="space-between">
                   <$Vertical style={{ marginBottom: '30px' }}>
                     <h3>{dealConfig.offerName}</h3>
@@ -472,7 +490,7 @@ const EventPage: React.FC = () => {
                         Add Promoter
                       </Button>
                     </$Horizontal>
-                    {uniqueActivations.map((uniqueActivationID) => {
+                    {uniqueActivations.map((uniqueActivationID: string) => {
                       const uniqueActivation = dealConfig.rateQuoteConfigs.find(
                         (rqc) => rqc.activationID === uniqueActivationID,
                       );
@@ -590,11 +608,32 @@ const EventPage: React.FC = () => {
                         />
                       );
                     })}
+                    {dealConfig.rateQuoteConfigs.length === 0 && (
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        imageStyle={{
+                          height: 60,
+                        }}
+                        description="This Offer has no activations in it. The advertiser may choose to add some."
+                        style={{
+                          padding: '50px',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          flex: 1,
+                        }}
+                      />
+                    )}
                   </Tabs.TabPane>
                   <Tabs.TabPane tab="Ad Placements" key="2">
                     <$Horizontal justifyContent="flex-end">
                       <Popconfirm
-                        title="Go to the Offer Page to include new Ad Sets into this Event"
+                        title={
+                          <span>
+                            Go to the Offer Page to include new Ad Sets into this Event. Or{' '}
+                            <a href="https://lootbox.fyi/3EJQmLb" target="_blank" rel="noreferrer">
+                              Watch Tutorial.
+                            </a>
+                          </span>
+                        }
                         onConfirm={() => history.push(`/dashboard/offers/id/${dealConfig.offerID}`)}
                         okText="Go to Offer"
                         showCancel={false}
@@ -623,11 +662,12 @@ const EventPage: React.FC = () => {
                                 <Button
                                   key={`${dealConfig.offerID}-${adSet.id}-view`}
                                   type="primary"
-                                  onClick={(e) => {
+                                  onClick={(e: any) => {
                                     e.preventDefault();
                                     if (adSet.ad) {
                                       setSimulatedAd({
                                         title: `Offer "${dealConfig.offerName}" - Ad Set "${adSet.name}"`,
+                                        // @ts-ignore
                                         placement: adSet.placement,
                                         creative: {
                                           themeColor: adSet.ad.themeColor,
@@ -646,7 +686,7 @@ const EventPage: React.FC = () => {
                                 <Popconfirm
                                   key={`${dealConfig.offerID}-${adSet.id}-button`}
                                   title="Are you sure to remove this Ad from your Event?"
-                                  onConfirm={async (e) => {
+                                  onConfirm={async (e: any) => {
                                     console.log(`eventID = `, eventID);
                                     if (eventID) {
                                       isLoading = true;
@@ -666,7 +706,7 @@ const EventPage: React.FC = () => {
                                   cancelText="Cancel"
                                 >
                                   <Button
-                                    onClick={(e) => e.preventDefault()}
+                                    onClick={(e: any) => e.preventDefault()}
                                     loading={isLoading}
                                     style={{ width: '85%' }}
                                   >
@@ -681,6 +721,16 @@ const EventPage: React.FC = () => {
                         })}
                     </div>
                   </Tabs.TabPane>
+                  {dealConfig.strategy === OfferStrategyType.Airdrop && (
+                    <Tabs.TabPane tab="Airdrop" key="3">
+                      {eventID && (
+                        <AirdropControlPanel
+                          tournamentID={eventID as TournamentID}
+                          offerID={dealConfig.offerID as OfferID}
+                        />
+                      )}
+                    </Tabs.TabPane>
+                  )}
                 </Tabs>
               </Card>
             );

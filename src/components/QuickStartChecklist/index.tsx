@@ -25,8 +25,8 @@ const data = [
     title: 'Fill Out Your Profile',
     description:
       'Customize your profile to help advertisers and partners find you and learn more about you.',
-    tutorial: 'https://lootbox.fund',
-    examples: 'https://google.com',
+    tutorial: 'https://youtu.be/4h2CD1t80RY',
+    examples: 'https://youtu.be/4h2CD1t80RY',
     action: '/company/account',
     isAdvanced: true,
     key: 'fill-out-profile',
@@ -35,7 +35,7 @@ const data = [
     title: 'Connect Your Wallet',
     description:
       'Connect your wallet to start earning revenue from the Marketplace and withdraw your earnings.',
-    tutorial: 'https://lootbox.fund',
+    tutorial: 'https://youtu.be/AfRonAHVUO8',
     action: '/company/account',
     isAdvanced: true,
     key: 'connect-wallet',
@@ -43,8 +43,8 @@ const data = [
   {
     title: 'Host Your First Event',
     description: 'Import your existing tournaments or create a new event.',
-    tutorial: 'https://lootbox.fund',
-    examples: 'https://google.com',
+    tutorial: 'https://youtu.be/So8LMw7oJ7w',
+    examples: 'https://youtu.be/So8LMw7oJ7w',
     action: '/dashboard/events/create',
     isAdvanced: false,
     key: 'host-first-event',
@@ -74,7 +74,6 @@ const data = [
     description: 'Customize a Lootbox using the branding of your favorite team.',
     tutorial: 'https://lootbox.fund',
     examples: 'https://google.com',
-    action: '/dashboard/lootbox/create',
     isAdvanced: false,
     key: 'create-first-lootbox',
   },
@@ -237,7 +236,7 @@ const QuickStartChecklist: React.FC<QuickStartChecklistProps> = ({}) => {
                     {item.title}
                   </a>
                 ) : (
-                  <a>{item.title}</a>
+                  <span>{item.title}</span>
                 )
               }
               description={item.description}

@@ -163,7 +163,9 @@ const BrowseOffersPage: React.FC = () => {
         their offers and pay you on a performance basis. It is similar to how YouTubers & Twitch
         streamers get paid, available for anyone without needing connections. To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3FQahu3" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );

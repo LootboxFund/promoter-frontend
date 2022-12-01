@@ -118,6 +118,10 @@ body {
   margin: 0;
   font-size: var(--font-size-3xl);
 }
+.free {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+}
 .fANPRIZE500Container {
   line-break: anywhere;
   width: 100%;

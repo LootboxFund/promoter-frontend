@@ -244,7 +244,10 @@ const RateCardEditorModal: React.FC<RateCardEditorModalProps> = ({
     >
       <$InfoDescription>
         As the event organizer, you can granularly decide how much revenue you want to share with
-        this partner for this event. To learn more, <a>watch this tutorial.</a>
+        this partner for this event. To learn more,{' '}
+        <a href="https://google.com" target="_blank" rel="noreferrer">
+          watch this tutorial.
+        </a>
       </$InfoDescription>
       <div
         style={{

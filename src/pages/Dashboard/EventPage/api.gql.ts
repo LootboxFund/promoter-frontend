@@ -1,4 +1,4 @@
-import { LootboxTournamentStatus, ResponseError } from '@/api/graphql/generated/types';
+import { LootboxTournamentStatus, LootboxType, ResponseError } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
 import { Address, LootboxID, LootboxTournamentSnapshotID } from '@wormgraph/helpers';
 
@@ -26,6 +26,7 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
             advertiserID
             advertiserName
             advertiserAvatar
+            strategy
             adSets {
               id
               name
@@ -78,6 +79,7 @@ export interface LootboxTournamentSnapshotFE {
   stampImage: string;
   status: LootboxTournamentStatus;
   name: string;
+  type: LootboxType;
   impressionPriority: number;
   timestamps: {
     createdAt: number;
@@ -106,6 +108,7 @@ export const GET_TOURNAMENT_LOOTBOXES = gql`
             status
             name
             impressionPriority
+            type
             timestamps {
               createdAt
             }

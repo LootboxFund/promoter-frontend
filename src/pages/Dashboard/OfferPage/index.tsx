@@ -87,7 +87,9 @@ const OfferPage: React.FC = () => {
             You are viewing an in-depth breakdown of this affiliate revenue stream. Only the
             advertiser can change these details. To learn more,{' '}
             <span>
-              <a>click here for a tutorial.</a>
+              <a href="https://google.com" target="_blank" rel="noreferrer">
+                click here for a tutorial.
+              </a>
             </span>
           </$InfoDescription>
 

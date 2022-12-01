@@ -115,6 +115,9 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
     }
   };
 
+  const resetForm = () => {
+    form.resetFields();
+  };
   const handleOnRewardSubmit = useCallback(
     async (values) => {
       if (!library) {
@@ -282,10 +285,6 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
     },
     [onSubmitReward, onTokenApprove],
   );
-
-  const resetForm = () => {
-    form.resetFields();
-  };
 
   const getMeta = () => {
     const infoMeta = {
