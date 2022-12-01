@@ -1,5 +1,6 @@
 import { ResponseError } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
+import { LootboxID } from '@wormgraph/helpers';
 
 export interface BaseEventClaimStatsResponseFE {
   baseClaimStatsForTournament:
@@ -28,6 +29,45 @@ export const BASE_EVENT_CLAIM_STATS = gql`
           bonusRewardClaimCount
           oneTimeClaimCount
           pendingClaimCount
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
+
+export interface LootboxCompletedClaimRowFE {
+  lootboxID: LootboxID;
+  lootboxName: string;
+  maxTickets: number;
+  lootboxImg: string;
+  claimCount: number;
+}
+
+export interface LootboxCompletedClaimsForTournamentResponseFE {
+  lootboxCompletedClaimsForTournament:
+    | {
+        __typename: 'LootboxCompletedClaimsForTournamentResponseSuccess';
+        data: LootboxCompletedClaimRowFE[];
+      }
+    | ResponseError;
+}
+
+export const LOOTBOX_CLAIM_STATS = gql`
+  query LootboxCompletedClaimsForTournament($tournamentID: ID!) {
+    lootboxCompletedClaimsForTournament(tournamentID: $tournamentID) {
+      ... on LootboxCompletedClaimsForTournamentResponseSuccess {
+        data {
+          lootboxID
+          lootboxName
+          maxTickets
+          lootboxImg
+          claimCount
         }
       }
       ... on ResponseError {

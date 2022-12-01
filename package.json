@@ -43,6 +43,7 @@
     "not ie <= 10"
   ],
   "dependencies": {
+    "@ant-design/plots": "^1.2.2",
     "@ant-design/pro-components": "2.0.0",
     "@apollo/client": "3.6.9",
     "@google-cloud/storage": "6.5.0",
