@@ -56,6 +56,19 @@ const LootboxDistributionBarChart: React.FC<LootboxDistributionBarChartProps> = 
     legend: {
       position: 'top-left' as 'top-left',
     },
+    yAxis: {
+      label: {
+        autoRotate: false,
+      },
+    },
+    scrollbar: {
+      type: 'vertical' as 'vertical',
+    },
+    barBackground: {
+      style: {
+        fill: 'rgba(0,0,0,0.1)',
+      },
+    },
   };
   return <Bar {...config} />;
 };
