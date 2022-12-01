@@ -44,7 +44,10 @@ const AddPromoterToTournamentModal: React.FC<AddPromoterToTournamentModalProps> 
     >
       <$InfoDescription>
         Invite a player or influencer to help your distribute tickets and earn affiliate revenue. To
-        find the ID of a partner, <Link to="/marketplace/recruit">visit the marketplace.</Link>
+        find the ID of a partner, <Link to="/marketplace/recruit">visit the marketplace.</Link> Or{' '}
+        <a href="https://lootbox.fyi/3Vk57vC" target="_blank" rel="noreferrer">
+          Watch Tutorial.
+        </a>
       </$InfoDescription>
       <Input.Search
         placeholder="Search Partner by ID"

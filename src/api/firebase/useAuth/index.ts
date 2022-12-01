@@ -2,12 +2,18 @@ import type {
   CreateUserResponse,
   MutationCreateUserWithPasswordArgs,
   ResponseError,
+  UpgradeToAdvertiserResponse,
   UpgradeToAffiliateResponse,
 } from '../../graphql/generated/types';
 import { useEffect, useState } from 'react';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { auth } from '../app';
-import { SIGN_UP_WITH_PASSWORD, CREATE_USER, UPGRADE_TO_AFFILIATE } from './api.gql';
+import {
+  SIGN_UP_WITH_PASSWORD,
+  CREATE_USER,
+  UPGRADE_TO_AFFILIATE,
+  UPGRADE_TO_ADVERTISER,
+} from './api.gql';
 import {
   signInWithEmailAndPassword as signInWithEmailAndPasswordFirebase,
   sendEmailVerification,
@@ -84,6 +90,9 @@ export const useAuth = () => {
 
   const [upgradeToAffiliateMutation] =
     useMutation<{ upgradeToAffiliate: UpgradeToAffiliateResponse }>(UPGRADE_TO_AFFILIATE);
+
+  const [upgradeToAdvertiserMutation] =
+    useMutation<{ upgradeToAdvertiser: UpgradeToAdvertiserResponse }>(UPGRADE_TO_ADVERTISER);
 
   const setCaptcha = () => {
     const el = document.getElementById('recaptcha-container');
@@ -283,6 +292,19 @@ export const useAuth = () => {
     return data.upgradeToAffiliate;
   };
 
+  const upgradeToAdvertiser = async () => {
+    const { data } = await upgradeToAdvertiserMutation();
+
+    if (!data) {
+      throw new Error('An error occurred');
+    } else if (data?.upgradeToAdvertiser?.__typename === 'ResponseError') {
+      throw new Error(data.upgradeToAdvertiser.error.message);
+    } else if (data?.upgradeToAdvertiser?.__typename === 'UpgradeToAdvertiserResponseSuccess') {
+      message.success('Successfully registered as an advertiser!');
+    }
+    return data.upgradeToAdvertiser;
+  };
+
   // const updatePassword = async (password: string, newPassword: string): Promise<void> => {
 
   return {
@@ -292,6 +314,7 @@ export const useAuth = () => {
     sendPhoneVerification,
     signInPhoneWithCode,
     upgradeToAffiliate,
+    upgradeToAdvertiser,
     logout,
   };
 };

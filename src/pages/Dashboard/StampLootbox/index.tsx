@@ -394,7 +394,9 @@ Thanks so much!
         {`Auto-generate social media posts to help ${teamName} distribute tickets to fans. Customize it to your social media strategy.`}{' '}
         To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3uocYMR" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );
@@ -568,8 +570,11 @@ Thanks so much!
               <Card>
                 <h3>Customize Referral</h3>
                 <$InfoDescription fontSize="0.8rem">
-                  Modify who gets credit for sharing this invite graphic and what kind of reward
-                  they receive.
+                  {`Modify who gets credit for sharing this invite graphic and what kind of reward
+                  they receive. `}
+                  <a href="https://lootbox.fyi/3uocYMR" target="_blank" rel="noreferrer">
+                    View Tutorial
+                  </a>
                 </$InfoDescription>
                 <$Vertical style={{ marginBottom: '15px' }}>
                   <label

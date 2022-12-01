@@ -1,4 +1,4 @@
-import { LootboxTournamentStatus } from '@/api/graphql/generated/types';
+import { LootboxTournamentStatus, LootboxType } from '@/api/graphql/generated/types';
 import { MenuOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import { Link } from '@umijs/max';
 import { Address, LootboxID, LootboxTournamentSnapshotID, TournamentID } from '@wormgraph/helpers';
@@ -20,10 +20,12 @@ import {
   Col,
   notification,
   Spin,
+  Select,
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import GenerateReferralModal from '../GenerateReferralModal';
 import styles from './index.less';
+import { $Horizontal } from '@/components/generics';
 
 interface LootboxSnapshotFE {
   id: LootboxTournamentSnapshotID;
@@ -33,6 +35,7 @@ interface LootboxSnapshotFE {
   status: LootboxTournamentStatus;
   name: string;
   impressionPriority: number;
+  type: LootboxType;
   timestamps: {
     createdAt: number;
   };
@@ -57,11 +60,19 @@ interface LootboxGalleryProps {
   ) => Promise<void>;
 }
 
+enum ShowLootboxType {
+  All = 'All',
+  Teams = 'Teams',
+  Airdrops = 'Airdrops',
+}
+
 const LootboxGallery = (props: LootboxGalleryProps) => {
+  console.log(`gallery = `, props.lootboxTournamentSnapshots);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [lootboxForReferralModal, setLootboxForReferralModal] = useState<LootboxID | null>(null);
   const [searchString, setSearchString] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showLootboxType, setShowLootboxType] = useState<ShowLootboxType>(ShowLootboxType.All);
   const [bulkSelectedSnapshots, setBulkSelectedSnapshots] = useState<LootboxTournamentSnapshotID[]>(
     [],
   );
@@ -85,19 +96,32 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
   }, [bulkSelectedSnapshots, props.lootboxTournamentSnapshots]);
 
   const paginatedLootboxes: LootboxSnapshotFE[] = useMemo(() => {
+    const shownLootboxSnapshots = props.lootboxTournamentSnapshots.filter((s) => {
+      if (showLootboxType === ShowLootboxType.Teams)
+        return !s.type || s.type === LootboxType.Compete;
+      if (showLootboxType === ShowLootboxType.Airdrops)
+        return s.type && s.type === LootboxType.Airdrop;
+      return true;
+    });
     if (searchString === '') {
       const startIndex = (currentPage - 1) * props.pageSize;
       const endIndex = startIndex + props.pageSize;
-      return props.lootboxTournamentSnapshots.slice(startIndex, endIndex);
+      return shownLootboxSnapshots.slice(startIndex, endIndex);
     } else {
-      return props.lootboxTournamentSnapshots.filter(
+      return shownLootboxSnapshots.filter(
         (snap) =>
           snap.name?.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
           snap.id?.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
           (snap.address && snap.address.toLowerCase().indexOf(searchString.toLowerCase()) > -1),
       );
     }
-  }, [currentPage, props.lootboxTournamentSnapshots, props.pageSize, searchString]);
+  }, [
+    currentPage,
+    props.lootboxTournamentSnapshots,
+    props.pageSize,
+    searchString,
+    showLootboxType,
+  ]);
 
   const handleToggleAll = () => {
     if (!isAllChecked) {
@@ -283,12 +307,33 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <Row justify="space-between">
         <Col span={12}>
-          <Input.Search
-            width="100%"
-            placeholder="Seach by Lootbox name or address"
-            value={searchString}
-            onChange={(e) => setSearchString(e.target.value)}
-          />
+          <$Horizontal>
+            <Select
+              defaultValue={showLootboxType}
+              style={{ width: 200 }}
+              onChange={(v: ShowLootboxType) => setShowLootboxType(v)}
+              options={[
+                {
+                  value: ShowLootboxType.All,
+                  label: 'Show All',
+                },
+                {
+                  value: ShowLootboxType.Teams,
+                  label: 'Teams Only',
+                },
+                {
+                  value: ShowLootboxType.Airdrops,
+                  label: 'Airdrops Only',
+                },
+              ]}
+            />
+            <Input.Search
+              width="100%"
+              placeholder="Seach by Lootbox name or address"
+              value={searchString}
+              onChange={(e) => setSearchString(e.target.value)}
+            />
+          </$Horizontal>
         </Col>
         <Row>
           <Col span={12}>
@@ -502,15 +547,24 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                 <Card.Meta
                   title={snapshot.name}
                   description={
-                    snapshot.status === LootboxTournamentStatus.Active ? (
-                      <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
-                        <Tag color="success">Active</Tag>
-                      </Tooltip>
-                    ) : (
-                      <Tooltip title="Inactive Lootboxes are not visible or redeemable by your audience">
-                        <Tag color="warning">Inactive</Tag>
-                      </Tooltip>
-                    )
+                    <$Horizontal>
+                      {snapshot.status === LootboxTournamentStatus.Active && (
+                        <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
+                          <Tag color="success">Active</Tag>
+                        </Tooltip>
+                      )}
+                      {snapshot.status === LootboxTournamentStatus.Disabled && (
+                        <Tooltip title="Disabled Lootboxes are not visible or redeemable by your audience">
+                          <Tag color="warning">Disabled</Tag>
+                        </Tooltip>
+                      )}
+
+                      {snapshot.type && snapshot.type === LootboxType.Airdrop && (
+                        <Tooltip title="Airdrop Lootboxes do NOT represent a team and are NOT publically visible. Use Airdrops to send rewards directly to a group of fans.">
+                          <Tag color="processing">Airdrop</Tag>
+                        </Tooltip>
+                      )}
+                    </$Horizontal>
                   }
                 />
               </Card>

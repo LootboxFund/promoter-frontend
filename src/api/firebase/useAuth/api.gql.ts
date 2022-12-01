@@ -115,3 +115,28 @@ export const UPGRADE_TO_AFFILIATE = gql`
     }
   }
 `;
+
+export const UPGRADE_TO_ADVERTISER = gql`
+  mutation UpgradeToAdvertiser {
+    upgradeToAdvertiser {
+      ... on UpgradeToAdvertiserResponseSuccess {
+        advertiser {
+          id
+          userID
+          name
+          description
+          website
+          offers
+          avatar
+          publicContactEmail
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;

@@ -7,6 +7,7 @@ import { AntUploadFile } from '../AntFormBuilder';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { $Horizontal } from '@/components/generics';
 import { useAuth } from '@/api/firebase/useAuth';
+import ClickToCopy from '../ClickToCopy';
 
 export type EditAffiliateFormProps = {
   affiliate: {
@@ -167,6 +168,8 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
         key: 'id',
         label: 'Affiliate ID (Promoter ID)',
         tooltip: 'Your Affiliate ID (aka Promoter ID). In case anyone asks you for it.',
+        // @ts-ignore
+        viewWidget: () => <ClickToCopy text={affiliateInfo.id} showTip />,
       });
     }
     return meta;

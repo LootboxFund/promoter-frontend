@@ -1,4 +1,8 @@
-import { LootboxStatus, ResponseError } from '@/api/graphql/generated/types';
+import {
+  LootboxAirdropMetadata,
+  LootboxStatus,
+  ResponseError,
+} from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
 import { Address, ChainIDHex, LootboxCreatedNonce, LootboxID, UserID } from '@wormgraph/helpers';
 
@@ -19,6 +23,7 @@ export interface LootboxFE {
   creatorAddress: Address | null;
   creatorID: UserID;
   runningCompletedClaims: number;
+  airdropMetadata: LootboxAirdropMetadata;
   tournamentSnapshot: {
     creatorID: UserID;
     timestamps: {
@@ -50,6 +55,7 @@ export const GET_LOOTBOX = gql`
           symbol
           backgroundImage
           logo
+          type
           creatorAddress
           creatorID
           runningCompletedClaims
@@ -58,6 +64,19 @@ export const GET_LOOTBOX = gql`
             timestamps {
               depositEmailSentAt
             }
+          }
+          airdropMetadata {
+            lootboxID
+            batch
+            offerID
+            title
+            oneLiner
+            value
+            instructionsLink
+            tournamentID
+            organizerID
+            advertiserID
+            questions
           }
         }
       }

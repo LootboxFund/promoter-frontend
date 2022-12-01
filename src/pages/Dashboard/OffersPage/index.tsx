@@ -5,6 +5,7 @@ import type {
 } from '@/api/graphql/generated/types';
 import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics';
+import SwitchToAdvertiserButton from '@/components/SwitchToAdvertiserButton';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@apollo/client';
 import { Link } from '@umijs/max';
@@ -57,7 +58,9 @@ const OffersPage: React.FC = () => {
         an advertisers product or service. To get more,{' '}
         <Link to="/marketplace/browse">visit the marketplace.</Link> To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3EJQmLb" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );
@@ -79,9 +82,12 @@ const OffersPage: React.FC = () => {
               onSearch={setSearchString}
               style={{ width: 200 }}
             />
-            <Link to="/marketplace/browse">
-              <Button>Add Offer</Button>
-            </Link>
+            <$Horizontal spacing={2}>
+              <SwitchToAdvertiserButton buttonText="Create Own Offer" />
+              <Link to="/marketplace/browse">
+                <Button type="primary">Add Marketplace Offer</Button>
+              </Link>
+            </$Horizontal>
           </$Horizontal>
           <br />
           {offers.length === 0 && (
@@ -120,7 +126,10 @@ const OffersPage: React.FC = () => {
                       <img alt="example" src={offer.image || ''} className={styles.cardImage} />
                     }
                   >
-                    <Meta title={offer.title} description={`$${minEarn}-$${maxEarn} Each`} />
+                    <Meta
+                      title={offer.title}
+                      description={`$${minEarn.toFixed(2)}-$${maxEarn.toFixed(2)} Each`}
+                    />
                   </Card>
                 </Link>
               );

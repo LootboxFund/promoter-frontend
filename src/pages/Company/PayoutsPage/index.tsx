@@ -38,7 +38,9 @@ const PayoutsPage: React.FC = () => {
         This is where you can see your historical affiliate earnings and get paid out to your
         blockchain wallet. To learn more,{' '}
         <span>
-          <a>click here for a tutorial.</a>
+          <a href="https://lootbox.fyi/3h7Rv78" target="_blank" rel="noreferrer">
+            click here for a tutorial.
+          </a>
         </span>
       </$InfoDescription>
     );
