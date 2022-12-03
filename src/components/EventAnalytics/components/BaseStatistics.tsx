@@ -2,7 +2,7 @@ import { BaseEventClaimStatsResponseFE, BASE_EVENT_CLAIM_STATS } from '../api.gq
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
 import { QueryBaseClaimStatsForTournamentArgs } from '@/api/graphql/generated/types';
-import { Col, Result, Row, Statistic } from 'antd';
+import { Col, Result, Row, Statistic, Typography } from 'antd';
 
 export interface BaseStatsProps {
   eventID: TournamentID;
@@ -39,7 +39,7 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
           title="Ticket Claims"
           loading={loading}
           value={stats?.completedClaimCount}
-          suffix="Total"
+          suffix={<Typography.Text type="secondary">Total</Typography.Text>}
         />
       </Col>
 
@@ -52,6 +52,12 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
           title="Participation Rewards"
           loading={loading}
           value={stats?.oneTimeClaimCount}
+          suffix={
+            stats?.completedClaimCount &&
+            stats.completedClaimCount > 0 && (
+              <Typography.Text type="secondary"> / {stats.completedClaimCount}</Typography.Text>
+            )
+          }
         />
       </Col>
 
@@ -60,6 +66,12 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
           title="Referral Rewards"
           loading={loading}
           value={stats?.bonusRewardClaimCount}
+          suffix={
+            stats?.completedClaimCount &&
+            stats.completedClaimCount > 0 && (
+              <Typography.Text type="secondary"> / {stats.completedClaimCount}</Typography.Text>
+            )
+          }
         />
       </Col>
     </Row>

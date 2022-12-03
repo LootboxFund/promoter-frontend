@@ -79,3 +79,38 @@ export const LOOTBOX_CLAIM_STATS = gql`
     }
   }
 `;
+
+export interface DailyEventClaimsResponseFE {
+  dailyClaimStatisticsForTournament:
+    | {
+        __typename: 'DailyClaimStatisticsForTournamentResponseSuccess';
+        data: {
+          date: string;
+          claimCount: number;
+          weekNormalized: number;
+          day: number;
+        }[];
+      }
+    | ResponseError;
+}
+
+export const DAILY_EVENT_CLAIMS = gql`
+  query DailyClaimStatisticsForTournament($payload: DailyClaimStatisticsForTournamentInput!) {
+    dailyClaimStatisticsForTournament(payload: $payload) {
+      ... on DailyClaimStatisticsForTournamentResponseSuccess {
+        data {
+          date
+          claimCount
+          weekNormalized
+          day
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
