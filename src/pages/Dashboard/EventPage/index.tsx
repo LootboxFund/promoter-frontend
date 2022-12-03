@@ -75,6 +75,7 @@ import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
 import { manifest } from '@/manifest';
 import LootboxGallery from '@/components/LootboxGallery';
+import EventAnalytics from '@/components/EventAnalytics';
 import AirdropControlPanel from '@/components/AirdropControlPanel';
 import { OfferStrategyType } from '../../../api/graphql/generated/types';
 
@@ -364,6 +365,28 @@ const EventPage: React.FC = () => {
           <br />
 
           <$Horizontal justifyContent="space-between">
+            <h2 id="ticket-analytics">Ticket Analytics</h2>
+            <Button
+              type="primary"
+              onClick={() => setIsReferralModalOpen(true)}
+              disabled={tournamentLootboxes.length === 0}
+            >
+              Invite Fans
+            </Button>
+          </$Horizontal>
+          <$InfoDescription maxWidth={maxWidth}>
+            {`Lootbox tickets are distributed to fans & audience members. `}
+            <a href="https://lootbox.fyi/3tWupE0" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
+          </$InfoDescription>
+          <Card>
+            <EventAnalytics eventID={tournament.id as TournamentID} />
+          </Card>
+          <br />
+          <br />
+
+          <$Horizontal justifyContent="space-between">
             <h2 id="lootbox-gallery">Lootbox Gallery</h2>
             <Space>
               <Popconfirm
@@ -402,29 +425,7 @@ const EventPage: React.FC = () => {
           />
           <br />
           <br />
-          <$Horizontal justifyContent="space-between">
-            <h2 id="ticket-analytics">Ticket Analytics</h2>
-            <Button
-              type="primary"
-              onClick={() => setIsReferralModalOpen(true)}
-              disabled={tournamentLootboxes.length === 0}
-            >
-              Invite Fans
-            </Button>
-          </$Horizontal>
-          <$InfoDescription maxWidth={maxWidth}>
-            {`Lootbox tickets are distributed to fans & audience members. `}
-            <a href="https://lootbox.fyi/3tWupE0" target="_blank" rel="noreferrer">
-              View Tutorial
-            </a>
-          </$InfoDescription>
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="Analytics Coming Soon"
-            style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
-          />
-          <br />
-          <br />
+
           <$Horizontal justifyContent="space-between">
             <h2 id="revenue-sharing">Revenue Sharing</h2>
             <Popconfirm
