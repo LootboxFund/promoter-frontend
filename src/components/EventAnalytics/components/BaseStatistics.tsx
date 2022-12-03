@@ -53,10 +53,9 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
           loading={loading}
           value={stats?.oneTimeClaimCount}
           suffix={
-            stats?.completedClaimCount &&
-            stats.completedClaimCount > 0 && (
+            stats?.completedClaimCount && stats.completedClaimCount > 0 ? (
               <Typography.Text type="secondary"> / {stats.completedClaimCount}</Typography.Text>
-            )
+            ) : undefined
           }
         />
       </Col>
@@ -67,10 +66,9 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
           loading={loading}
           value={stats?.bonusRewardClaimCount}
           suffix={
-            stats?.completedClaimCount &&
-            stats.completedClaimCount > 0 && (
+            stats?.completedClaimCount && stats.completedClaimCount > 0 ? (
               <Typography.Text type="secondary"> / {stats.completedClaimCount}</Typography.Text>
-            )
+            ) : undefined
           }
         />
       </Col>
