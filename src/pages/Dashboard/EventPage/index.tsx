@@ -365,6 +365,28 @@ const EventPage: React.FC = () => {
           <br />
 
           <$Horizontal justifyContent="space-between">
+            <h2 id="ticket-analytics">Ticket Analytics</h2>
+            <Button
+              type="primary"
+              onClick={() => setIsReferralModalOpen(true)}
+              disabled={tournamentLootboxes.length === 0}
+            >
+              Invite Fans
+            </Button>
+          </$Horizontal>
+          <$InfoDescription maxWidth={maxWidth}>
+            {`Lootbox tickets are distributed to fans & audience members. `}
+            <a href="https://lootbox.fyi/3tWupE0" target="_blank" rel="noreferrer">
+              View Tutorial
+            </a>
+          </$InfoDescription>
+          <Card>
+            <EventAnalytics eventID={tournament.id as TournamentID} />
+          </Card>
+          <br />
+          <br />
+
+          <$Horizontal justifyContent="space-between">
             <h2 id="lootbox-gallery">Lootbox Gallery</h2>
             <Space>
               <Popconfirm
@@ -404,27 +426,6 @@ const EventPage: React.FC = () => {
           <br />
           <br />
 
-          <$Horizontal justifyContent="space-between">
-            <h2 id="ticket-analytics">Ticket Analytics</h2>
-            <Button
-              type="primary"
-              onClick={() => setIsReferralModalOpen(true)}
-              disabled={tournamentLootboxes.length === 0}
-            >
-              Invite Fans
-            </Button>
-          </$Horizontal>
-          <$InfoDescription maxWidth={maxWidth}>
-            {`Lootbox tickets are distributed to fans & audience members. `}
-            <a href="https://lootbox.fyi/3tWupE0" target="_blank" rel="noreferrer">
-              View Tutorial
-            </a>
-          </$InfoDescription>
-          <Card>
-            <EventAnalytics eventID={tournament.id as TournamentID} />
-          </Card>
-          <br />
-          <br />
           <$Horizontal justifyContent="space-between">
             <h2 id="revenue-sharing">Revenue Sharing</h2>
             <Popconfirm
