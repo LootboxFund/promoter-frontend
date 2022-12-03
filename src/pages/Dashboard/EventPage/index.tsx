@@ -403,6 +403,7 @@ const EventPage: React.FC = () => {
           />
           <br />
           <br />
+
           <$Horizontal justifyContent="space-between">
             <h2 id="ticket-analytics">Ticket Analytics</h2>
             <Button

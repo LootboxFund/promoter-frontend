@@ -3,6 +3,7 @@ import { TournamentID } from '@wormgraph/helpers';
 import BaseStats from './components/BaseStatistics';
 import LootboxDistributionBarChart from './components/LootboxDistributionBarChart';
 import DailyDistributionHeatmap from './components/DailyDistributionHeatmap';
+import ReferrerClaims from './components/ReferrerClaims';
 
 export interface EventAnalyticsProps {
   eventID: TournamentID;
@@ -11,9 +12,14 @@ export interface EventAnalyticsProps {
 const EventAnalytics: React.FC<EventAnalyticsProps> = ({ eventID }) => {
   const chartItems = [
     {
-      label: 'Team Distribution',
-      key: 'team-distribution',
+      label: 'Lootbox Distribution',
+      key: 'lootbox-distribution',
       children: <LootboxDistributionBarChart eventID={eventID} />,
+    },
+    {
+      label: 'Promoter Distribution',
+      key: 'promoter-distribution',
+      children: <ReferrerClaims eventID={eventID} />,
     },
     {
       label: 'Daily Distribution',

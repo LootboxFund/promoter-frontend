@@ -1,6 +1,6 @@
 import { ResponseError } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
-import { LootboxID } from '@wormgraph/helpers';
+import { LootboxID, UserID } from '@wormgraph/helpers';
 
 export interface BaseEventClaimStatsResponseFE {
   baseClaimStatsForTournament:
@@ -12,7 +12,7 @@ export interface BaseEventClaimStatsResponseFE {
           viralClaimCount: number;
           bonusRewardClaimCount: number;
           oneTimeClaimCount: number;
-          pendingClaimCount: number;
+          completionRate: number;
         };
       }
     | ResponseError;
@@ -28,7 +28,7 @@ export const BASE_EVENT_CLAIM_STATS = gql`
           viralClaimCount
           bonusRewardClaimCount
           oneTimeClaimCount
-          pendingClaimCount
+          completionRate
         }
       }
       ... on ResponseError {
@@ -103,6 +103,42 @@ export const DAILY_EVENT_CLAIMS = gql`
           claimCount
           weekNormalized
           day
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
+
+export interface ReferrerClaimsForTournamentRow {
+  userName: string;
+  userAvatar: string;
+  userID: UserID | '';
+  claimCount: number;
+}
+export interface ReferrerClaimsForTournamentResponseFE {
+  referrerClaimsForTournament:
+    | {
+        __typename: 'ReferrerClaimsForTournamentResponseSuccess';
+        data: ReferrerClaimsForTournamentRow[];
+      }
+    | ResponseError;
+}
+
+export const REFERRER_CLAIM_STATS = gql`
+  query ReferrerClaimsForTournament($tournamentID: ID!) {
+    referrerClaimsForTournament(tournamentID: $tournamentID) {
+      ... on ReferrerClaimsForTournamentResponseSuccess {
+        data {
+          userName
+          userAvatar
+          userID
+          claimCount
         }
       }
       ... on ResponseError {

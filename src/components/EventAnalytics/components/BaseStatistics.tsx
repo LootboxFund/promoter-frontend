@@ -33,7 +33,7 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
       : null;
 
   return (
-    <Row gutter={4}>
+    <Row gutter={8}>
       <Col span={6}>
         <Statistic
           title="Ticket Claims"
@@ -44,7 +44,35 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
       </Col>
 
       <Col span={6}>
+        <Statistic
+          title="Completion Rate"
+          loading={loading}
+          value={stats?.completedClaimCount}
+          suffix="%"
+        />
+      </Col>
+
+      {/* <Col span={6}>
         <Statistic title="Incomplete Claims" loading={loading} value={stats?.pendingClaimCount} />
+      </Col> */}
+
+      <Col span={6}>
+        <Statistic
+          title="Referral Rewards"
+          loading={loading}
+          value={stats?.bonusRewardClaimCount}
+          suffix={
+            stats?.completedClaimCount && stats.completedClaimCount > 0 ? (
+              <Typography.Text type="secondary">
+                (
+                {Math.round(
+                  (100 * (stats?.bonusRewardClaimCount || 0)) / stats.completedClaimCount,
+                )}
+                %)
+              </Typography.Text>
+            ) : undefined
+          }
+        />
       </Col>
 
       <Col span={6}>
@@ -54,20 +82,10 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
           value={stats?.oneTimeClaimCount}
           suffix={
             stats?.completedClaimCount && stats.completedClaimCount > 0 ? (
-              <Typography.Text type="secondary"> / {stats.completedClaimCount}</Typography.Text>
-            ) : undefined
-          }
-        />
-      </Col>
-
-      <Col span={6}>
-        <Statistic
-          title="Referral Rewards"
-          loading={loading}
-          value={stats?.bonusRewardClaimCount}
-          suffix={
-            stats?.completedClaimCount && stats.completedClaimCount > 0 ? (
-              <Typography.Text type="secondary"> / {stats.completedClaimCount}</Typography.Text>
+              <Typography.Text type="secondary">
+                ({Math.round((100 * (stats?.oneTimeClaimCount || 0)) / stats.completedClaimCount)}
+                %)
+              </Typography.Text>
             ) : undefined
           }
         />

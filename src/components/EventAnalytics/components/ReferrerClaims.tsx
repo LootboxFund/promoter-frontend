@@ -1,29 +1,29 @@
-import { QueryLootboxCompletedClaimsForTournamentArgs } from '@/api/graphql/generated/types';
+import { QueryReferrerClaimsForTournamentArgs } from '@/api/graphql/generated/types';
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
 import { Result } from 'antd';
 import {
-  LootboxCompletedClaimRowFE,
-  LootboxCompletedClaimsForTournamentResponseFE,
-  LOOTBOX_CLAIM_STATS,
+  ReferrerClaimsForTournamentResponseFE,
+  REFERRER_CLAIM_STATS,
+  ReferrerClaimsForTournamentRow,
 } from '../api.gql';
 
 interface LootboxDistributionBarChartProps {
   eventID: TournamentID;
 }
 
-const LootboxDistributionBarChart: React.FC<LootboxDistributionBarChartProps> = ({ eventID }) => {
+const ReferrerClaims: React.FC<LootboxDistributionBarChartProps> = ({ eventID }) => {
   const { data, loading, error } = useQuery<
-    LootboxCompletedClaimsForTournamentResponseFE,
-    QueryLootboxCompletedClaimsForTournamentArgs
-  >(LOOTBOX_CLAIM_STATS, {
+    ReferrerClaimsForTournamentResponseFE,
+    QueryReferrerClaimsForTournamentArgs
+  >(REFERRER_CLAIM_STATS, {
     variables: {
       tournamentID: eventID,
     },
   });
 
-  if (error || data?.lootboxCompletedClaimsForTournament?.__typename === 'ResponseError') {
+  if (error || data?.referrerClaimsForTournament?.__typename === 'ResponseError') {
     return (
       <Result
         status="error"
@@ -34,24 +34,24 @@ const LootboxDistributionBarChart: React.FC<LootboxDistributionBarChartProps> = 
   }
 
   const convertDataRowFE = (
-    row: LootboxCompletedClaimRowFE,
-  ): { lootbox: string; ticketsClaimed: number } => {
+    row: ReferrerClaimsForTournamentRow,
+  ): { userName: string; ticketsClaimed: number } => {
     return {
-      lootbox: row.lootboxName,
+      userName: row.userName,
       ticketsClaimed: row.claimCount,
     };
   };
 
   const parsedData =
-    data?.lootboxCompletedClaimsForTournament && 'data' in data?.lootboxCompletedClaimsForTournament
-      ? data.lootboxCompletedClaimsForTournament.data.map(convertDataRowFE)
+    data?.referrerClaimsForTournament && 'data' in data?.referrerClaimsForTournament
+      ? data.referrerClaimsForTournament.data.map(convertDataRowFE)
       : [];
 
   const config = {
     loading,
     data: parsedData,
     xField: 'ticketsClaimed',
-    yField: 'lootbox',
+    yField: 'userName',
     seriesField: 'ticketsClaimed',
     label: {
       position: 'middle' as 'middle',
@@ -76,4 +76,4 @@ const LootboxDistributionBarChart: React.FC<LootboxDistributionBarChartProps> = 
   return <Bar {...config} />;
 };
 
-export default LootboxDistributionBarChart;
+export default ReferrerClaims;
