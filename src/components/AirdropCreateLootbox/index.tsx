@@ -25,8 +25,7 @@ import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import LootboxPreview from '../LootboxPreview';
 import { LootboxStatus } from '@/api/graphql/generated/types';
 
-// const DEFAULT_THEME_COLOR = '#00B0FB'
-const DEFAULT_THEME_COLOR = '#000000';
+const DEFAULT_THEME_COLOR = '#000001';
 
 interface LootboxBody {
   description: string;
@@ -197,7 +196,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'joinCommunityUrl',
           label: 'Community',
-          required: false,
+
           widget: 'input',
           type: 'url',
           tooltip:
@@ -217,20 +216,20 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'logoImage',
           label: 'Team Logo',
-          required: true,
-          rules: [
-            {
-              validator: (rule: any, value: any, callback: any) => {
-                return new Promise((resolve, reject) => {
-                  if (mode === 'create' && !newMediaDestinationLogo.current) {
-                    reject(new Error(`Upload a Logo`));
-                  } else {
-                    resolve(newMediaDestinationLogo.current);
-                  }
-                });
-              },
-            },
-          ],
+
+          // rules: [
+          //   {
+          //     validator: (rule: any, value: any, callback: any) => {
+          //       return new Promise((resolve, reject) => {
+          //         if (mode === 'create' && !newMediaDestinationLogo.current) {
+          //           reject(new Error(`Upload a Logo`));
+          //         } else {
+          //           resolve(newMediaDestinationLogo.current);
+          //         }
+          //       });
+          //     },
+          //   },
+          // ],
           widget: () => (
             <AntUploadFile
               affiliateID={affiliateUserID as AffiliateID}
@@ -246,20 +245,20 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'backgroundImage',
           label: 'Background',
-          required: true,
-          rules: [
-            {
-              validator: (rule: any, value: any, callback: any) => {
-                return new Promise((resolve, reject) => {
-                  if (mode === 'create' && !newMediaDestinationBackground.current) {
-                    reject(new Error(`Upload a Background Image`));
-                  } else {
-                    resolve(newMediaDestinationBackground.current);
-                  }
-                });
-              },
-            },
-          ],
+
+          // rules: [
+          //   {
+          //     validator: (rule: any, value: any, callback: any) => {
+          //       return new Promise((resolve, reject) => {
+          //         if (mode === 'create' && !newMediaDestinationBackground.current) {
+          //           reject(new Error(`Upload a Background Image`));
+          //         } else {
+          //           resolve(newMediaDestinationBackground.current);
+          //         }
+          //       });
+          //     },
+          //   },
+          // ],
           widget: () => (
             <AntUploadFile
               affiliateID={affiliateUserID as AffiliateID}
@@ -277,7 +276,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'themeColor',
           label: 'Theme Color',
-          required: true,
+
           widget: () => (
             <AntColorPicker
               initialColor={lootboxInfo.themeColor}
