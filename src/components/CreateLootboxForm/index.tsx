@@ -21,6 +21,8 @@ import {
   Tag,
   Tooltip,
   Typography,
+  Switch,
+  Input,
 } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
@@ -35,13 +37,12 @@ import LootboxPreview from '../LootboxPreview';
 import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
 import { LootboxAirdropMetadata, LootboxStatus } from '@/api/graphql/generated/types';
 import { shortenAddress } from '@/lib/address';
-import { InfoCircleTwoTone } from '@ant-design/icons';
+import { CheckCircleOutlined, InfoCircleTwoTone } from '@ant-design/icons';
 import { ContractTransaction } from 'ethers';
 import InputMaxTickets, { TargetMaxTicketsWidgetProps } from './InputMaxTickets';
 import { Link } from '@umijs/max';
 
-// const DEFAULT_THEME_COLOR = '#00B0FB'
-const DEFAULT_THEME_COLOR = '#000000';
+const DEFAULT_THEME_COLOR = '#000001';
 
 interface LootboxBody {
   description: string;
@@ -109,7 +110,7 @@ const LOOTBOX_INFO: LootboxBody = {
   nftBountyValue: '',
   joinCommunityUrl: '',
   name: '',
-  maxTickets: 100,
+  maxTickets: 30,
   tag: '',
   status: LootboxStatus.Active,
   runningCompletedClaims: 0,
@@ -123,6 +124,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   airdropMetadata,
   mode,
 }) => {
+  const CREATE_LOOTBOX_TOURNAMENT_CONFIG = `create-lootbox-tournament-config-${magicLinkParams?.tournamentID}`;
+  const [isAdvancedMode, setIsAdvancedMode] = useState(mode === 'create' ? false : true);
   const {
     affiliateUser: { id: affiliateUserID },
   } = useAffiliateUser();
@@ -151,6 +154,26 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       setViewMode(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (mode === 'create' && magicLinkParams?.tournamentID) {
+      // preload lootbox creation settings based off local storage values
+      const { nftBountyValue, maxTickets } = JSON.parse(
+        localStorage.getItem(CREATE_LOOTBOX_TOURNAMENT_CONFIG) || '{}',
+      );
+      const fromMemoryConfig = {
+        ...lootboxInfo,
+      };
+      if (!!nftBountyValue) {
+        fromMemoryConfig.nftBountyValue = nftBountyValue;
+      }
+      if (!!maxTickets) {
+        fromMemoryConfig.maxTickets = maxTickets;
+      }
+
+      setLootboxInfo(fromMemoryConfig);
+    }
+  }, [magicLinkParams?.tournamentID]);
 
   useEffect(() => {
     if (lootbox && mode !== 'create') {
@@ -189,6 +212,23 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     }
   };
 
+  const updateLocalStorageCreateLootboxConfig = ({
+    nftBountyValue,
+    maxTickets,
+  }: {
+    nftBountyValue: string;
+    maxTickets: number;
+  }) => {
+    const config = JSON.parse(localStorage.getItem(CREATE_LOOTBOX_TOURNAMENT_CONFIG) || '{}');
+    const newConfig = {
+      ...config,
+      nftBountyValue: nftBountyValue,
+      maxTickets: maxTickets,
+    };
+    localStorage.setItem(CREATE_LOOTBOX_TOURNAMENT_CONFIG, JSON.stringify(newConfig));
+    return newConfig;
+  };
+
   const handleCreateFinish = useCallback(
     async (values) => {
       if (!onSubmitCreate) return;
@@ -217,14 +257,22 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         duration: 0,
       });
       try {
+        const { nftBountyValue, maxTickets } = JSON.parse(
+          localStorage.getItem(CREATE_LOOTBOX_TOURNAMENT_CONFIG) || '{}',
+        );
+        updateLocalStorageCreateLootboxConfig({
+          nftBountyValue: values.nftBountyValue || nftBountyValue,
+          maxTickets: values.maxTickets || maxTickets,
+        });
         const { lootboxID: createdLootboxID } = await onSubmitCreate(payload);
 
         if (!lockedToEdit) {
           setViewMode(true);
         }
 
-        Modal.success({
+        Modal.confirm({
           title: 'Success',
+          icon: <CheckCircleOutlined style={{ color: 'green' }} />,
           content: (
             <$Vertical>
               <Typography.Text>
@@ -233,10 +281,15 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             </$Vertical>
           ),
           okText: 'Go to Lootbox',
+          cancelText: 'Create Another',
           onOk: () => {
             window.location.href = `/dashboard/lootbox/id/${createdLootboxID}${
               magicLinkParams?.tournamentID ? `?tid=${magicLinkParams.tournamentID}` : ''
             }`;
+          },
+          onCancel: () => {
+            // refresh the page
+            location.reload();
           },
         });
       } catch (e: any) {
@@ -279,7 +332,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
         if (targetMaxTickets !== lootboxInfo.maxTickets) {
           if (!onSubmitEdit) return;
-          console.log('change max tickets...');
 
           // CHANGE MAX TICKETS IN WEB2
           await onSubmitEdit({
@@ -288,7 +340,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             },
           });
         }
-        console.log(`deploy lootbox payload = `, payload);
+
         const { tx } = await onCreateWeb3(payload);
 
         if (!lockedToEdit) {
@@ -405,6 +457,41 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     [lootboxInfo, onSubmitEdit],
   );
 
+  const metaSimple = () => {
+    const meta = {
+      columns: 1,
+      disabled: pending,
+      initialValues: lootboxInfo,
+      fields: [
+        {
+          key: 'name',
+          label: 'Team Name',
+          rules: [
+            {
+              max: 30,
+              message: 'Name should be less than 30 characters',
+            },
+          ],
+          tooltip:
+            'The display name of the Lootbox. Typically this is the Team name or a variation, since a Lootbox is only used for a single event.',
+        },
+        {
+          key: 'quickInfo',
+          label: 'Defaults',
+          tooltip:
+            'These are the default values for this Event. If you want to change this, use advanced mode and your defaults will automatically be the last values you used.',
+          widget: () => (
+            <i style={{ color: 'gray' }}>{`${lootboxInfo.maxTickets} Max Tickets, Prize ${
+              lootboxInfo.nftBountyValue || 'TBD'
+            }`}</i>
+          ),
+        },
+      ],
+    };
+
+    return meta;
+  };
+
   const metaPublic = () => {
     const meta = {
       columns: 1,
@@ -414,7 +501,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'name',
           label: 'Team Name',
-          required: true,
           rules: [
             {
               max: 30,
@@ -434,8 +520,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'nftBountyValue',
           label: 'Max Ticket Value',
-          required: true,
-          widget: 'input',
           placeholder: 'e.g. $20 USD',
           tooltip:
             'The advertised max value of the Lootbox fan ticket. Calculate this by taking the largest 1st place prize and divide it by the number of tickets in this Lootbox. You can change this field at any time.',
@@ -443,7 +527,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'maxTickets',
           label: 'Max Tickets',
-          required: true,
           widget: 'number',
           tooltip:
             'The maximum number of tickets available for distribution. This determines the payout percentage of your Lootbox. For example, if you set this to 100 tickets, then depositing $100 USD into the LOOTBOX will reward $1 USD per ticket.',
@@ -528,7 +611,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
     return meta;
   };
-  console.log(`airdropMetadata`, airdropMetadata);
+
   const metaAirdrop = () => {
     if (!airdropMetadata) {
       return {
@@ -591,20 +674,19 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'logoImage',
           label: 'Team Logo',
-          required: true,
-          rules: [
-            {
-              validator: (rule: any, value: any, callback: any) => {
-                return new Promise((resolve, reject) => {
-                  if (mode === 'create' && !newMediaDestinationLogo.current) {
-                    reject(new Error(`Upload a Logo`));
-                  } else {
-                    resolve(newMediaDestinationLogo.current);
-                  }
-                });
-              },
-            },
-          ],
+          // rules: [
+          //   {
+          //     validator: (rule: any, value: any, callback: any) => {
+          //       return new Promise((resolve, reject) => {
+          //         if (mode === 'create' && !newMediaDestinationLogo.current) {
+          //           reject(new Error(`Upload a Logo`));
+          //         } else {
+          //           resolve(newMediaDestinationLogo.current);
+          //         }
+          //       });
+          //     },
+          //   },
+          // ],
           widget: () => (
             <AntUploadFile
               affiliateID={affiliateUserID as AffiliateID}
@@ -620,20 +702,19 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'backgroundImage',
           label: 'Background Image',
-          required: true,
-          rules: [
-            {
-              validator: (rule: any, value: any, callback: any) => {
-                return new Promise((resolve, reject) => {
-                  if (mode === 'create' && !newMediaDestinationBackground.current) {
-                    reject(new Error(`Upload a Background Image`));
-                  } else {
-                    resolve(newMediaDestinationBackground.current);
-                  }
-                });
-              },
-            },
-          ],
+          // rules: [
+          //   {
+          //     validator: (rule: any, value: any, callback: any) => {
+          //       return new Promise((resolve, reject) => {
+          //         if (mode === 'create' && !newMediaDestinationBackground.current) {
+          //           reject(new Error(`Upload a Background Image`));
+          //         } else {
+          //           resolve(newMediaDestinationBackground.current);
+          //         }
+          //       });
+          //     },
+          //   },
+          // ],
           widget: () => (
             <AntUploadFile
               affiliateID={affiliateUserID as AffiliateID}
@@ -651,7 +732,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'themeColor',
           label: 'Theme Color',
-          required: true,
           widget: () => (
             <AntColorPicker
               initialColor={lootboxInfo.themeColor}
@@ -847,159 +927,187 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             }
             onValuesChange={forceUpdate}
           >
-            {!viewMode && mode !== 'create' && !isLootboxDeployed && (
+            {isAdvancedMode ? (
               <div>
-                <Steps current={currentStep} onChange={onStepChange}>
-                  {wizardMeta.steps.map((s) => (
-                    <Steps.Step key={s.title} title={s.title} />
-                  ))}
-                </Steps>
-                <br />
-              </div>
-            )}
+                {!viewMode && mode !== 'create' && !isLootboxDeployed && (
+                  <div>
+                    <Steps current={currentStep} onChange={onStepChange}>
+                      {wizardMeta.steps.map((s) => (
+                        <Steps.Step key={s.title} title={s.title} />
+                      ))}
+                    </Steps>
+                    <br />
+                  </div>
+                )}
 
-            {viewMode && airdropMetadata && (
-              <fieldset key={`step-${currentStep}-airdrop`}>
-                <legend>Airdrop Details</legend>
-                <FormBuilder form={form} meta={metaAirdrop()} viewMode={true} />
-                <br />
-              </fieldset>
-            )}
+                {viewMode && airdropMetadata && (
+                  <fieldset key={`step-${currentStep}-airdrop`}>
+                    <legend>Airdrop Details</legend>
+                    <FormBuilder form={form} meta={metaAirdrop()} viewMode={true} />
+                    <br />
+                  </fieldset>
+                )}
 
-            {wizardMeta.steps[currentStep].subSteps.map((s, idx) => {
-              if (isLootboxDeployed && isOnBlockChain) {
-                return null;
-              }
+                {wizardMeta.steps[currentStep].subSteps.map((s, idx) => {
+                  if (isLootboxDeployed && isOnBlockChain) {
+                    return null;
+                  }
 
-              if (!currentAccount && isOnBlockChain) {
-                return (
-                  <Empty
-                    key="connect-wallet-empty"
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    imageStyle={{
-                      height: 60,
-                    }}
-                    description={
-                      <span style={{ maxWidth: '200px' }}>
-                        {`You must connect your Metamask wallet before you can create a LOOTBOX`}
-                      </span>
-                    }
-                    style={{
-                      padding: '50px',
-                      flex: 1,
-                      minWidth: '500px',
-                      borderRadius: '10px',
-                    }}
-                  >
-                    <ConnectWalletButton ghost />
-                  </Empty>
-                );
-              }
-
-              return (
-                <fieldset key={`step-${currentStep}-${idx}`}>
-                  <legend>{s.title}</legend>
-                  {isOnBlockChain && !isLootboxDeployed && (
-                    <>
-                      <Alert
-                        type="success"
-                        message={
-                          <span>
-                            {
-                              'Ready to launch your LOOTBOX? There will a one-time gas fee that LOOTBOX does not control or receive. '
-                            }
-                            <a href="https://google.com" target="_blank" rel="noreferrer">
-                              View Tutorial
-                            </a>
+                  if (!currentAccount && isOnBlockChain) {
+                    return (
+                      <Empty
+                        key="connect-wallet-empty"
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        imageStyle={{
+                          height: 60,
+                        }}
+                        description={
+                          <span style={{ maxWidth: '200px' }}>
+                            {`You must connect your Metamask wallet before you can create a LOOTBOX`}
                           </span>
                         }
-                      />
-                      <br />
-                    </>
-                  )}
-                  <FormBuilder form={form} meta={s.meta} viewMode={viewMode} />
-                </fieldset>
-              );
-            })}
+                        style={{
+                          padding: '50px',
+                          flex: 1,
+                          minWidth: '500px',
+                          borderRadius: '10px',
+                        }}
+                      >
+                        <ConnectWalletButton ghost />
+                      </Empty>
+                    );
+                  }
 
-            {viewMode && (
-              <fieldset>
-                <legend>{`Blockchain Details`}</legend>
-                {showDeploySuccess && (
-                  <>
-                    <Alert
-                      type="success"
-                      message="Lootbox deployed successfully"
-                      showIcon
-                      closable
-                      onClose={() => setShowDeploySuccess(false)}
-                    />
-                    <br />
-                  </>
+                  return (
+                    <fieldset key={`step-${currentStep}-${idx}`}>
+                      <legend>{s.title}</legend>
+                      {isOnBlockChain && !isLootboxDeployed && (
+                        <>
+                          <Alert
+                            type="success"
+                            message={
+                              <span>
+                                {
+                                  'Ready to launch your LOOTBOX? There will a one-time gas fee that LOOTBOX does not control or receive. '
+                                }
+                                <a href="https://google.com" target="_blank" rel="noreferrer">
+                                  View Tutorial
+                                </a>
+                              </span>
+                            }
+                          />
+                          <br />
+                        </>
+                      )}
+                      <FormBuilder form={form} meta={s.meta} viewMode={viewMode} />
+                    </fieldset>
+                  );
+                })}
+
+                {viewMode && (
+                  <fieldset>
+                    <legend>{`Blockchain Details`}</legend>
+                    {showDeploySuccess && (
+                      <>
+                        <Alert
+                          type="success"
+                          message="Lootbox deployed successfully"
+                          showIcon
+                          closable
+                          onClose={() => setShowDeploySuccess(false)}
+                        />
+                        <br />
+                      </>
+                    )}
+                    {!!lootboxInfo?.address ? (
+                      <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
+                    ) : (
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        imageStyle={{
+                          height: 60,
+                        }}
+                        description={
+                          <span style={{ maxWidth: '200px' }}>
+                            {`This LOOTBOX has not been deployed to the blockchain yet`}
+                            &nbsp;
+                            <Tooltip title="This Lootbox can not pay out rewards to fans until it is deployed on the Blockchain. To deploy this Lootbox, you must install MetaMask and connect your wallet by clicking below.">
+                              <InfoCircleTwoTone />
+                            </Tooltip>
+                          </span>
+                        }
+                        style={{
+                          padding: '20px',
+                          margin: '0px',
+                          flex: 1,
+                          minWidth: '500px',
+                          borderRadius: '10px',
+                        }}
+                      >
+                        <Button onClick={openBlockChainDeployer}>Deploy to Blockchain</Button>
+                      </Empty>
+                    )}
+                  </fieldset>
                 )}
-                {!!lootboxInfo?.address ? (
-                  <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
-                ) : (
-                  <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    imageStyle={{
-                      height: 60,
-                    }}
-                    description={
-                      <span style={{ maxWidth: '200px' }}>
-                        {`This LOOTBOX has not been deployed to the blockchain yet`}
-                        &nbsp;
-                        <Tooltip title="This Lootbox can not pay out rewards to fans until it is deployed on the Blockchain. To deploy this Lootbox, you must install MetaMask and connect your wallet by clicking below.">
-                          <InfoCircleTwoTone />
-                        </Tooltip>
-                      </span>
-                    }
-                    style={{
-                      padding: '20px',
-                      margin: '0px',
-                      flex: 1,
-                      minWidth: '500px',
-                      borderRadius: '10px',
-                    }}
-                  >
-                    <Button onClick={openBlockChainDeployer}>Deploy to Blockchain</Button>
-                  </Empty>
+                {!viewMode && (
+                  <fieldset>
+                    {!isOnBlockChain && !isLootboxDeployed && <legend>{`Submit`}</legend>}
+                    <$Horizontal justifyContent="flex-end">
+                      <Form.Item className="form-footer" style={{ width: 'auto' }}>
+                        <Button onClick={resetForm} style={{ marginRight: '15px' }}>
+                          Cancel
+                        </Button>
+
+                        {showConnectButton ? (
+                          <ConnectWalletButton style={{ display: 'inline' }} />
+                        ) : mode === 'create' ? (
+                          <Button htmlType="submit" type="primary" disabled={pending}>
+                            {pending ? 'Creating...' : 'Create'}
+                          </Button>
+                        ) : isOnBlockChain && !isLootboxDeployed && !currentAccount ? (
+                          <ConnectWalletButton style={{ display: 'inline' }} />
+                        ) : isOnBlockChain && !isLootboxDeployed && currentAccount ? (
+                          <Button
+                            htmlType="submit"
+                            type="primary"
+                            disabled={pending || !currentAccount}
+                          >
+                            {pending ? 'Deploying' : 'Deploy'}
+                          </Button>
+                        ) : !isOnBlockChain ? (
+                          <Button htmlType="submit" type="primary" disabled={pending}>
+                            {pending ? 'Updating...' : 'Update'}
+                          </Button>
+                        ) : null}
+                      </Form.Item>
+                    </$Horizontal>
+                  </fieldset>
                 )}
-              </fieldset>
-            )}
-            {!viewMode && (
-              <fieldset>
-                {!isOnBlockChain && !isLootboxDeployed && <legend>{`Submit`}</legend>}
-                <$Horizontal justifyContent="flex-end">
-                  <Form.Item className="form-footer" style={{ width: 'auto' }}>
+              </div>
+            ) : (
+              <div style={{ paddingRight: '20px' }}>
+                <fieldset key={`step-simple`}>
+                  <legend>Create Lootbox</legend>
+                  <FormBuilder form={form} meta={metaSimple()} viewMode={false} />
+                </fieldset>
+                <$Horizontal justifyContent="space-between" verticalCenter>
+                  <Switch
+                    checkedChildren="Advanced"
+                    unCheckedChildren="Simple"
+                    checked={isAdvancedMode}
+                    onClick={() => setIsAdvancedMode(!isAdvancedMode)}
+                    style={{ marginLeft: '50px' }}
+                  />
+                  <$Horizontal>
                     <Button onClick={resetForm} style={{ marginRight: '15px' }}>
                       Cancel
                     </Button>
-
-                    {showConnectButton ? (
-                      <ConnectWalletButton style={{ display: 'inline' }} />
-                    ) : mode === 'create' ? (
-                      <Button htmlType="submit" type="primary" disabled={pending}>
-                        {pending ? 'Creating...' : 'Create'}
-                      </Button>
-                    ) : isOnBlockChain && !isLootboxDeployed && !currentAccount ? (
-                      <ConnectWalletButton style={{ display: 'inline' }} />
-                    ) : isOnBlockChain && !isLootboxDeployed && currentAccount ? (
-                      <Button
-                        htmlType="submit"
-                        type="primary"
-                        disabled={pending || !currentAccount}
-                      >
-                        {pending ? 'Deploying' : 'Deploy'}
-                      </Button>
-                    ) : !isOnBlockChain ? (
-                      <Button htmlType="submit" type="primary" disabled={pending}>
-                        {pending ? 'Updating...' : 'Update'}
-                      </Button>
-                    ) : null}
-                  </Form.Item>
+                    <Button htmlType="submit" type="primary" disabled={pending}>
+                      {pending ? 'Creating...' : 'Create'}
+                    </Button>
+                  </$Horizontal>
                 </$Horizontal>
-              </fieldset>
+              </div>
             )}
           </Form>
         </div>
