@@ -1,9 +1,10 @@
-import { Col, Row, Statistic, Tabs, Divider } from 'antd';
+import { Tabs, Divider } from 'antd';
 import { TournamentID } from '@wormgraph/helpers';
 import BaseStats from './components/BaseStatistics';
-import LootboxDistributionBarChart from './components/LootboxDistributionBarChart';
+import LootboxClaims from './components/LootboxClaims';
 import DailyDistributionHeatmap from './components/DailyDistributionHeatmap';
 import ReferrerClaims from './components/ReferrerClaims';
+import CampaignDistribution from './components/CampaignDistribution';
 
 export interface EventAnalyticsProps {
   eventID: TournamentID;
@@ -12,14 +13,19 @@ export interface EventAnalyticsProps {
 const EventAnalytics: React.FC<EventAnalyticsProps> = ({ eventID }) => {
   const chartItems = [
     {
-      label: 'Lootbox Distribution',
-      key: 'lootbox-distribution',
-      children: <LootboxDistributionBarChart eventID={eventID} />,
+      label: 'Lootbox Claims',
+      key: 'lootbox-claims',
+      children: <LootboxClaims eventID={eventID} />,
     },
     {
       label: 'Promoter Distribution',
       key: 'promoter-distribution',
       children: <ReferrerClaims eventID={eventID} />,
+    },
+    {
+      label: 'Campaign Distribution',
+      key: 'campaign-distribution',
+      children: <CampaignDistribution eventID={eventID} />,
     },
     {
       label: 'Daily Distribution',

@@ -1,29 +1,29 @@
-import { QueryReferrerClaimsForTournamentArgs } from '@/api/graphql/generated/types';
+import { QueryCampaignClaimsForTournamentArgs } from '@/api/graphql/generated/types';
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
 import { Result } from 'antd';
 import {
-  ReferrerClaimsForTournamentResponseFE,
-  REFERRER_CLAIM_STATS,
-  ReferrerClaimsForTournamentRow,
+  CampaignClaimsRowFE,
+  CampaignClaimsForTournamentResponseFE,
+  CAMPAIGN_CLAIM_STATS,
 } from '../api.gql';
 
-interface ReferrerClaimsProps {
+interface CampaignDistributionProps {
   eventID: TournamentID;
 }
 
-const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID }) => {
+const CampaignDistribution: React.FC<CampaignDistributionProps> = ({ eventID }) => {
   const { data, loading, error } = useQuery<
-    ReferrerClaimsForTournamentResponseFE,
-    QueryReferrerClaimsForTournamentArgs
-  >(REFERRER_CLAIM_STATS, {
+    CampaignClaimsForTournamentResponseFE,
+    QueryCampaignClaimsForTournamentArgs
+  >(CAMPAIGN_CLAIM_STATS, {
     variables: {
       tournamentID: eventID,
     },
   });
 
-  if (error || data?.referrerClaimsForTournament?.__typename === 'ResponseError') {
+  if (error || data?.campaignClaimsForTournament?.__typename === 'ResponseError') {
     return (
       <Result
         status="error"
@@ -34,24 +34,24 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID }) => {
   }
 
   const convertDataRowFE = (
-    row: ReferrerClaimsForTournamentRow,
-  ): { userName: string; ticketsClaimed: number } => {
+    row: CampaignClaimsRowFE,
+  ): { campaignName: string; ticketsClaimed: number } => {
     return {
-      userName: row.userName,
+      campaignName: row.referralCampaignName,
       ticketsClaimed: row.claimCount,
     };
   };
 
   const parsedData =
-    data?.referrerClaimsForTournament && 'data' in data?.referrerClaimsForTournament
-      ? data.referrerClaimsForTournament.data.map(convertDataRowFE)
+    data?.campaignClaimsForTournament && 'data' in data?.campaignClaimsForTournament
+      ? data.campaignClaimsForTournament.data.map(convertDataRowFE)
       : [];
 
   const config = {
     loading,
     data: parsedData,
     xField: 'ticketsClaimed',
-    yField: 'userName',
+    yField: 'campaignName',
     seriesField: 'ticketsClaimed',
     label: {
       position: 'middle' as 'middle',
@@ -64,9 +64,6 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID }) => {
         autoRotate: false,
       },
     },
-    xAxis: {
-      title: { text: '# Tickets Distributed' },
-    },
     scrollbar: {
       type: 'vertical' as 'vertical',
     },
@@ -75,13 +72,16 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID }) => {
         fill: 'rgba(0,0,0,0.1)',
       },
     },
+    xAxis: {
+      title: { text: '# Tickets Distributed' },
+    },
   };
   return (
     <div>
-      <h2>Tickets Distributed by Promoter</h2>
+      <h2>Tickets Distributed by Campaign</h2>
       <Bar {...config} />
     </div>
   );
 };
 
-export default ReferrerClaims;
+export default CampaignDistribution;

@@ -150,3 +150,44 @@ export const REFERRER_CLAIM_STATS = gql`
     }
   }
 `;
+
+export interface CampaignClaimsRowFE {
+  referralCampaignName: string;
+  referralSlug: string;
+  userAvatar: string;
+  username: string;
+  userID: string;
+  claimCount: number;
+}
+
+export interface CampaignClaimsForTournamentResponseFE {
+  campaignClaimsForTournament:
+    | {
+        __typename: 'CampaignClaimsForTournamentResponseSuccess';
+        data: CampaignClaimsRowFE[];
+      }
+    | ResponseError;
+}
+
+export const CAMPAIGN_CLAIM_STATS = gql`
+  query CampaignClaimsForTournament($tournamentID: ID!) {
+    campaignClaimsForTournament(tournamentID: $tournamentID) {
+      ... on CampaignClaimsForTournamentResponseSuccess {
+        data {
+          referralCampaignName
+          referralSlug
+          userAvatar
+          username
+          userID
+          claimCount
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;

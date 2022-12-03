@@ -1,19 +1,28 @@
 import { QueryLootboxCompletedClaimsForTournamentArgs } from '@/api/graphql/generated/types';
+import { convertFilenameToThumbnail } from '@/lib/storage';
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Result } from 'antd';
+import { Result, Space, Typography } from 'antd';
 import {
   LootboxCompletedClaimRowFE,
   LootboxCompletedClaimsForTournamentResponseFE,
   LOOTBOX_CLAIM_STATS,
 } from '../api.gql';
 
-interface LootboxDistributionBarChartProps {
+interface LootboxClaimsProps {
   eventID: TournamentID;
 }
 
-const LootboxDistributionBarChart: React.FC<LootboxDistributionBarChartProps> = ({ eventID }) => {
+interface DataRow {
+  lootbox: string;
+  ticketsClaimed: number;
+  lootboxImg: string;
+  maxTickets: number;
+  lootboxID: string;
+}
+
+const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID }) => {
   const { data, loading, error } = useQuery<
     LootboxCompletedClaimsForTournamentResponseFE,
     QueryLootboxCompletedClaimsForTournamentArgs
@@ -33,12 +42,13 @@ const LootboxDistributionBarChart: React.FC<LootboxDistributionBarChartProps> = 
     );
   }
 
-  const convertDataRowFE = (
-    row: LootboxCompletedClaimRowFE,
-  ): { lootbox: string; ticketsClaimed: number } => {
+  const convertDataRowFE = (row: LootboxCompletedClaimRowFE): DataRow => {
     return {
       lootbox: row.lootboxName,
       ticketsClaimed: row.claimCount,
+      lootboxImg: row.lootboxImg,
+      maxTickets: row.maxTickets,
+      lootboxID: row.lootboxID,
     };
   };
 
@@ -72,8 +82,41 @@ const LootboxDistributionBarChart: React.FC<LootboxDistributionBarChartProps> = 
         fill: 'rgba(0,0,0,0.1)',
       },
     },
+    xAxis: {
+      title: { text: '# Tickets Claimed' },
+    },
+    tooltip: {
+      customContent: (title: any, data: any) => {
+        if (!data || !data[0]) {
+          return;
+        }
+        const parsedData: DataRow = data[0]?.data || {};
+        const { lootbox, ticketsClaimed, lootboxImg, maxTickets, lootboxID } = parsedData;
+        return (
+          <Space direction="vertical">
+            <br />
+            <Typography.Title level={5}>{lootbox}</Typography.Title>
+            <Typography.Text>
+              <b>{ticketsClaimed}</b> of <b>{maxTickets}</b> tickets claimed
+            </Typography.Text>
+            <br />
+            <img
+              src={lootboxImg ? convertFilenameToThumbnail(lootboxImg, 'sm') : undefined}
+              alt={lootbox}
+              style={{ height: '120px', margin: 'auto' }}
+            />
+            <br />
+          </Space>
+        );
+      },
+    },
   };
-  return <Bar {...config} />;
+  return (
+    <div>
+      <h2>Lootbox Ticket Claims</h2>
+      <Bar {...config} />
+    </div>
+  );
 };
 
-export default LootboxDistributionBarChart;
+export default LootboxClaims;
