@@ -38,7 +38,7 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
         <Statistic
           title="Ticket Claims"
           loading={loading}
-          value={stats?.completedClaimCount}
+          value={stats?.completedClaimCount || 0}
           suffix={<Typography.Text type="secondary">Total</Typography.Text>}
         />
       </Col>
@@ -47,7 +47,7 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
         <Statistic
           title="Completion Rate"
           loading={loading}
-          value={stats?.completedClaimCount}
+          value={stats?.completionRate || 0}
           suffix="%"
         />
       </Col>
