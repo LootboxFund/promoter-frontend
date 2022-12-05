@@ -539,6 +539,34 @@ const LootboxPage: React.FC = () => {
       </div>
       <br />
       <br />
+
+      <$Horizontal justifyContent="space-between">
+        <h2 id="team-members">Ticket Analytics</h2>
+        <$Horizontal justifyContent="space-between">
+          <Link to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}>
+            <Button style={{ marginRight: '5px' }}>Generate Stamp</Button>
+          </Link>
+          <Button type="primary" onClick={() => setIsReferralModalOpen(true)}>
+            Invite Fans
+          </Button>
+        </$Horizontal>
+      </$Horizontal>
+      <$InfoDescription maxWidth={maxWidth}>
+        {`View who helped distribute tickets for this team. `}
+        <a href="https://lootbox.fyi/3VyEhzg" target="_blank" rel="noreferrer">
+          View Tutorial
+        </a>
+      </$InfoDescription>
+      <Card>
+        <LootboxAnalytics
+          eventID={magicLinkParams.tournamentID as TournamentID}
+          lootboxID={lootboxID as LootboxID}
+        />
+      </Card>
+
+      <br />
+      <br />
+
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Team Members</h2>
         <Popconfirm
@@ -593,32 +621,7 @@ const LootboxPage: React.FC = () => {
       </Empty>
       <br />
       <br />
-      <$Horizontal justifyContent="space-between">
-        <h2 id="team-members">Ticket Analytics</h2>
-        <$Horizontal justifyContent="space-between">
-          <Link to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}>
-            <Button style={{ marginRight: '5px' }}>Generate Stamp</Button>
-          </Link>
-          <Button type="primary" onClick={() => setIsReferralModalOpen(true)}>
-            Invite Fans
-          </Button>
-        </$Horizontal>
-      </$Horizontal>
-      <$InfoDescription maxWidth={maxWidth}>
-        {`View who helped distribute tickets for this team. `}
-        <a href="https://lootbox.fyi/3VyEhzg" target="_blank" rel="noreferrer">
-          View Tutorial
-        </a>
-      </$InfoDescription>
-      <Card>
-        <LootboxAnalytics
-          eventID={magicLinkParams.tournamentID as TournamentID}
-          lootboxID={lootboxID as LootboxID}
-        />
-      </Card>
 
-      <br />
-      <br />
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Payout Rewards</h2>
         {/* <Button type="primary">Deposit Payout</Button> */}
