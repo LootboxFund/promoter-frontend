@@ -5,7 +5,7 @@ import type {
   QueryMyLootboxByNonceArgs,
   LootboxTournamentSnapshotArgs,
 } from '@/api/graphql/generated/types';
-import { Button, Empty, Popconfirm, notification, Spin, Tooltip } from 'antd';
+import { Button, Empty, Popconfirm, notification, Spin, Tooltip, Card } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -42,6 +42,7 @@ import { generateCreateLootboxNonce } from '@/lib/lootbox';
 import { useLootboxFactory } from '@/hooks/useLootboxFactory';
 import { InfoCircleTwoTone } from '@ant-design/icons';
 import { shortenAddress } from '@/lib/address';
+import LootboxAnalytics from '@/components/LootboxAnalytics';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -609,11 +610,13 @@ const LootboxPage: React.FC = () => {
           View Tutorial
         </a>
       </$InfoDescription>
-      <Empty
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-        description="Analytics Coming Soon"
-        style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
-      />
+      <Card>
+        <LootboxAnalytics
+          eventID={magicLinkParams.tournamentID as TournamentID}
+          lootboxID={lootboxID as LootboxID}
+        />
+      </Card>
+
       <br />
       <br />
       <$Horizontal justifyContent="space-between">
