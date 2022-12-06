@@ -266,7 +266,11 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
                 exitClear();
               }}
             >
-              <Link to={`/dashboard/lootbox/id/${lootboxID}?tid=${tournamentID}`} target="_blank">
+              <Link
+                to={`/dashboard/lootbox/id/${lootboxID}?tid=${tournamentID}`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Button type="primary">View Lootbox</Button>
               </Link>
             </div>
