@@ -80,3 +80,43 @@ export const GET_REFERRER_CLAIM_STATS = gql`
     }
   }
 `;
+
+export interface CampaignClaimRowFE {
+  referralCampaignName: string;
+  referralSlug: string;
+  userAvatar: string;
+  username: string;
+  userID: string;
+  claimCount: number;
+}
+
+export interface CampaignClaimsForLootboxResponseFE {
+  campaignClaimsForLootbox:
+    | {
+        __typename: 'CampaignClaimsForLootboxResponseSuccess';
+        data: CampaignClaimRowFE[];
+      }
+    | ResponseError;
+}
+export const CAMPAIGN_CLAIMS_FOR_LOOTBOX = gql`
+  query CampaignClaimsForLootbox($lootboxID: ID!, $tournamentID: ID) {
+    campaignClaimsForLootbox(lootboxID: $lootboxID, tournamentID: $tournamentID) {
+      ... on CampaignClaimsForLootboxResponseSuccess {
+        data {
+          referralCampaignName
+          referralSlug
+          userAvatar
+          username
+          userID
+          claimCount
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
