@@ -60,6 +60,7 @@ interface LootboxBody {
   creatorAddress?: Address | null;
   chainIDHex?: ChainIDHex | null;
   runningCompletedClaims: number;
+  id?: LootboxID;
 }
 
 export interface CreateLootboxRequest {
@@ -94,6 +95,7 @@ interface OnCreateLootboxWeb3Response {
 
 export type CreateLootboxFormProps = {
   lootbox?: LootboxBody;
+  stampImage?: string;
   airdropMetadata?: LootboxAirdropMetadata;
   magicLinkParams?: MagicLinkParams;
   onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
@@ -117,6 +119,7 @@ const LOOTBOX_INFO: LootboxBody = {
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
+  stampImage,
   magicLinkParams,
   onSubmitCreate,
   onSubmitEdit,
@@ -276,20 +279,33 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           content: (
             <$Vertical>
               <Typography.Text>
-                {mode === 'create' ? 'Lootbox created' : 'Lootbox updated'}
+                {mode === 'create' ? (
+                  <span>
+                    Lootbox created,{' '}
+                    <a
+                      href={`/dashboard/lootbox/id/${createdLootboxID}${
+                        magicLinkParams?.tournamentID ? `?tid=${magicLinkParams.tournamentID}` : ''
+                      }`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      view here.
+                    </a>
+                  </span>
+                ) : (
+                  'Lootbox updated'
+                )}
               </Typography.Text>
             </$Vertical>
           ),
-          okText: 'Go to Lootbox',
-          cancelText: 'Create Another',
+          okText: 'Create Another',
+          cancelText: 'View All',
           onOk: () => {
-            window.location.href = `/dashboard/lootbox/id/${createdLootboxID}${
-              magicLinkParams?.tournamentID ? `?tid=${magicLinkParams.tournamentID}` : ''
-            }`;
-          },
-          onCancel: () => {
             // refresh the page
             location.reload();
+          },
+          onCancel: () => {
+            window.location.href = `/dashboard/events/id/${magicLinkParams?.tournamentID}#lootbox-gallery`;
           },
         });
       } catch (e: any) {
@@ -466,6 +482,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           key: 'name',
           label: 'Team Name',
+          placeholder: 'Optional',
           rules: [
             {
               max: 30,
@@ -1031,7 +1048,22 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                           <span style={{ maxWidth: '200px' }}>
                             {`This LOOTBOX has not been deployed to the blockchain yet`}
                             &nbsp;
-                            <Tooltip title="This Lootbox can not pay out rewards to fans until it is deployed on the Blockchain. To deploy this Lootbox, you must install MetaMask and connect your wallet by clicking below.">
+                            <Tooltip
+                              title={
+                                <span>
+                                  This Lootbox can not pay out rewards to fans until it is deployed
+                                  on the Blockchain. To deploy this Lootbox, you must install
+                                  MetaMask and connect your wallet by clicking below.{` `}
+                                  <a
+                                    href="https://lootbox.fyi/3VFzk80"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    View Tutorial
+                                  </a>
+                                </span>
+                              }
+                            >
                               <InfoCircleTwoTone />
                             </Tooltip>
                           </span>
@@ -1113,16 +1145,26 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         </div>
         <$ColumnGap width="50px" />
         {viewMode ? (
-          <LootboxPreview
-            name={form.getFieldValue('name') || lootboxInfo.name}
-            logoImage={newMediaDestinationLogo.current || lootboxInfo.logoImage || placeholderImage}
-            backgroundImage={
-              newMediaDestinationBackground.current ||
-              lootboxInfo.backgroundImage ||
-              placeholderBackground
-            }
-            themeColor={newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor}
-          />
+          <div>
+            <LootboxPreview
+              name={form.getFieldValue('name') || lootboxInfo.name}
+              logoImage={
+                newMediaDestinationLogo.current || lootboxInfo.logoImage || placeholderImage
+              }
+              backgroundImage={
+                newMediaDestinationBackground.current ||
+                lootboxInfo.backgroundImage ||
+                placeholderBackground
+              }
+              themeColor={newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor}
+              lootboxID={lootbox?.id}
+            />
+            <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
+              <a href={stampImage} download target="_blank" rel="noreferrer">
+                Download Image
+              </a>
+            </$Horizontal>
+          </div>
         ) : (
           <Affix offsetTop={70} style={{ pointerEvents: 'none' }}>
             <LootboxPreview

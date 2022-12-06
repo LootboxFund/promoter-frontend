@@ -111,7 +111,7 @@ const RecruitPromotersPage: React.FC = () => {
               title={
                 <span>
                   {`To invite ${record.name} to your Event, copy their Promoter ID "${record.id}" and add them from your Event Page. Make sure you message them on social media to coordinate. `}
-                  <a href="https://lootbox.fyi/3Vk57vC" target="_blank" rel="noreferrer">
+                  <a href="https://lootbox.fyi/3OV4yWn" target="_blank" rel="noreferrer">
                     View Tutorial
                   </a>
                 </span>
