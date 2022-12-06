@@ -1,3 +1,5 @@
+import { manifest } from '@/manifest';
+import { LootboxID } from '@wormgraph/helpers';
 import { FunctionComponent } from 'react';
 import styles from './index.less';
 
@@ -6,6 +8,7 @@ interface LootboxPreviewProps {
   backgroundImage: string;
   themeColor: string;
   name: string;
+  lootboxID?: LootboxID;
 }
 
 const LootboxPreview: FunctionComponent<LootboxPreviewProps> = ({
@@ -13,6 +16,7 @@ const LootboxPreview: FunctionComponent<LootboxPreviewProps> = ({
   logoImage,
   backgroundImage,
   themeColor,
+  lootboxID,
 }) => {
   return (
     <article className={styles.design4Article} id="lootbox-card">
@@ -36,11 +40,11 @@ const LootboxPreview: FunctionComponent<LootboxPreviewProps> = ({
         <div className={styles.rectangleDiv1} />
         <a
           className={styles.detailsAtHttpslootboxfun}
-          href="https://lootbox.fund"
+          href={`${manifest.microfrontends.webflow.cosmicLootboxPage}?lid=${lootboxID}`}
           target="_blank"
           rel="noreferrer"
         >
-          {`Details at https://lootbox.fund/t?t=0x3580942sdfn289h43530854h5`}
+          {`${manifest.microfrontends.webflow.cosmicLootboxPage}?lid=${lootboxID}`}
         </a>
       </div>
       <div className={styles.groupDiv2} id="fan-rewards-banner">

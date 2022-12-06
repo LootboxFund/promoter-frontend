@@ -529,7 +529,9 @@ const LootboxPage: React.FC = () => {
             creatorAddress: lootbox.creatorAddress,
             chainIDHex: lootbox.chainIdHex,
             runningCompletedClaims: lootbox.runningCompletedClaims,
+            id: lootboxID ? (lootboxID as LootboxID) : undefined,
           }}
+          stampImage={lootbox.stampImage}
           airdropMetadata={lootbox.airdropMetadata}
           mode={doesUserHaveEditPermission ? 'view-edit' : 'view-only'}
           onSubmitEdit={editLootbox}
@@ -632,7 +634,18 @@ const LootboxPage: React.FC = () => {
             <span style={{ maxWidth: '200px' }}>
               {`This LOOTBOX has not been deployed to the blockchain yet`}
               &nbsp;
-              <Tooltip title="This Lootbox can not pay out rewards to fans until it is deployed on the Blockchain. To deploy this Lootbox, you must install MetaMask and connect your wallet by clicking below.">
+              <Tooltip
+                title={
+                  <span>
+                    This Lootbox can not pay out rewards to fans until it is deployed on the
+                    Blockchain. To deploy this Lootbox, you must install MetaMask and connect your
+                    wallet by clicking below.{' '}
+                    <a href="https://lootbox.fyi/3VFzk80" target="_blank" rel="noreferrer">
+                      View Tutorial
+                    </a>
+                  </span>
+                }
+              >
                 <InfoCircleTwoTone />
               </Tooltip>
             </span>
@@ -642,7 +655,7 @@ const LootboxPage: React.FC = () => {
             padding: '100px',
             border: '1px solid rgba(0,0,0,0.1)',
           }}
-        ></Empty>
+        />
       ) : (
         <DepositRewardForm
           lootboxDeposits={deposits}
