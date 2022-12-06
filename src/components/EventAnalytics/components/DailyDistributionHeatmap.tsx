@@ -3,7 +3,7 @@ import { Heatmap } from '@ant-design/plots';
 import { TournamentID } from '@wormgraph/helpers';
 import { DAILY_EVENT_CLAIMS, DailyEventClaimsResponseFE } from '../api.gql';
 import { useQuery } from '@apollo/client';
-import { Col, DatePicker, Result, Row, Space, Statistic, Typography } from 'antd';
+import { Button, Col, DatePicker, Result, Row, Space, Statistic, Typography } from 'antd';
 import { QueryDailyClaimStatisticsForTournamentArgs } from '@/api/graphql/generated/types';
 import moment from 'moment';
 
@@ -13,6 +13,7 @@ interface DailyDistributionHeatmapProps {
   eventID: TournamentID;
   eventCreatedAt?: number; // milliseconds when the event was made
   eventScheduledAt?: number; // milliseconds when the event is scheduled to start
+  onInviteFanModalToggle: () => void;
 }
 const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
   props: DailyDistributionHeatmapProps,
@@ -52,17 +53,7 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
     };
   }, [data]);
 
-  if (error || data?.dailyClaimStatisticsForTournament?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
-
-  const graphData =
+  const parsedData =
     data?.dailyClaimStatisticsForTournament && 'data' in data?.dailyClaimStatisticsForTournament
       ? data?.dailyClaimStatisticsForTournament.data.map((d) => {
           return {
@@ -73,8 +64,34 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
           };
         })
       : [];
+
+  if (error || data?.dailyClaimStatisticsForTournament?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
+
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={props.onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
+
   const config = {
-    data: graphData,
+    data: parsedData,
     loading,
     autoFit: false,
     xField: 'week',

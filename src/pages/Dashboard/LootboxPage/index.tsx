@@ -561,6 +561,7 @@ const LootboxPage: React.FC = () => {
         <LootboxAnalytics
           eventID={magicLinkParams.tournamentID as TournamentID}
           lootboxID={lootboxID as LootboxID}
+          onInviteFanModalToggle={() => setIsReferralModalOpen(!isReferralModalOpen)}
         />
       </Card>
 

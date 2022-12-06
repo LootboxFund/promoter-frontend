@@ -3,7 +3,7 @@ import { convertFilenameToThumbnail } from '@/lib/storage';
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Result, Space, Typography } from 'antd';
+import { Button, Result, Space, Typography } from 'antd';
 import {
   LootboxCompletedClaimRowFE,
   LootboxCompletedClaimsForTournamentResponseFE,
@@ -12,6 +12,7 @@ import {
 
 interface LootboxClaimsProps {
   eventID: TournamentID;
+  onInviteFanModalToggle: () => void;
 }
 
 interface DataRow {
@@ -22,7 +23,7 @@ interface DataRow {
   lootboxID: string;
 }
 
-const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID }) => {
+const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModalToggle }) => {
   const { data, loading, error } = useQuery<
     LootboxCompletedClaimsForTournamentResponseFE,
     QueryLootboxCompletedClaimsForTournamentArgs
@@ -31,16 +32,6 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID }) => {
       tournamentID: eventID,
     },
   });
-
-  if (error || data?.lootboxCompletedClaimsForTournament?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
 
   const convertDataRowFE = (row: LootboxCompletedClaimRowFE): DataRow => {
     return {
@@ -56,6 +47,31 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID }) => {
     data?.lootboxCompletedClaimsForTournament && 'data' in data?.lootboxCompletedClaimsForTournament
       ? data.lootboxCompletedClaimsForTournament.data.map(convertDataRowFE)
       : [];
+
+  if (error || data?.lootboxCompletedClaimsForTournament?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
+
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   const config = {
     loading,

@@ -2,7 +2,7 @@ import { QueryReferrerClaimsForLootboxArgs } from '@/api/graphql/generated/types
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { LootboxID, TournamentID } from '@wormgraph/helpers';
-import { Result } from 'antd';
+import { Button, Result } from 'antd';
 import {
   GET_REFERRER_CLAIM_STATS,
   GetReferrerClaimStatsResponseFE,
@@ -12,9 +12,14 @@ import {
 interface ReferrerClaimsProps {
   eventID: TournamentID;
   lootboxID: LootboxID;
+  onInviteFanModalToggle: () => void;
 }
 
-const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, lootboxID }) => {
+const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
+  eventID,
+  lootboxID,
+  onInviteFanModalToggle,
+}) => {
   const { data, loading, error } = useQuery<
     GetReferrerClaimStatsResponseFE,
     QueryReferrerClaimsForLootboxArgs
@@ -24,16 +29,6 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, lootboxID }) =
       lootboxID: lootboxID,
     },
   });
-
-  if (error || data?.referrerClaimsForLootbox?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
 
   const convertDataRowFE = (
     row: ReferrerLootboxClaimRowFE,
@@ -49,7 +44,30 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, lootboxID }) =
       ? data.referrerClaimsForLootbox.data.map(convertDataRowFE)
       : [];
 
-  console.log('data', parsedData);
+  if (error || data?.referrerClaimsForLootbox?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
+
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your LOOTBOX by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   const config = {
     loading,

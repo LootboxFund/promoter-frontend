@@ -10,9 +10,14 @@ import CampaignDistribution from './components/CampaignDistribution';
 export interface EventAnalyticsProps {
   eventID: TournamentID;
   lootboxID: LootboxID;
+  onInviteFanModalToggle: () => void;
 }
 
-const LootboxAnalytics: React.FC<EventAnalyticsProps> = ({ eventID, lootboxID }) => {
+const LootboxAnalytics: React.FC<EventAnalyticsProps> = ({
+  eventID,
+  lootboxID,
+  onInviteFanModalToggle,
+}) => {
   const chartItems = [
     //   {
     //     label: 'Lootbox Claims',
@@ -22,12 +27,24 @@ const LootboxAnalytics: React.FC<EventAnalyticsProps> = ({ eventID, lootboxID })
     {
       label: 'Promoter Distribution',
       key: 'promoter-distribution',
-      children: <ReferrerClaims eventID={eventID} lootboxID={lootboxID} />,
+      children: (
+        <ReferrerClaims
+          eventID={eventID}
+          lootboxID={lootboxID}
+          onInviteFanModalToggle={onInviteFanModalToggle}
+        />
+      ),
     },
     {
       label: 'Campaign Distribution',
       key: 'campaign-distribution',
-      children: <CampaignDistribution eventID={eventID} lootboxID={lootboxID} />,
+      children: (
+        <CampaignDistribution
+          eventID={eventID}
+          lootboxID={lootboxID}
+          onInviteFanModalToggle={onInviteFanModalToggle}
+        />
+      ),
     },
     //   {
     //     label: 'Daily Distribution',

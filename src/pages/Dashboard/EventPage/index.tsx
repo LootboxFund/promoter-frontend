@@ -381,7 +381,10 @@ const EventPage: React.FC = () => {
             </a>
           </$InfoDescription>
           <Card>
-            <EventAnalytics eventID={tournament.id as TournamentID} />
+            <EventAnalytics
+              eventID={tournament.id as TournamentID}
+              onInviteFanModalToggle={() => setIsReferralModalOpen(!isReferralModalOpen)}
+            />
           </Card>
           <br />
           <br />

@@ -2,7 +2,7 @@ import { QueryCampaignClaimsForTournamentArgs } from '@/api/graphql/generated/ty
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Result } from 'antd';
+import { Button, Result } from 'antd';
 import {
   CampaignClaimsRowFE,
   CampaignClaimsForTournamentResponseFE,
@@ -11,9 +11,13 @@ import {
 
 interface CampaignDistributionProps {
   eventID: TournamentID;
+  onInviteFanModalToggle: () => void;
 }
 
-const CampaignDistribution: React.FC<CampaignDistributionProps> = ({ eventID }) => {
+const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
+  eventID,
+  onInviteFanModalToggle,
+}) => {
   const { data, loading, error } = useQuery<
     CampaignClaimsForTournamentResponseFE,
     QueryCampaignClaimsForTournamentArgs
@@ -22,16 +26,6 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({ eventID }) 
       tournamentID: eventID,
     },
   });
-
-  if (error || data?.campaignClaimsForTournament?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
 
   const convertDataRowFE = (
     row: CampaignClaimsRowFE,
@@ -46,6 +40,30 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({ eventID }) 
     data?.campaignClaimsForTournament && 'data' in data?.campaignClaimsForTournament
       ? data.campaignClaimsForTournament.data.map(convertDataRowFE)
       : [];
+
+  if (error || data?.campaignClaimsForTournament?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   const config = {
     loading,

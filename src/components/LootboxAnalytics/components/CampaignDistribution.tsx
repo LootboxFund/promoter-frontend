@@ -2,7 +2,7 @@ import { QueryCampaignClaimsForLootboxArgs } from '@/api/graphql/generated/types
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { LootboxID, TournamentID } from '@wormgraph/helpers';
-import { Result } from 'antd';
+import { Button, Result } from 'antd';
 import {
   CampaignClaimRowFE,
   CampaignClaimsForLootboxResponseFE,
@@ -12,9 +12,14 @@ import {
 interface CampaignDistributionProps {
   eventID: TournamentID;
   lootboxID: LootboxID;
+  onInviteFanModalToggle: () => void;
 }
 
-const CampaignDistribution: React.FC<CampaignDistributionProps> = ({ eventID, lootboxID }) => {
+const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
+  eventID,
+  lootboxID,
+  onInviteFanModalToggle,
+}) => {
   const { data, loading, error } = useQuery<
     CampaignClaimsForLootboxResponseFE,
     QueryCampaignClaimsForLootboxArgs
@@ -24,16 +29,6 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({ eventID, lo
       lootboxID: lootboxID,
     },
   });
-
-  if (error || data?.campaignClaimsForLootbox?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
 
   const convertDataRowFE = (
     row: CampaignClaimRowFE,
@@ -48,6 +43,31 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({ eventID, lo
     data?.campaignClaimsForLootbox && 'data' in data?.campaignClaimsForLootbox
       ? data.campaignClaimsForLootbox.data.map(convertDataRowFE)
       : [];
+
+  if (error || data?.campaignClaimsForLootbox?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
+
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your LOOTBOX by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   const config = {
     loading,
