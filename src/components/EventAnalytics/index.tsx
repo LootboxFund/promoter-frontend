@@ -6,6 +6,7 @@ import DailyDistributionHeatmap from './components/DailyDistributionHeatmap';
 import ReferrerClaims from './components/ReferrerClaims';
 import CampaignDistribution from './components/CampaignDistribution';
 import FansReached from './components/FansReached';
+import SummaryStatistics from './components/SummaryStatistics';
 
 export interface EventAnalyticsProps {
   eventID: TournamentID;
@@ -15,24 +16,31 @@ export interface EventAnalyticsProps {
 const EventAnalytics: React.FC<EventAnalyticsProps> = ({ eventID, onInviteFanModalToggle }) => {
   const chartItems = [
     {
-      label: 'Lootbox Claims',
+      label: 'Summary',
+      key: 'summary-statistics',
+      children: (
+        <SummaryStatistics eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />
+      ),
+    },
+    {
+      label: 'By Lootbox',
       key: 'lootbox-claims',
       children: <LootboxClaims eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
     },
     {
-      label: 'Fans Reached',
+      label: 'By Fan',
       key: 'fans-distribution',
       children: <FansReached eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
     },
     {
-      label: 'Promoter Distribution',
+      label: 'By Promoter',
       key: 'promoter-distribution',
       children: (
         <ReferrerClaims eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />
       ),
     },
     {
-      label: 'Campaign Distribution',
+      label: 'By Campaign',
       key: 'campaign-distribution',
       children: (
         <CampaignDistribution eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />

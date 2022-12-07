@@ -2,18 +2,29 @@ import { ResponseError } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
 import { LootboxID, UserID } from '@wormgraph/helpers';
 
+export interface BaseEventClaimStatsFE {
+  totalClaimCount: number;
+  completedClaimCount: number;
+  viralClaimCount: number;
+  referralBonusClaimCount: number;
+  participationRewardCount: number;
+  airdropClaimCount: number;
+  pendingClaims: number;
+  originalClaims: number;
+  impressions: number;
+  allFans: number;
+  originalFans: number;
+  viralFans: number;
+  completionRate: number;
+  airdropCompletionRate: number;
+  totalMaxTickets: number;
+}
+
 export interface BaseEventClaimStatsResponseFE {
   baseClaimStatsForTournament:
     | {
         __typename: 'BaseClaimStatsForTournamentResponseSuccess';
-        stats: {
-          totalClaimCount: number;
-          completedClaimCount: number;
-          viralClaimCount: number;
-          bonusRewardClaimCount: number;
-          oneTimeClaimCount: number;
-          completionRate: number;
-        };
+        stats: BaseEventClaimStatsFE;
       }
     | ResponseError;
 }
@@ -26,9 +37,18 @@ export const BASE_EVENT_CLAIM_STATS = gql`
           totalClaimCount
           completedClaimCount
           viralClaimCount
-          bonusRewardClaimCount
-          oneTimeClaimCount
+          referralBonusClaimCount
+          participationRewardCount
+          airdropClaimCount
+          pendingClaims
+          originalClaims
+          impressions
+          allFans
+          originalFans
+          viralFans
           completionRate
+          airdropCompletionRate
+          totalMaxTickets
         }
       }
       ... on ResponseError {

@@ -56,7 +56,7 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
         <Statistic title="Incomplete Claims" loading={loading} value={stats?.pendingClaimCount} />
       </Col> */}
 
-      <Col span={6}>
+      {/* <Col span={6}>
         <Statistic
           title="Referral Rewards"
           loading={loading}
@@ -89,7 +89,7 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
             ) : undefined
           }
         />
-      </Col>
+      </Col> */}
     </Row>
   );
 };
