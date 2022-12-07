@@ -120,3 +120,46 @@ export const CAMPAIGN_CLAIMS_FOR_LOOTBOX = gql`
     }
   }
 `;
+
+export interface ClaimerStatsLootboxTournamentRowFE {
+  lootboxID: string;
+  claimerUserID: string;
+  username: string;
+  userAvatar: string;
+  claimCount: number;
+  claimType: string;
+  totalUserClaimCount: number;
+}
+
+export interface ClaimerStatsForLootboxTournamentFE {
+  claimerStatisticsForLootboxTournament:
+    | {
+        __typename: 'ClaimerStatsForLootboxTournamentResponseSuccess';
+        data: ClaimerStatsLootboxTournamentRowFE[];
+      }
+    | ResponseError;
+}
+
+export const CLAIMER_STATS_FOR_LOOTBOX_TOURNAMENT = gql`
+  query ClaimerStatisticsForLootboxTournament($lootboxID: ID!, $tournamentID: ID!) {
+    claimerStatisticsForLootboxTournament(lootboxID: $lootboxID, tournamentID: $tournamentID) {
+      ... on ClaimerStatsForLootboxTournamentResponseSuccess {
+        data {
+          claimerUserID
+          lootboxID
+          username
+          userAvatar
+          claimCount
+          claimType
+          totalUserClaimCount
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;

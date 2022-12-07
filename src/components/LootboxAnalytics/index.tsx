@@ -5,6 +5,7 @@ import BaseStats from './components/BaseStatistics';
 // import DailyDistributionHeatmap from './components/DailyDistributionHeatmap';
 import ReferrerClaims from './components/ReferrerClaims';
 import CampaignDistribution from './components/CampaignDistribution';
+import ClaimerDistribution from './components/ClaimerClaimsDistribution';
 // import CampaignDistribution from './components/CampaignDistribution';
 
 export interface EventAnalyticsProps {
@@ -24,6 +25,17 @@ const LootboxAnalytics: React.FC<EventAnalyticsProps> = ({
     //     key: 'lootbox-claims',
     //     children: <LootboxClaims eventID={eventID} />,
     //   },
+    {
+      label: 'Fans Reached',
+      key: 'fans-distribution',
+      children: (
+        <ClaimerDistribution
+          eventID={eventID}
+          lootboxID={lootboxID}
+          onInviteFanModalToggle={onInviteFanModalToggle}
+        />
+      ),
+    },
     {
       label: 'Promoter Distribution',
       key: 'promoter-distribution',
