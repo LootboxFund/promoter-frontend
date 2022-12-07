@@ -8,7 +8,8 @@ import {
   ClaimerStatsForLootboxTournamentFE,
   CLAIMER_STATS_FOR_LOOTBOX_TOURNAMENT,
 } from '../api.gql';
-import { truncateUID } from '../../../lib/string';
+import { truncateUID } from '@/lib/string';
+import { convertClaimTypeForLegend } from '@/lib/graph';
 
 interface FansReachedProps {
   eventID: TournamentID;
@@ -48,7 +49,7 @@ const FansReached: React.FC<FansReachedProps> = ({
       //   }`}</Typography.Text>
       // ),
       [XDataKey]: row.claimCount,
-      [SeriesKey]: row.claimType,
+      [SeriesKey]: convertClaimTypeForLegend(row.claimType),
     };
   };
 

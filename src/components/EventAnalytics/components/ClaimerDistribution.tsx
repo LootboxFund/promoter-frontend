@@ -4,7 +4,8 @@ import { useQuery } from '@apollo/client';
 import { TournamentID, UserID } from '@wormgraph/helpers';
 import { Button, Result } from 'antd';
 import { ClaimerStatsRowFE, ClaimerStatsForTournamentFE, CLAIMER_STATS } from '../api.gql';
-import { truncateUID } from '../../../lib/string';
+import { truncateUID } from '@/lib/string';
+import { convertClaimTypeForLegend } from '@/lib/graph';
 
 interface ClaimerDistributionProps {
   eventID: TournamentID;
@@ -36,7 +37,7 @@ const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
         row.claimerUserID as UserID,
       )}`,
       [XDataKey]: row.claimCount,
-      [SeriesKey]: row.claimType,
+      [SeriesKey]: convertClaimTypeForLegend(row.claimType),
     };
   };
 
@@ -85,9 +86,6 @@ const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
     yAxis: {
       label: {
         autoRotate: false,
-        // formatter: (val: any, _: any, idx: number) => {
-        //   return parsedData[idx].campaignName;
-        // },
       },
     },
     scrollbar: {
