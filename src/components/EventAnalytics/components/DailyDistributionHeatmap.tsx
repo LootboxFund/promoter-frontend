@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Heatmap } from '@ant-design/plots';
+import { Heatmap, HeatmapConfig } from '@ant-design/plots';
 import { TournamentID } from '@wormgraph/helpers';
 import { DAILY_EVENT_CLAIMS, DailyEventClaimsResponseFE } from '../api.gql';
 import { useQuery } from '@apollo/client';
-import { Col, DatePicker, Result, Row, Space, Statistic, Typography } from 'antd';
+import { Button, Col, DatePicker, Result, Row, Space, Statistic, Typography } from 'antd';
 import { QueryDailyClaimStatisticsForTournamentArgs } from '@/api/graphql/generated/types';
 import moment from 'moment';
 
@@ -13,6 +13,7 @@ interface DailyDistributionHeatmapProps {
   eventID: TournamentID;
   eventCreatedAt?: number; // milliseconds when the event was made
   eventScheduledAt?: number; // milliseconds when the event is scheduled to start
+  onInviteFanModalToggle: () => void;
 }
 const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
   props: DailyDistributionHeatmapProps,
@@ -52,6 +53,20 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
     };
   }, [data]);
 
+  const parsedData = useMemo(() => {
+    return data?.dailyClaimStatisticsForTournament &&
+      'data' in data?.dailyClaimStatisticsForTournament
+      ? data?.dailyClaimStatisticsForTournament.data.map((d) => {
+          return {
+            date: d.date,
+            week: d.weekNormalized,
+            day: d.day - 1, // Index 0 - 6 (instead of 1 - 7)
+            claimCount: d.claimCount,
+          };
+        })
+      : [];
+  }, [data]);
+
   if (error || data?.dailyClaimStatisticsForTournament?.__typename === 'ResponseError') {
     return (
       <Result
@@ -62,19 +77,23 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
     );
   }
 
-  const graphData =
-    data?.dailyClaimStatisticsForTournament && 'data' in data?.dailyClaimStatisticsForTournament
-      ? data?.dailyClaimStatisticsForTournament.data.map((d) => {
-          return {
-            date: d.date,
-            week: d.weekNormalized,
-            day: d.day - 1, // Index 0 - 6 (instead of 1 - 7)
-            claimCount: d.claimCount,
-          };
-        })
-      : [];
-  const config = {
-    data: graphData,
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={props.onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
+
+  const config: HeatmapConfig = {
+    data: parsedData,
     loading,
     autoFit: false,
     xField: 'week',

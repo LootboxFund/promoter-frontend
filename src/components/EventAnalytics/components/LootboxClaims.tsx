@@ -1,17 +1,22 @@
 import { QueryLootboxCompletedClaimsForTournamentArgs } from '@/api/graphql/generated/types';
 import { convertFilenameToThumbnail } from '@/lib/storage';
-import { Bar } from '@ant-design/plots';
+import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Result, Space, Typography } from 'antd';
+import { Button, Result, Space, Typography } from 'antd';
+import { useMemo, useRef } from 'react';
 import {
   LootboxCompletedClaimRowFE,
   LootboxCompletedClaimsForTournamentResponseFE,
   LOOTBOX_CLAIM_STATS,
 } from '../api.gql';
 
+const XDataLabel = 'ticketsClaimed';
+const YDataLabel = 'lootbox';
+
 interface LootboxClaimsProps {
   eventID: TournamentID;
+  onInviteFanModalToggle: () => void;
 }
 
 interface DataRow {
@@ -22,7 +27,8 @@ interface DataRow {
   lootboxID: string;
 }
 
-const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID }) => {
+const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModalToggle }) => {
+  const dataMapping = useRef<{ [key: string]: number }>({}); // needed to de-dupe the lootbox names :(
   const { data, loading, error } = useQuery<
     LootboxCompletedClaimsForTournamentResponseFE,
     QueryLootboxCompletedClaimsForTournamentArgs
@@ -31,6 +37,31 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID }) => {
       tournamentID: eventID,
     },
   });
+
+  const convertDataRowFE = (row: LootboxCompletedClaimRowFE): DataRow => {
+    let lootboxName = row.lootboxName;
+    if (row.lootboxName in dataMapping.current) {
+      lootboxName = `${row.lootboxName} (${dataMapping.current[row.lootboxName]})`;
+      dataMapping.current[row.lootboxName]++;
+    } else {
+      dataMapping.current[row.lootboxName] = 1;
+    }
+
+    return {
+      [YDataLabel]: lootboxName,
+      [XDataLabel]: row.claimCount,
+      lootboxImg: row.lootboxImg,
+      maxTickets: row.maxTickets,
+      lootboxID: row.lootboxID,
+    };
+  };
+
+  const parsedData = useMemo(() => {
+    return data?.lootboxCompletedClaimsForTournament &&
+      'data' in data?.lootboxCompletedClaimsForTournament
+      ? data.lootboxCompletedClaimsForTournament.data.map(convertDataRowFE)
+      : [];
+  }, [data]);
 
   if (error || data?.lootboxCompletedClaimsForTournament?.__typename === 'ResponseError') {
     return (
@@ -42,27 +73,27 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID }) => {
     );
   }
 
-  const convertDataRowFE = (row: LootboxCompletedClaimRowFE): DataRow => {
-    return {
-      lootbox: row.lootboxName,
-      ticketsClaimed: row.claimCount,
-      lootboxImg: row.lootboxImg,
-      maxTickets: row.maxTickets,
-      lootboxID: row.lootboxID,
-    };
-  };
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
-  const parsedData =
-    data?.lootboxCompletedClaimsForTournament && 'data' in data?.lootboxCompletedClaimsForTournament
-      ? data.lootboxCompletedClaimsForTournament.data.map(convertDataRowFE)
-      : [];
-
-  const config = {
+  const config: BarConfig = {
     loading,
     data: parsedData,
-    xField: 'ticketsClaimed',
-    yField: 'lootbox',
-    seriesField: 'ticketsClaimed',
+    xField: XDataLabel,
+    yField: YDataLabel,
+    seriesField: XDataLabel,
     label: {
       position: 'middle' as 'middle',
     },

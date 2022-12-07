@@ -1,63 +1,63 @@
-import { QueryCampaignClaimsForTournamentArgs } from '@/api/graphql/generated/types';
+import { QueryReferrerClaimsForLootboxArgs } from '@/api/graphql/generated/types';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
-import { TournamentID } from '@wormgraph/helpers';
+import { LootboxID, TournamentID } from '@wormgraph/helpers';
 import { Button, Result } from 'antd';
 import { useMemo, useRef } from 'react';
 import {
-  CampaignClaimsRowFE,
-  CampaignClaimsForTournamentResponseFE,
-  CAMPAIGN_CLAIM_STATS,
+  GET_REFERRER_CLAIM_STATS,
+  GetReferrerClaimStatsResponseFE,
+  ReferrerLootboxClaimRowFE,
 } from '../api.gql';
 
-interface CampaignDistributionProps {
+const XDataLabel = 'ticketsClaimed';
+const YDataLabel = 'userName';
+
+interface ReferrerClaimsProps {
   eventID: TournamentID;
+  lootboxID: LootboxID;
   onInviteFanModalToggle: () => void;
 }
 
-const YDataLabel = 'campaignName';
-const XDataLabel = 'ticketsClaimed';
-
-const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
+const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
   eventID,
+  lootboxID,
   onInviteFanModalToggle,
 }) => {
-  const dataMapping = useRef<{ [key: string]: number }>({}); // needed to de-dupe the campaign names :(
+  const dataMapping = useRef<{ [key: string]: number }>({}); // needed to de-dupe the user names :(
   const { data, loading, error } = useQuery<
-    CampaignClaimsForTournamentResponseFE,
-    QueryCampaignClaimsForTournamentArgs
-  >(CAMPAIGN_CLAIM_STATS, {
+    GetReferrerClaimStatsResponseFE,
+    QueryReferrerClaimsForLootboxArgs
+  >(GET_REFERRER_CLAIM_STATS, {
     variables: {
       tournamentID: eventID,
+      lootboxID: lootboxID,
     },
   });
 
   const convertDataRowFE = (
-    row: CampaignClaimsRowFE,
+    row: ReferrerLootboxClaimRowFE,
   ): { [YDataLabel]: string; [XDataLabel]: number } => {
-    let campaignName = row.referralCampaignName;
-    if (row.referralCampaignName in dataMapping.current) {
-      campaignName = `${row.referralCampaignName} (${
-        dataMapping.current[row.referralCampaignName]
-      })`;
-      dataMapping.current[row.referralCampaignName]++;
+    let userName = row.userName;
+    if (row.userName in dataMapping.current) {
+      userName = `${row.userName} (${dataMapping.current[row.userName]})`;
+      dataMapping.current[row.userName]++;
     } else {
-      dataMapping.current[row.referralCampaignName] = 1;
+      dataMapping.current[row.userName] = 1;
     }
-
     return {
-      [YDataLabel]: campaignName,
+      [YDataLabel]: userName,
       [XDataLabel]: row.claimCount,
     };
   };
 
   const parsedData = useMemo(() => {
-    return data?.campaignClaimsForTournament && 'data' in data?.campaignClaimsForTournament
-      ? data.campaignClaimsForTournament.data.map(convertDataRowFE)
+    return data?.referrerClaimsForLootbox && 'data' in data?.referrerClaimsForLootbox
+      ? data.referrerClaimsForLootbox.data.map(convertDataRowFE)
       : [];
   }, [data]);
 
-  if (error || data?.campaignClaimsForTournament?.__typename === 'ResponseError') {
+  if (error || data?.referrerClaimsForLootbox?.__typename === 'ResponseError') {
     return (
       <Result
         status="error"
@@ -66,12 +66,13 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
       />
     );
   }
+
   if (!loading && parsedData.length === 0) {
     return (
       <Result
         status="info"
         title="Invite Fans"
-        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        subTitle="View detailed analytics for your LOOTBOX by inviting fans to claim their LOOTBOX reward."
         extra={[
           <Button onClick={onInviteFanModalToggle} type="primary">
             Invite Fans
@@ -96,10 +97,10 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
     yAxis: {
       label: {
         autoRotate: false,
-        // formatter: (val: any, _: any, idx: number) => {
-        //   return parsedData[idx].campaignName;
-        // },
       },
+    },
+    xAxis: {
+      title: { text: '# Tickets Distributed' },
     },
     scrollbar: {
       type: 'vertical' as 'vertical',
@@ -109,16 +110,13 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
         fill: 'rgba(0,0,0,0.1)',
       },
     },
-    xAxis: {
-      title: { text: '# Tickets Distributed' },
-    },
   };
   return (
     <div>
-      <h2>Tickets Distributed by Campaign</h2>
+      <h2>Tickets Distributed by Promoter</h2>
       <Bar {...config} />
     </div>
   );
 };
 
-export default CampaignDistribution;
+export default ReferrerClaims;

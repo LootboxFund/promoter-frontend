@@ -2,7 +2,8 @@ import { QueryReferrerClaimsForTournamentArgs } from '@/api/graphql/generated/ty
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Result } from 'antd';
+import { Button, Result } from 'antd';
+import { useMemo } from 'react';
 import {
   ReferrerClaimsForTournamentResponseFE,
   REFERRER_CLAIM_STATS,
@@ -11,9 +12,10 @@ import {
 
 interface ReferrerClaimsProps {
   eventID: TournamentID;
+  onInviteFanModalToggle: () => void;
 }
 
-const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID }) => {
+const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanModalToggle }) => {
   const { data, loading, error } = useQuery<
     ReferrerClaimsForTournamentResponseFE,
     QueryReferrerClaimsForTournamentArgs
@@ -22,6 +24,21 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID }) => {
       tournamentID: eventID,
     },
   });
+
+  const convertDataRowFE = (
+    row: ReferrerClaimsForTournamentRow,
+  ): { userName: string; ticketsClaimed: number } => {
+    return {
+      userName: row.userName,
+      ticketsClaimed: row.claimCount,
+    };
+  };
+
+  const parsedData = useMemo(() => {
+    return data?.referrerClaimsForTournament && 'data' in data?.referrerClaimsForTournament
+      ? data.referrerClaimsForTournament.data.map(convertDataRowFE)
+      : [];
+  }, [data]);
 
   if (error || data?.referrerClaimsForTournament?.__typename === 'ResponseError') {
     return (
@@ -33,19 +50,20 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID }) => {
     );
   }
 
-  const convertDataRowFE = (
-    row: ReferrerClaimsForTournamentRow,
-  ): { userName: string; ticketsClaimed: number } => {
-    return {
-      userName: row.userName,
-      ticketsClaimed: row.claimCount,
-    };
-  };
-
-  const parsedData =
-    data?.referrerClaimsForTournament && 'data' in data?.referrerClaimsForTournament
-      ? data.referrerClaimsForTournament.data.map(convertDataRowFE)
-      : [];
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   const config = {
     loading,

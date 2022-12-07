@@ -191,3 +191,44 @@ export const CAMPAIGN_CLAIM_STATS = gql`
     }
   }
 `;
+
+export interface ClaimerStatsRowFE {
+  claimerUserID: string;
+  username: string;
+  userAvatar: string;
+  claimCount: number;
+  claimType: string;
+  totalUserClaimCount: number;
+}
+
+export interface ClaimerStatsForTournamentFE {
+  claimerStatsForTournament:
+    | {
+        __typename: 'ClaimerStatsForTournamentResponseSuccess';
+        data: ClaimerStatsRowFE[];
+      }
+    | ResponseError;
+}
+
+export const CLAIMER_STATS = gql`
+  query ClaimerStatsForTournamentResponseSuccess($eventID: ID!) {
+    claimerStatsForTournament(eventID: $eventID) {
+      ... on ClaimerStatsForTournamentResponseSuccess {
+        data {
+          claimerUserID
+          username
+          userAvatar
+          claimCount
+          claimType
+          totalUserClaimCount
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;

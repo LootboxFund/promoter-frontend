@@ -5,7 +5,7 @@ import type {
   QueryMyLootboxByNonceArgs,
   LootboxTournamentSnapshotArgs,
 } from '@/api/graphql/generated/types';
-import { Button, Empty, Popconfirm, notification, Spin, Tooltip } from 'antd';
+import { Button, Empty, Popconfirm, notification, Spin, Tooltip, Card } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -42,6 +42,7 @@ import { generateCreateLootboxNonce } from '@/lib/lootbox';
 import { useLootboxFactory } from '@/hooks/useLootboxFactory';
 import { InfoCircleTwoTone } from '@ant-design/icons';
 import { shortenAddress } from '@/lib/address';
+import LootboxAnalytics from '@/components/LootboxAnalytics';
 
 interface MagicLinkParams {
   tournamentID?: TournamentID;
@@ -540,6 +541,35 @@ const LootboxPage: React.FC = () => {
       </div>
       <br />
       <br />
+
+      <$Horizontal justifyContent="space-between">
+        <h2 id="team-members">Ticket Analytics</h2>
+        <$Horizontal justifyContent="space-between">
+          <Link to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}>
+            <Button style={{ marginRight: '5px' }}>Generate Stamp</Button>
+          </Link>
+          <Button type="primary" onClick={() => setIsReferralModalOpen(true)}>
+            Invite Fans
+          </Button>
+        </$Horizontal>
+      </$Horizontal>
+      <$InfoDescription maxWidth={maxWidth}>
+        {`View who helped distribute tickets for this team. `}
+        <a href="https://lootbox.fyi/3VyEhzg" target="_blank" rel="noreferrer">
+          View Tutorial
+        </a>
+      </$InfoDescription>
+      <Card>
+        <LootboxAnalytics
+          eventID={magicLinkParams.tournamentID as TournamentID}
+          lootboxID={lootboxID as LootboxID}
+          onInviteFanModalToggle={() => setIsReferralModalOpen(!isReferralModalOpen)}
+        />
+      </Card>
+
+      <br />
+      <br />
+
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Team Members</h2>
         <Popconfirm
@@ -594,30 +624,7 @@ const LootboxPage: React.FC = () => {
       </Empty>
       <br />
       <br />
-      <$Horizontal justifyContent="space-between">
-        <h2 id="team-members">Ticket Analytics</h2>
-        <$Horizontal justifyContent="space-between">
-          <Link to={`/dashboard/stamp/lootbox/id/${lootboxID}?tid=${magicLinkParams.tournamentID}`}>
-            <Button style={{ marginRight: '5px' }}>Generate Stamp</Button>
-          </Link>
-          <Button type="primary" onClick={() => setIsReferralModalOpen(true)}>
-            Invite Fans
-          </Button>
-        </$Horizontal>
-      </$Horizontal>
-      <$InfoDescription maxWidth={maxWidth}>
-        {`View who helped distribute tickets for this team. `}
-        <a href="https://lootbox.fyi/3VyEhzg" target="_blank" rel="noreferrer">
-          View Tutorial
-        </a>
-      </$InfoDescription>
-      <Empty
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-        description="Analytics Coming Soon"
-        style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
-      />
-      <br />
-      <br />
+
       <$Horizontal justifyContent="space-between">
         <h2 id="team-members">Payout Rewards</h2>
         {/* <Button type="primary">Deposit Payout</Button> */}
