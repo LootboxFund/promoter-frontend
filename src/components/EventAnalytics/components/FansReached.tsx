@@ -7,7 +7,7 @@ import { ClaimerStatsRowFE, ClaimerStatsForTournamentFE, CLAIMER_STATS } from '.
 import { truncateUID } from '@/lib/string';
 import { convertClaimTypeForLegend } from '@/lib/graph';
 
-interface ClaimerDistributionProps {
+interface FansReachedProps {
   eventID: TournamentID;
   onInviteFanModalToggle: () => void;
 }
@@ -16,10 +16,7 @@ const YDataKey = 'campaignName';
 const XDataKey = 'ticketsClaimed';
 const SeriesKey = 'claimType';
 
-const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
-  eventID,
-  onInviteFanModalToggle,
-}) => {
+const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalToggle }) => {
   const { data, loading, error } = useQuery<
     ClaimerStatsForTournamentFE,
     QueryClaimerStatsForTournamentArgs
@@ -109,4 +106,4 @@ const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
   );
 };
 
-export default ClaimerDistribution;
+export default FansReached;
