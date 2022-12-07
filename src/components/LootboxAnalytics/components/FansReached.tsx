@@ -1,15 +1,16 @@
 import { QueryClaimerStatisticsForLootboxTournamentArgs } from '@/api/graphql/generated/types';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
-import { LootboxID, TournamentID } from '@wormgraph/helpers';
-import { Button, Result } from 'antd';
+import { LootboxID, TournamentID, UserID } from '@wormgraph/helpers';
+import { Button, Result, Typography } from 'antd';
 import {
   ClaimerStatsLootboxTournamentRowFE,
   ClaimerStatsForLootboxTournamentFE,
   CLAIMER_STATS_FOR_LOOTBOX_TOURNAMENT,
 } from '../api.gql';
+import { truncateUID } from '../../../lib/string';
 
-interface ClaimerDistributionProps {
+interface FansReachedProps {
   eventID: TournamentID;
   lootboxID: LootboxID;
   onInviteFanModalToggle: () => void;
@@ -19,7 +20,7 @@ const YDataKey = 'username';
 const XDataKey = 'claimCount';
 const SeriesKey = 'claimType';
 
-const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
+const FansReached: React.FC<FansReachedProps> = ({
   eventID,
   lootboxID,
   onInviteFanModalToggle,
@@ -36,9 +37,16 @@ const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
 
   const convertDataRowFE = (
     row: ClaimerStatsLootboxTournamentRowFE,
-  ): { [YDataKey]: string; [XDataKey]: number; [SeriesKey]: string } => {
+  ): { [YDataKey]: any; [XDataKey]: number; [SeriesKey]: string } => {
     return {
-      [YDataKey]: `${row.username ? row.username + '\n' : ''}${row.claimerUserID}`,
+      [YDataKey]: `${row.username ? row.username + '\n' : ''}${truncateUID(
+        row.claimerUserID as UserID,
+      )}`,
+      // [YDataKey]: (
+      //   <Typography.Text>{`${row.username ? row.username + '\n' : ''}${
+      //     row.claimerUserID
+      //   }`}</Typography.Text>
+      // ),
       [XDataKey]: row.claimCount,
       [SeriesKey]: row.claimType,
     };
@@ -83,6 +91,10 @@ const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
     isStack: true,
     label: {
       position: 'middle' as 'middle',
+      content: (data: any) => {
+        console.log('data?', data);
+        return data[XDataKey];
+      },
     },
     legend: {
       position: 'top-left' as 'top-left',
@@ -116,4 +128,4 @@ const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
   );
 };
 
-export default ClaimerDistribution;
+export default FansReached;

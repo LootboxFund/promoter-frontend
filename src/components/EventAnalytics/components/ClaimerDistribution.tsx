@@ -1,9 +1,10 @@
 import { QueryClaimerStatsForTournamentArgs } from '@/api/graphql/generated/types';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
-import { TournamentID } from '@wormgraph/helpers';
+import { TournamentID, UserID } from '@wormgraph/helpers';
 import { Button, Result } from 'antd';
 import { ClaimerStatsRowFE, ClaimerStatsForTournamentFE, CLAIMER_STATS } from '../api.gql';
+import { truncateUID } from '../../../lib/string';
 
 interface ClaimerDistributionProps {
   eventID: TournamentID;
@@ -31,7 +32,9 @@ const ClaimerDistribution: React.FC<ClaimerDistributionProps> = ({
     row: ClaimerStatsRowFE,
   ): { [YDataKey]: string; [XDataKey]: number; [SeriesKey]: string } => {
     return {
-      [YDataKey]: `${row.username ? row.username + '\n' : ''}${row.claimerUserID}`,
+      [YDataKey]: `${row.username ? row.username + '\n' : ''}${truncateUID(
+        row.claimerUserID as UserID,
+      )}`,
       [XDataKey]: row.claimCount,
       [SeriesKey]: row.claimType,
     };
