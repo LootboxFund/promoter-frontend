@@ -3,6 +3,7 @@ import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
 import { Button, Result } from 'antd';
+import { useMemo } from 'react';
 import {
   ReferrerClaimsForTournamentResponseFE,
   REFERRER_CLAIM_STATS,
@@ -33,10 +34,11 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanMod
     };
   };
 
-  const parsedData =
-    data?.referrerClaimsForTournament && 'data' in data?.referrerClaimsForTournament
+  const parsedData = useMemo(() => {
+    return data?.referrerClaimsForTournament && 'data' in data?.referrerClaimsForTournament
       ? data.referrerClaimsForTournament.data.map(convertDataRowFE)
       : [];
+  }, [data]);
 
   if (error || data?.referrerClaimsForTournament?.__typename === 'ResponseError') {
     return (

@@ -1,8 +1,9 @@
 import { QueryCampaignClaimsForTournamentArgs } from '@/api/graphql/generated/types';
-import { Bar } from '@ant-design/plots';
+import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
 import { Button, Result } from 'antd';
+import { useMemo, useRef } from 'react';
 import {
   CampaignClaimsRowFE,
   CampaignClaimsForTournamentResponseFE,
@@ -14,10 +15,14 @@ interface CampaignDistributionProps {
   onInviteFanModalToggle: () => void;
 }
 
+const YDataLabel = 'campaignName';
+const XDataLabel = 'ticketsClaimed';
+
 const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
   eventID,
   onInviteFanModalToggle,
 }) => {
+  const dataMapping = useRef<{ [key: string]: number }>({}); // needed to de-dupe the campaign names :(
   const { data, loading, error } = useQuery<
     CampaignClaimsForTournamentResponseFE,
     QueryCampaignClaimsForTournamentArgs
@@ -29,17 +34,28 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
 
   const convertDataRowFE = (
     row: CampaignClaimsRowFE,
-  ): { campaignName: string; ticketsClaimed: number } => {
+  ): { [YDataLabel]: string; [XDataLabel]: number } => {
+    let campaignName = row.referralCampaignName;
+    if (row.referralCampaignName in dataMapping.current) {
+      campaignName = `${row.referralCampaignName} (${
+        dataMapping.current[row.referralCampaignName]
+      })`;
+      dataMapping.current[row.referralCampaignName]++;
+    } else {
+      dataMapping.current[row.referralCampaignName] = 1;
+    }
+
     return {
-      campaignName: row.referralCampaignName,
-      ticketsClaimed: row.claimCount,
+      [YDataLabel]: campaignName,
+      [XDataLabel]: row.claimCount,
     };
   };
 
-  const parsedData =
-    data?.campaignClaimsForTournament && 'data' in data?.campaignClaimsForTournament
+  const parsedData = useMemo(() => {
+    return data?.campaignClaimsForTournament && 'data' in data?.campaignClaimsForTournament
       ? data.campaignClaimsForTournament.data.map(convertDataRowFE)
       : [];
+  }, [data]);
 
   if (error || data?.campaignClaimsForTournament?.__typename === 'ResponseError') {
     return (
@@ -65,12 +81,12 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
     );
   }
 
-  const config = {
+  const config: BarConfig = {
     loading,
     data: parsedData,
-    xField: 'ticketsClaimed',
-    yField: 'campaignName',
-    seriesField: 'ticketsClaimed',
+    xField: XDataLabel,
+    yField: YDataLabel,
+    seriesField: XDataLabel,
     label: {
       position: 'middle' as 'middle',
     },
@@ -80,6 +96,9 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
     yAxis: {
       label: {
         autoRotate: false,
+        // formatter: (val: any, _: any, idx: number) => {
+        //   return parsedData[idx].campaignName;
+        // },
       },
     },
     scrollbar: {

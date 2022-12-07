@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Heatmap } from '@ant-design/plots';
+import { Heatmap, HeatmapConfig } from '@ant-design/plots';
 import { TournamentID } from '@wormgraph/helpers';
 import { DAILY_EVENT_CLAIMS, DailyEventClaimsResponseFE } from '../api.gql';
 import { useQuery } from '@apollo/client';
@@ -53,8 +53,9 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
     };
   }, [data]);
 
-  const parsedData =
-    data?.dailyClaimStatisticsForTournament && 'data' in data?.dailyClaimStatisticsForTournament
+  const parsedData = useMemo(() => {
+    return data?.dailyClaimStatisticsForTournament &&
+      'data' in data?.dailyClaimStatisticsForTournament
       ? data?.dailyClaimStatisticsForTournament.data.map((d) => {
           return {
             date: d.date,
@@ -64,6 +65,7 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
           };
         })
       : [];
+  }, [data]);
 
   if (error || data?.dailyClaimStatisticsForTournament?.__typename === 'ResponseError') {
     return (
@@ -90,7 +92,7 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
     );
   }
 
-  const config = {
+  const config: HeatmapConfig = {
     data: parsedData,
     loading,
     autoFit: false,

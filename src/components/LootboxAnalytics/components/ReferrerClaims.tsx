@@ -1,13 +1,17 @@
 import { QueryReferrerClaimsForLootboxArgs } from '@/api/graphql/generated/types';
-import { Bar } from '@ant-design/plots';
+import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { LootboxID, TournamentID } from '@wormgraph/helpers';
 import { Button, Result } from 'antd';
+import { useMemo, useRef } from 'react';
 import {
   GET_REFERRER_CLAIM_STATS,
   GetReferrerClaimStatsResponseFE,
   ReferrerLootboxClaimRowFE,
 } from '../api.gql';
+
+const XDataLabel = 'ticketsClaimed';
+const YDataLabel = 'userName';
 
 interface ReferrerClaimsProps {
   eventID: TournamentID;
@@ -20,6 +24,7 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
   lootboxID,
   onInviteFanModalToggle,
 }) => {
+  const dataMapping = useRef<{ [key: string]: number }>({}); // needed to de-dupe the user names :(
   const { data, loading, error } = useQuery<
     GetReferrerClaimStatsResponseFE,
     QueryReferrerClaimsForLootboxArgs
@@ -32,17 +37,25 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
 
   const convertDataRowFE = (
     row: ReferrerLootboxClaimRowFE,
-  ): { userName: string; ticketsClaimed: number } => {
+  ): { [YDataLabel]: string; [XDataLabel]: number } => {
+    let userName = row.userName;
+    if (row.userName in dataMapping.current) {
+      userName = `${row.userName} (${dataMapping.current[row.userName]})`;
+      dataMapping.current[row.userName]++;
+    } else {
+      dataMapping.current[row.userName] = 1;
+    }
     return {
-      userName: row.userName,
-      ticketsClaimed: row.claimCount,
+      [YDataLabel]: userName,
+      [XDataLabel]: row.claimCount,
     };
   };
 
-  const parsedData =
-    data?.referrerClaimsForLootbox && 'data' in data?.referrerClaimsForLootbox
+  const parsedData = useMemo(() => {
+    return data?.referrerClaimsForLootbox && 'data' in data?.referrerClaimsForLootbox
       ? data.referrerClaimsForLootbox.data.map(convertDataRowFE)
       : [];
+  }, [data]);
 
   if (error || data?.referrerClaimsForLootbox?.__typename === 'ResponseError') {
     return (
@@ -69,12 +82,12 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
     );
   }
 
-  const config = {
+  const config: BarConfig = {
     loading,
     data: parsedData,
-    xField: 'ticketsClaimed',
-    yField: 'userName',
-    seriesField: 'ticketsClaimed',
+    xField: XDataLabel,
+    yField: YDataLabel,
+    seriesField: XDataLabel,
     label: {
       position: 'middle' as 'middle',
     },
