@@ -125,6 +125,7 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
           tooltip:
             'The value of the airdrop you are sending to users. Ideally this is denominated in an understandable currency such as fiat.',
           initialValue: airdropMetadata.value,
+          widget: () => <span>{airdropMetadata.value}</span>,
         },
         {
           key: 'oneLiner',
@@ -132,12 +133,20 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
           tooltip:
             'Shown to airdrop recipients as what you want them to do in order to get this airdrop reward',
           initialValue: airdropMetadata.oneLiner,
+          widget: () => <span>{airdropMetadata.oneLiner}</span>,
         },
         {
           key: 'instructionsLink',
           label: 'Instructions',
           tooltip: 'The batch name shown to your internal team',
           initialValue: airdropMetadata.instructionsLink,
+          widget: () => (
+            <a
+              href={airdropMetadata.instructionsLink}
+              target="_blank"
+              rel="noreferrer"
+            >{`${airdropMetadata.instructionsLink.slice(0, 25)}..`}</a>
+          ),
         },
       ],
     };
@@ -171,9 +180,6 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
             batch: batchNumber,
             offerID: offerID,
             title: airdropMetadata.title,
-            oneLiner: airdropMetadata.oneLiner,
-            value: request.payload.nftBountyValue,
-            instructionsLink: airdropMetadata.instructionsLink,
             tournamentID: tournamentID,
             claimers: selectedClaimers,
           },
