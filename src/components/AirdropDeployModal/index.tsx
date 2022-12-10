@@ -1,6 +1,6 @@
 import { AirdropBase, LootboxID, OfferID, TournamentID, UserID } from '@wormgraph/helpers';
 import { $Vertical, $InfoDescription, $Horizontal } from '@/components/generics';
-import { Button, Form, message, Statistic, Steps, Tabs } from 'antd';
+import { Button, Form, message, Statistic, Steps, Tabs, Image } from 'antd';
 import { useEffect, useState } from 'react';
 import FormBuilder from 'antd-form-builder';
 import { Rule } from 'antd/lib/form';
@@ -25,6 +25,7 @@ export type AirdropDeployModalProps = {
   instructionsLink: string;
   // questionFields: { id?: string; question: string; type: AirdropQuestionFieldType }[];
   batchNumber: number;
+  lootboxTemplateStamp: string;
   toggleModal: (bool: boolean) => void;
   selectedClaimers: UserID[];
   exitClear: () => void;
@@ -38,6 +39,8 @@ const AIRDROP_METADATA = {
   tournamentID: '',
   organizerID: '',
   advertiserID: '',
+  lootboxTemplateID: '',
+  lootboxTemplateStamp: '',
   // questionFields: [
   //   {
   //     question: '',
@@ -62,6 +65,7 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
   batchNumber,
   toggleModal,
   selectedClaimers,
+  lootboxTemplateStamp,
 }) => {
   console.log(`--- offerID `, offerID);
   const [form] = Form.useForm();
@@ -155,25 +159,12 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
   const createLootbox = async (
     request: CreateLootboxRequest,
   ): Promise<{ lootboxID: LootboxID }> => {
-    console.log(`
-
-      request.payload.name = ${request.payload.name}
-      request.payload.name.slice(0, 11) = ${request.payload.name.slice(0, 11)}
-      request.payload.maxTickets = ${request.payload.maxTickets}
-
-      `);
-
+    setPending(true);
     const res = await createLootboxMutation({
       variables: {
         payload: {
-          name: request.payload.name,
-          description: request.payload.description,
-          logo: request.payload.logoImage,
-          backgroundImage: request.payload.backgroundImage,
-          nftBountyValue: request.payload.nftBountyValue,
-          joinCommunityUrl: request.payload.joinCommunityUrl,
-          maxTickets: request.payload.maxTickets,
-          themeColor: request.payload.themeColor,
+          name: airdropMetadata.title,
+          maxTickets: selectedClaimers.length,
           tournamentID: tournamentID,
           type: LootboxType.Airdrop,
           airdropMetadata: {
@@ -192,7 +183,7 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
       console.log(`lootboxID = `, lid);
       setLootboxID(lid);
       message.success('Lootbox created successfully');
-
+      setPending(false);
       next();
       return { lootboxID: lid };
     }
@@ -203,8 +194,7 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
     <div style={{ width: '100%' }}>
       <$Vertical>
         <Steps current={phase}>
-          <Steps.Step title="Prepare Airdrop" />
-          <Steps.Step title="Prepare Lootbox" />
+          <Steps.Step title="Review Airdrop" />
           <Steps.Step title="Deploy" />
         </Steps>
         <br />
@@ -214,17 +204,17 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
             <$Horizontal justifyContent="space-between">
               <$Vertical>
                 <b>Step 1 - Prepare Airdrop</b>
-                <$InfoDescription fontSize="0.8rem">Lorem ipsum solar descartes</$InfoDescription>
+                <$InfoDescription fontSize="0.8rem">{`Most settings are based off the advertiser's pre-fills`}</$InfoDescription>
                 <Form
                   layout="horizontal"
                   form={form}
-                  onFinish={() => next()}
+                  onFinish={createLootbox}
                   onValuesChange={forceUpdate}
                 >
                   <FormBuilder form={form} meta={getMeta1()} viewMode={false} />
                   <$Horizontal justifyContent="flex-end" style={{ width: '100%' }}>
                     <Form.Item className="form-footer">
-                      <Button htmlType="submit" type="primary">
+                      <Button loading={pending} htmlType="submit" type="primary">
                         Next
                       </Button>
                     </Form.Item>
@@ -235,29 +225,11 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
                 <Statistic title="Selected Users" value={selectedClaimers.length} />
                 <Statistic title="Airdrop Batch" value={batchNumber} />
               </$Vertical>
+              <Image src={lootboxTemplateStamp} style={{ width: '250px', height: 'auto' }} />
             </$Horizontal>
           </$Vertical>
         )}
         {phase === 1 && (
-          <$Vertical>
-            <b>Step 2 - Prepare Lootbox</b>
-            <$InfoDescription fontSize="0.8rem" marginBottom="0px">
-              Lorem ipsum solar descartes
-            </$InfoDescription>
-            <br />
-            <AirdropCreateLootbox
-              onSubmitCreate={createLootbox}
-              mode="create"
-              airdropParams={{
-                tournamentID: tournamentID,
-                numClaimers: selectedClaimers.length,
-                teamName: airdropMetadata.title,
-                value: value,
-              }}
-            />
-          </$Vertical>
-        )}
-        {phase === 2 && (
           <$Vertical>
             <b>Step 3 - Deposit Rewards</b>
             <$InfoDescription fontSize="0.8rem" marginBottom="0px">

@@ -20,6 +20,8 @@ export const LIST_POTENTIAL_AIRDROP_CLAIMERS = gql`
             }
             excludedOffers
             batchCount
+            lootboxTemplateID
+            lootboxTemplateStamp
           }
         }
         potentialClaimers {
