@@ -70,7 +70,7 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
       ) {
         const potentialClaimers = data.listPotentialAirdropClaimers.potentialClaimers;
         const offer = data.listPotentialAirdropClaimers.offer;
-        console.log(potentialClaimers);
+
         setPotentialClaimers(potentialClaimers);
         setOffer(offer);
       }
@@ -117,7 +117,9 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
       setSelectedUsers([]);
     }
   };
+
   const uniqueBatches = uniq(potentialClaimers.map((c) => c.batchAlias));
+
   const columns: ColumnsType<AirdropPotentialUserTableRow> = useMemo(
     () => [
       {
@@ -134,8 +136,6 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             <Checkbox
               checked={selectedUsers.includes(record.userID)}
               onClick={(e: any) => {
-                console.log(record);
-                console.log(e.target.checked);
                 addRemoveUserToSelected(record.userID, e.target.checked);
               }}
             />
@@ -278,7 +278,7 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
         },
       },
     ],
-    [selectedUsers],
+    [selectedUsers, uniqueBatches],
   );
 
   if (error) {
@@ -384,7 +384,7 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             })}
         />
       </$Vertical>
-      {offer && (
+      {offer && offer.airdropMetadata && (
         <Modal
           title="Deploy an Airdrop Batch"
           open={isModalOpen}
@@ -403,13 +403,14 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
           <AirdropDeployModal
             offerID={offerID}
             tournamentID={tournamentID}
-            title={offer?.title || ''}
-            oneLiner={offer?.airdropMetadata?.oneLiner || ''}
-            value={offer?.airdropMetadata?.value || ''}
-            instructionsLink={offer?.airdropMetadata?.instructionsLink || ''}
-            batchNumber={(offer?.airdropMetadata?.batchCount || 0) + 1}
+            title={offer.title || ''}
+            oneLiner={offer.airdropMetadata.oneLiner || ''}
+            value={offer.airdropMetadata?.value || ''}
+            instructionsLink={offer.airdropMetadata.instructionsLink || ''}
+            batchNumber={(offer.airdropMetadata.batchCount || 0) + 1}
             toggleModal={(bool: boolean) => setIsModalOpen(bool)}
             selectedClaimers={selectedUsers}
+            lootboxTemplateStamp={offer.airdropMetadata.lootboxTemplateStamp}
             exitClear={() => {
               setIsModalOpen(false);
               setSelectedUsers([]);
