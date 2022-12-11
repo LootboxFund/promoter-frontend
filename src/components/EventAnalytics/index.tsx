@@ -6,6 +6,7 @@ import DailyDistributionHeatmap from './components/DailyDistributionHeatmap';
 import ReferrerClaims from './components/ReferrerClaims';
 import CampaignDistribution from './components/CampaignDistribution';
 import FansReached from './components/FansReached';
+import FansListTable from './components/FansListTable';
 
 export interface EventAnalyticsProps {
   eventID: TournamentID;
@@ -18,6 +19,11 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({ eventID, onInviteFanMod
       label: 'Lootbox Claims',
       key: 'lootbox-claims',
       children: <LootboxClaims eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
+    },
+    {
+      label: 'List of Fans',
+      key: 'fans-list',
+      children: <FansListTable eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
     },
     {
       label: 'Fans Reached',

@@ -232,3 +232,34 @@ export const CLAIMER_STATS = gql`
     }
   }
 `;
+
+export const FANS_LIST_FOR_TOURNAMENT = gql`
+  query FansListForTournament($tournamentID: ID!) {
+    fansListForTournament(tournamentID: $tournamentID) {
+      ... on FansListForTournamentResponseSuccess {
+        tournamentID
+        fans {
+          userID
+          username
+          avatar
+          claimsCount
+          referralsCount
+          participationRewardsCount
+          joinedDate
+          favoriteLootbox {
+            lootboxID
+            stampImage
+            name
+            count
+          }
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
