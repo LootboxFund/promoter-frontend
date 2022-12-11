@@ -337,7 +337,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             <$Horizontal justifyContent="flex-end" style={{ width: '100%' }}>
               <Form.Item className="form-footer">
                 <Button loading={pending} htmlType="submit" type="primary">
-                  Next
+                  Deploy
                 </Button>
               </Form.Item>
             </$Horizontal>
