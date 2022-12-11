@@ -193,7 +193,7 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
     <div style={{ width: '100%' }}>
       <$Vertical>
         <Steps current={phase}>
-          <Steps.Step title="Review Airdrop" />
+          <Steps.Step title="Review" />
           <Steps.Step title="Deploy" />
         </Steps>
         <br />
