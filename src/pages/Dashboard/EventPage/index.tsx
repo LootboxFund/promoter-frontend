@@ -689,7 +689,6 @@ const EventPage: React.FC = () => {
                                   key={`${dealConfig.offerID}-${adSet.id}-button`}
                                   title="Are you sure to remove this Ad from your Event?"
                                   onConfirm={async (e: any) => {
-                                    console.log(`eventID = `, eventID);
                                     if (eventID) {
                                       isLoading = true;
                                       await removeAdSetOffer({

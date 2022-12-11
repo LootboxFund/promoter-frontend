@@ -67,7 +67,6 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
   selectedClaimers,
   lootboxTemplateStamp,
 }) => {
-  console.log(`--- offerID `, offerID);
   const [form] = Form.useForm();
   // @ts-ignore
   const forceUpdate = FormBuilder.useForceUpdate();
@@ -180,7 +179,7 @@ const AirdropDeployModal: React.FC<AirdropDeployModalProps> = ({
 
     if (res?.data?.createLootbox.__typename === 'CreateLootboxResponseSuccess') {
       const lid = res.data.createLootbox.lootbox.id;
-      console.log(`lootboxID = `, lid);
+
       setLootboxID(lid);
       message.success('Lootbox created successfully');
       setPending(false);
