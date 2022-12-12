@@ -67,12 +67,11 @@ enum ShowLootboxType {
 }
 
 const LootboxGallery = (props: LootboxGalleryProps) => {
-  console.log(`gallery = `, props.lootboxTournamentSnapshots);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [lootboxForReferralModal, setLootboxForReferralModal] = useState<LootboxID | null>(null);
   const [searchString, setSearchString] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showLootboxType, setShowLootboxType] = useState<ShowLootboxType>(ShowLootboxType.All);
+  const [showLootboxType, setShowLootboxType] = useState<ShowLootboxType>(ShowLootboxType.Teams);
   const [bulkSelectedSnapshots, setBulkSelectedSnapshots] = useState<LootboxTournamentSnapshotID[]>(
     [],
   );

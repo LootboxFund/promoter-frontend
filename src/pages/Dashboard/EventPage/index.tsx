@@ -315,7 +315,7 @@ const EventPage: React.FC = () => {
           </$Horizontal>
           {renderHelpText()}
 
-          <$Horizontal justifyContent="flex-end" style={{ width: '100%' }}>
+          <$Horizontal justifyContent="flex-end" style={{ width: '100%' }} flexWrap>
             <CreateEventForm
               onSubmitEdit={editTournament}
               tournament={{
@@ -332,7 +332,7 @@ const EventPage: React.FC = () => {
               affiliateID={affiliateID as AffiliateID}
             />
             <$ColumnGap />
-            <Affix offsetTop={60} style={{ pointerEvents: 'none' }}>
+            <Affix offsetTop={60} style={{ pointerEvents: 'none', marginRight: 'auto' }}>
               <Card style={{ width: '300px', pointerEvents: 'all' }}>
                 <$Horizontal justifyContent="space-between">
                   <h4>Table of Contents</h4>
@@ -384,6 +384,8 @@ const EventPage: React.FC = () => {
             <EventAnalytics
               eventID={tournament.id as TournamentID}
               onInviteFanModalToggle={() => setIsReferralModalOpen(!isReferralModalOpen)}
+              eventCreatedAt={tournament?.timestamps?.createdAt}
+              eventScheduledAt={tournament?.tournamentDate}
             />
           </Card>
           <br />
@@ -692,7 +694,6 @@ const EventPage: React.FC = () => {
                                   key={`${dealConfig.offerID}-${adSet.id}-button`}
                                   title="Are you sure to remove this Ad from your Event?"
                                   onConfirm={async (e: any) => {
-                                    console.log(`eventID = `, eventID);
                                     if (eventID) {
                                       isLoading = true;
                                       await removeAdSetOffer({

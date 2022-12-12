@@ -3,7 +3,7 @@ import { convertFilenameToThumbnail } from '@/lib/storage';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Button, Result, Space, Typography } from 'antd';
+import { Button, Col, Divider, Result, Row, Space, Statistic, Tooltip, Typography } from 'antd';
 import { useMemo, useRef } from 'react';
 import {
   LootboxCompletedClaimRowFE,
@@ -56,11 +56,24 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
     };
   };
 
-  const parsedData = useMemo(() => {
-    return data?.lootboxCompletedClaimsForTournament &&
+  const { parsedData, nLootboxes, sumClaims, sumMaxTickets } = useMemo(() => {
+    const _parsedData =
+      data?.lootboxCompletedClaimsForTournament &&
       'data' in data?.lootboxCompletedClaimsForTournament
-      ? data.lootboxCompletedClaimsForTournament.data.map(convertDataRowFE)
-      : [];
+        ? data.lootboxCompletedClaimsForTournament.data.map(convertDataRowFE)
+        : [];
+
+    const nLootboxes = _parsedData.length;
+
+    const sumClaims = _parsedData.reduce((acc, cur) => acc + cur[XDataLabel], 0);
+    const sumMaxTickets = _parsedData.reduce((acc, cur) => acc + cur.maxTickets, 0);
+
+    return {
+      parsedData: _parsedData,
+      nLootboxes,
+      sumClaims,
+      sumMaxTickets,
+    };
   }, [data]);
 
   if (error || data?.lootboxCompletedClaimsForTournament?.__typename === 'ResponseError') {
@@ -142,10 +155,77 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
       },
     },
   };
+
   return (
     <div>
-      <h2>Lootbox Ticket Claims</h2>
-      <Bar {...config} />
+      <br />
+      <Typography.Title level={3}>{`Lootbox Ticket Claims`}</Typography.Title>
+      <br />
+      <Row gutter={8} wrap>
+        <Col sm={24} md={5}>
+          <Tooltip
+            placement="top"
+            title="Number of distributed tickets for all Lootboxes in your event."
+          >
+            <Statistic
+              loading={loading}
+              title="Tickets Distributed"
+              value={sumClaims}
+              suffix={
+                <Typography.Text type="secondary">
+                  ({Math.round((10000 * sumClaims) / sumMaxTickets) / 100}%)
+                </Typography.Text>
+              }
+            />
+          </Tooltip>
+        </Col>
+        <Col sm={24} md={5}>
+          <Tooltip
+            placement="top"
+            title='Average number of tickets distributed per Lootbox. Defined as "Tickets Distributed" / "# Lootbox".'
+          >
+            <Statistic
+              loading={loading}
+              title="Average Distribution"
+              value={Math.round((10000 * sumClaims) / nLootboxes) / 100}
+            ></Statistic>
+          </Tooltip>
+        </Col>
+        <Col sm={24} md={5}>
+          <Tooltip
+            placement="top"
+            title='Total number of tickets available for distribution in your event. Defined as the sum of all LOOTBOX "Max Tickets" in your event.'
+          >
+            <Statistic loading={loading} title="Ticket Capacity" value={sumMaxTickets}></Statistic>
+          </Tooltip>
+        </Col>
+        <Col sm={24} md={5}>
+          <Tooltip
+            placement="top"
+            title="Number of Lootboxes in your event (including disabled & sold out)."
+          >
+            <Statistic loading={loading} title="# Lootbox" value={nLootboxes}></Statistic>
+          </Tooltip>
+        </Col>
+      </Row>
+      <Divider />
+      <Row>
+        <Col span={24}>
+          <Bar
+            {...config}
+            onReady={(plot) => {
+              plot.on('plot:click', (evt: any) => {
+                const { x, y } = evt;
+                const tooltipData = plot.chart.getTooltipItems({ x, y });
+                const lootboxID = tooltipData[0]?.data?.lootboxID;
+                if (lootboxID) {
+                  window.open(`/dashboard/lootbox/id/${lootboxID}?tid=${eventID}`, '_blank');
+                }
+              });
+            }}
+          />
+        </Col>
+      </Row>
     </div>
   );
 };
