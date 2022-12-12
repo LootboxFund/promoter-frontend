@@ -188,7 +188,8 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
     <Space direction="vertical" id="daily-distribution-container" style={{ width: '100%' }}>
       <Row justify="space-between">
         <Col span={12}>
-          <h2>Tickets Distributed Per Day</h2>
+          <br />
+          <Typography.Title level={3}>Tickets Distributed Per Day</Typography.Title>
           <RangePicker
             value={[moment(startDate), moment(endDate)]}
             onChange={(dates) => {
@@ -200,6 +201,7 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
           />
         </Col>
         <Col span={6}>
+          <br />
           <Statistic
             title="Ticket Claims"
             loading={loading}

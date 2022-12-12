@@ -2,11 +2,12 @@ import { QueryClaimerStatsForTournamentArgs } from '@/api/graphql/generated/type
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID, UserID } from '@wormgraph/helpers';
-import { Button, Result } from 'antd';
+import { Button, Col, Divider, Result, Row, Statistic, Tooltip, Typography } from 'antd';
 import { ClaimerStatsRowFE, ClaimerStatsForTournamentFE, CLAIMER_STATS } from '../api.gql';
 import { truncateUID } from '@/lib/string';
 import { convertClaimTypeForLegend } from '@/lib/graph';
 import { useMemo } from 'react';
+import { manifest } from '@/manifest';
 
 interface FansReachedProps {
   eventID: TournamentID;
@@ -29,17 +30,18 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
 
   const convertDataRowFE = (
     row: ClaimerStatsRowFE,
-  ): { [YDataKey]: string; [XDataKey]: number; [SeriesKey]: string } => {
+  ): { [YDataKey]: string; [XDataKey]: number; [SeriesKey]: string; userID: string } => {
     return {
       [YDataKey]: `${row.username ? row.username + '\n' : ''}${truncateUID(
         row.claimerUserID as UserID,
       )}`,
       [XDataKey]: row.claimCount,
       [SeriesKey]: convertClaimTypeForLegend(row.claimType, row.referralType),
+      userID: row.claimerUserID,
     };
   };
 
-  const { parsedData, allClaims, nFans } = useMemo(() => {
+  const { parsedData, allClaims, nFans, avgTickets } = useMemo(() => {
     const _parsedData =
       data?.claimerStatsForTournament && 'data' in data?.claimerStatsForTournament
         ? data.claimerStatsForTournament.data.map(convertDataRowFE)
@@ -47,11 +49,13 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
 
     const _allClaims = _parsedData.reduce((acc, cur) => acc + cur.ticketsClaimed, 0);
     const _nFans = new Set(_parsedData.map((row) => row[YDataKey])).size;
+    const _avgTickets = _nFans > 0 ? Math.round(_allClaims / _nFans) : 0;
 
     return {
       parsedData: _parsedData,
       allClaims: _allClaims,
       nFans: _nFans,
+      avgTickets: _avgTickets,
     };
   }, [data]);
 
@@ -112,10 +116,55 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
 
   return (
     <div>
-      <h2>
-        {allClaims} Tickets Owned by {nFans} Fans
-      </h2>
-      <Bar {...config} />
+      <br />
+      <Typography.Title level={3}>Tickets Owned by Fans</Typography.Title>
+      <br />
+      <Row gutter={8}>
+        <Col span={5}>
+          <Tooltip placement="top" title="Average number of tickets owned for each fan.">
+            <Statistic
+              loading={loading}
+              title="Average Tickets per Fan"
+              value={avgTickets}
+            ></Statistic>
+          </Tooltip>
+        </Col>
+        <Col span={5}>
+          <Tooltip placement="top" title="The total number of claims owned by all fans">
+            <Statistic
+              loading={loading}
+              title="Tickets Owned by Fans"
+              value={allClaims}
+            ></Statistic>
+          </Tooltip>
+        </Col>
+        <Col span={5}>
+          <Tooltip placement="top" title="The total number of fans that own tickets for your event">
+            <Statistic loading={loading} title="# Fans" value={nFans} />
+          </Tooltip>
+        </Col>
+      </Row>
+      <Divider />
+      <Row>
+        <Col span={24}>
+          <Bar
+            {...config}
+            onReady={(plot) => {
+              plot.on('plot:click', (evt: any) => {
+                const { x, y } = evt;
+                const tooltipData = plot.chart.getTooltipItems({ x, y });
+                const userID = tooltipData[0]?.data?.userID;
+                if (userID) {
+                  window.open(
+                    `${manifest.microfrontends.webflow.publicProfile}?uid=${userID}`,
+                    '_blank',
+                  );
+                }
+              });
+            }}
+          />
+        </Col>
+      </Row>
     </div>
   );
 };

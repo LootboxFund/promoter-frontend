@@ -319,7 +319,6 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
       <Row wrap={true}>
         <Col sm={24} md={12} style={{ width: '100%' }}>
           <Typography.Title level={3}>{`${stats?.allFans || 0} People Reached`}</Typography.Title>
-          {/* <Card title={`${stats?.allFans || 0} People Reached`} bordered={false}> */}
           <Row gutter={8} wrap={true}>
             <Col sm={24} md={16}>
               <Pie {...userPieConfig} />
@@ -393,7 +392,6 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
           <Typography.Title level={3}>{`${
             stats?.completedClaimCount || 0
           } Ticket Claims`}</Typography.Title>
-          {/* <Card title={`${stats?.totalClaimCount || 0} Ticket Claims`} bordered={false}> */}
           <Row gutter={8} wrap={true}>
             <Col sm={24} md={16}>
               <Pie {...claimPieConfig} />
@@ -442,6 +440,17 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
                   title="Participation Rewards"
                   loading={loading}
                   value={stats?.participationRewardCount || 0}
+                />
+              </Tooltip>
+              <Tooltip
+                placement="right"
+                title="Percentage of completed claims over the total number of claim attempts for a Lootboxes in this event."
+              >
+                <Statistic
+                  title="Completion Rate"
+                  loading={loading}
+                  value={stats?.completionRate || 0}
+                  suffix="%"
                 />
               </Tooltip>
             </Col>

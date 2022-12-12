@@ -1,9 +1,10 @@
 import { QueryLootboxCompletedClaimsForTournamentArgs } from '@/api/graphql/generated/types';
 import { convertFilenameToThumbnail } from '@/lib/storage';
+import { manifest } from '@/manifest';
 import { Bar, BarConfig, Liquid, LiquidConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Button, Col, Result, Row, Space, Statistic, Tooltip, Typography } from 'antd';
+import { Button, Col, Divider, Result, Row, Space, Statistic, Tooltip, Typography } from 'antd';
 import { useMemo, useRef } from 'react';
 import {
   LootboxCompletedClaimRowFE,
@@ -156,36 +157,13 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
     },
   };
 
-  // const liquidConfig: LiquidConfig = {
-  //   height: 200,
-  //   width: 200,
-  //   percent: 0.25,
-  //   outline: {
-  //     border: 4,
-  //     distance: 8,
-  //   },
-  //   wave: {
-  //     length: 128,
-  //   },
-  // };
-
   return (
     <div>
       <br />
       <Typography.Title level={3}>{`Lootbox Ticket Claims`}</Typography.Title>
+      <br />
       <Row gutter={8}>
-        {/* <Col span={6}>
-          <Liquid {...liquidConfig} />
-        </Col> */}
-        <Col span={6}>
-          <Tooltip
-            placement="top"
-            title="Number of Lootboxes in your event (including disabled & sold out)."
-          >
-            <Statistic loading={loading} title="# Lootbox" value={nLootboxes}></Statistic>
-          </Tooltip>
-        </Col>
-        <Col span={6}>
+        <Col span={5}>
           <Tooltip
             placement="top"
             title="Number of distributed tickets for all Lootboxes in your event."
@@ -202,17 +180,53 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
             />
           </Tooltip>
         </Col>
-        <Col span={6}>
+        <Col span={5}>
           <Tooltip
             placement="top"
-            title="Total number of tickets available for distribution in your event."
+            title='Average number of tickets distributed per Lootbox. Defined as "Tickets Distributed" / "# Lootbox".'
+          >
+            <Statistic
+              loading={loading}
+              title="Average Distribution"
+              value={Math.round((10000 * sumClaims) / nLootboxes) / 100}
+            ></Statistic>
+          </Tooltip>
+        </Col>
+        <Col span={5}>
+          <Tooltip
+            placement="top"
+            title='Total number of tickets available for distribution in your event. Defined as the sum of all LOOTBOX "Max Tickets" in your event.'
           >
             <Statistic loading={loading} title="Ticket Capacity" value={sumMaxTickets}></Statistic>
           </Tooltip>
         </Col>
+        <Col span={5}>
+          <Tooltip
+            placement="top"
+            title="Number of Lootboxes in your event (including disabled & sold out)."
+          >
+            <Statistic loading={loading} title="# Lootbox" value={nLootboxes}></Statistic>
+          </Tooltip>
+        </Col>
       </Row>
-      <br />
-      <Bar {...config} />
+      <Divider />
+      <Row>
+        <Col span={24}>
+          <Bar
+            {...config}
+            onReady={(plot) => {
+              plot.on('plot:click', (evt: any) => {
+                const { x, y } = evt;
+                const tooltipData = plot.chart.getTooltipItems({ x, y });
+                const lootboxID = tooltipData[0]?.data?.lootboxID;
+                if (lootboxID) {
+                  window.open(`/dashboard/lootbox/id/${lootboxID}?tid=${eventID}`, '_blank');
+                }
+              });
+            }}
+          />
+        </Col>
+      </Row>
     </div>
   );
 };

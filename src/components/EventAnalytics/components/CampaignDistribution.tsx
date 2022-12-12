@@ -2,7 +2,7 @@ import { QueryCampaignClaimsForTournamentArgs } from '@/api/graphql/generated/ty
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Button, Result } from 'antd';
+import { Button, Col, Divider, Result, Row, Statistic, Tooltip, Typography } from 'antd';
 import { useMemo, useRef } from 'react';
 import {
   CampaignClaimsRowFE,
@@ -51,10 +51,20 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
     };
   };
 
-  const parsedData = useMemo(() => {
-    return data?.campaignClaimsForTournament && 'data' in data?.campaignClaimsForTournament
-      ? data.campaignClaimsForTournament.data.map(convertDataRowFE)
-      : [];
+  const { parsedData, nCampaigns, avgClaims, nClaims } = useMemo(() => {
+    const parsedData =
+      data?.campaignClaimsForTournament && 'data' in data?.campaignClaimsForTournament
+        ? data.campaignClaimsForTournament.data.map(convertDataRowFE)
+        : [];
+    const nCampaigns = parsedData.filter((a) => a[XDataLabel] > 0).length;
+    const nClaims = parsedData.reduce((acc, curr) => acc + curr[XDataLabel], 0);
+    const avgClaims = Math.round(nClaims / nCampaigns);
+    return {
+      parsedData,
+      nCampaigns,
+      avgClaims,
+      nClaims,
+    };
   }, [data]);
 
   if (error || data?.campaignClaimsForTournament?.__typename === 'ResponseError') {
@@ -115,8 +125,41 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
   };
   return (
     <div>
-      <h2>Tickets Distributed by Campaign</h2>
-      <Bar {...config} />
+      <br />
+      <Typography.Title level={3}>Tickets Distributed by Campaign</Typography.Title>
+      <br />
+      <Row gutter={8}>
+        <Col span={5}>
+          <Tooltip
+            placement="top"
+            title="Number of distributed tickets for all Campaigns in your event."
+          >
+            <Statistic loading={loading} title="Tickets Distributed" value={nClaims} />
+          </Tooltip>
+        </Col>
+        <Col span={5}>
+          <Tooltip
+            placement="top"
+            title='Average number of tickets distributed per Campaign. Defined as "Tickets Distributed" / "# Campaigns".'
+          >
+            <Statistic loading={loading} title="Average Distribution" value={avgClaims}></Statistic>
+          </Tooltip>
+        </Col>
+        <Col span={5}>
+          <Tooltip
+            placement="top"
+            title="Total number of campaigns that helped distribute tickets."
+          >
+            <Statistic loading={loading} title="# Campaign" value={nCampaigns}></Statistic>
+          </Tooltip>
+        </Col>
+      </Row>
+      <Divider />
+      <Row>
+        <Col span={24}>
+          <Bar {...config} />
+        </Col>
+      </Row>
     </div>
   );
 };
