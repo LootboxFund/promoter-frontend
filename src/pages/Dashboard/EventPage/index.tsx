@@ -315,7 +315,7 @@ const EventPage: React.FC = () => {
           </$Horizontal>
           {renderHelpText()}
 
-          <$Horizontal justifyContent="flex-end" style={{ width: '100%' }}>
+          <$Horizontal justifyContent="flex-end" style={{ width: '100%' }} flexWrap>
             <CreateEventForm
               onSubmitEdit={editTournament}
               tournament={{
@@ -332,7 +332,7 @@ const EventPage: React.FC = () => {
               affiliateID={affiliateID as AffiliateID}
             />
             <$ColumnGap />
-            <Affix offsetTop={60} style={{ pointerEvents: 'none' }}>
+            <Affix offsetTop={60} style={{ pointerEvents: 'none', marginRight: 'auto' }}>
               <Card style={{ width: '300px', pointerEvents: 'all' }}>
                 <$Horizontal justifyContent="space-between">
                   <h4>Table of Contents</h4>
