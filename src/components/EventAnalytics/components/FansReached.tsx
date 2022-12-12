@@ -89,6 +89,7 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
     xField: XDataKey,
     yField: YDataKey,
     seriesField: SeriesKey,
+    height: 520,
     isStack: true,
     label: {
       position: 'middle' as 'middle',

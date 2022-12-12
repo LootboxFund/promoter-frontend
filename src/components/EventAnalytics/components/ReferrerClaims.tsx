@@ -86,6 +86,7 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanMod
     data: parsedData,
     xField: 'ticketsClaimed',
     yField: 'userName',
+    height: 520,
     seriesField: 'ticketsClaimed',
     label: {
       position: 'middle' as 'middle',

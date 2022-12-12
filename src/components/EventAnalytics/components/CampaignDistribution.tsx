@@ -96,6 +96,7 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
     data: parsedData,
     xField: XDataLabel,
     yField: YDataLabel,
+    height: 520,
     seriesField: XDataLabel,
     label: {
       position: 'middle' as 'middle',

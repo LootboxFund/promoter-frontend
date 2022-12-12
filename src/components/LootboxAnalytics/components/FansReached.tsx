@@ -121,6 +121,7 @@ const FansReached: React.FC<FansReachedProps> = ({
     yField: YDataKey,
     seriesField: SeriesKey,
     isStack: true,
+    height: 520,
     label: {
       position: 'middle' as 'middle',
       content: (data: any) => {

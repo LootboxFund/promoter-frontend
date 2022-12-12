@@ -101,6 +101,7 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
     xField: XDataLabel,
     yField: YDataLabel,
     seriesField: XDataLabel,
+    height: 520,
     label: {
       position: 'middle' as 'middle',
     },

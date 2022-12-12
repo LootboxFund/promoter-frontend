@@ -107,6 +107,7 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
     xField: XDataLabel,
     yField: YDataLabel,
     seriesField: XDataLabel,
+    height: 520,
     label: {
       position: 'middle' as 'middle',
     },
