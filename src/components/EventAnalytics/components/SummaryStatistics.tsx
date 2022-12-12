@@ -8,7 +8,7 @@ import {
   BaseEventClaimStatsFE,
 } from '../api.gql';
 import { Pie, PieConfig, measureTextWidth } from '@ant-design/plots';
-import { blue, green, grey, red, gold, magenta } from '@ant-design/colors';
+import { green, grey, gold, magenta, cyan, geekblue } from '@ant-design/colors';
 
 interface EventSummaryStatisticsProps {
   eventID: TournamentID;
@@ -125,11 +125,12 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     color: ({ type }) => {
       switch (type) {
         case 'Original Claim':
-          return blue[5];
+          return cyan[7];
         case 'Viral Claims':
-          return green[5];
+          return green[6];
         case 'Referral Bonus':
-          return magenta[5];
+          // return magenta[6];
+          return geekblue[7];
         case 'Participation Rewards':
           return gold[5];
         default:
@@ -209,15 +210,15 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     color: ({ type }) => {
       switch (type) {
         case 'Original Fans':
-          return blue[5];
+          return cyan[7];
         case 'Viral Fans':
-          return green[5];
+          return green[6];
         case 'Participation Fans':
           return gold[5];
         case 'Anonymous Fans':
-          return red[5];
+          return magenta[7];
         default:
-          return grey[5];
+          return grey[6];
       }
     },
     legend: {

@@ -1,6 +1,5 @@
 import { Tabs, Divider, Tooltip } from 'antd';
 import { TournamentID } from '@wormgraph/helpers';
-import BaseStats from './components/BaseStatistics';
 import LootboxClaims from './components/LootboxClaims';
 import DailyDistributionHeatmap from './components/DailyDistributionHeatmap';
 import ReferrerClaims from './components/ReferrerClaims';
@@ -11,9 +10,16 @@ import SummaryStatistics from './components/SummaryStatistics';
 export interface EventAnalyticsProps {
   eventID: TournamentID;
   onInviteFanModalToggle: () => void;
+  eventCreatedAt?: number;
+  eventScheduledAt?: number;
 }
 
-const EventAnalytics: React.FC<EventAnalyticsProps> = ({ eventID, onInviteFanModalToggle }) => {
+const EventAnalytics: React.FC<EventAnalyticsProps> = ({
+  eventID,
+  onInviteFanModalToggle,
+  eventCreatedAt,
+  eventScheduledAt,
+}) => {
   const chartItems = [
     {
       label: 'Summary',
@@ -58,14 +64,14 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({ eventID, onInviteFanMod
         <DailyDistributionHeatmap
           eventID={eventID}
           onInviteFanModalToggle={onInviteFanModalToggle}
+          eventCreatedAt={eventCreatedAt}
+          eventScheduledAt={eventScheduledAt}
         />
       ),
     },
   ];
   return (
     <>
-      {/* <BaseStats eventID={eventID} />
-      <Divider /> */}
       <Tabs items={chartItems} />
     </>
   );

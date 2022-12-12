@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Heatmap, HeatmapConfig } from '@ant-design/plots';
 import { TournamentID } from '@wormgraph/helpers';
 import { DAILY_EVENT_CLAIMS, DailyEventClaimsResponseFE } from '../api.gql';
@@ -18,9 +18,13 @@ interface DailyDistributionHeatmapProps {
 const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
   props: DailyDistributionHeatmapProps,
 ) => {
-  //   const seedStartDate = props.eventCreatedAt || moment().valueOf();
-  const seedStartDate = props.eventCreatedAt || moment().subtract(100, 'day').valueOf();
-  const seedEndDate = props.eventScheduledAt || moment(seedStartDate).add(90, 'day').valueOf();
+  const seedStartDate = props.eventCreatedAt
+    ? moment(props.eventCreatedAt).subtract(2, 'day').valueOf()
+    : moment().subtract(100, 'day').valueOf();
+  const seedEndDate = props.eventScheduledAt
+    ? moment(props.eventScheduledAt).add(2, 'day').valueOf()
+    : moment(seedStartDate).add(90, 'day').valueOf();
+
   // Miliseconds
   const [startDate, setStartDate] = useState<number>(seedStartDate);
   const [endDate, setEndDate] = useState(seedEndDate);
@@ -37,6 +41,10 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
       },
     },
   });
+
+  useEffect(() => {
+    moment.locale('en');
+  }, []);
 
   const { claimsInRange } = useMemo(() => {
     let value = 0;
@@ -128,13 +136,46 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
       customContent: (title: any, data: any) => {
         try {
           const parsedData = data[0]?.data;
+          console.log(
+            parsedData.date,
+            props.eventScheduledAt,
+            moment(parsedData.date).isSame(props.eventScheduledAt, 'day'),
+          );
           return (
             <div
               style={{
                 padding: '8px 16px',
               }}
             >
+              {parsedData?.date &&
+                props.eventCreatedAt &&
+                moment(parsedData.date).isSame(props.eventCreatedAt, 'day') && (
+                  <p>
+                    <br />
+                    <b>🏰 Event Created 🏰</b>
+                  </p>
+                )}
+
+              {parsedData?.date &&
+                props.eventScheduledAt &&
+                moment(parsedData.date).isSame(props.eventScheduledAt, 'day') && (
+                  <p>
+                    <br />
+                    <b>⚔️ Event Scheduled ⚔️</b>
+                  </p>
+                )}
+
+              {parsedData?.date &&
+                props.eventScheduledAt &&
+                moment(parsedData.date).isSame(moment(), 'day') && (
+                  <p>
+                    <br />
+                    <b>Today 📅</b>
+                  </p>
+                )}
+
               <p>{moment(title).format('LL')}</p>
+
               <p>
                 Ticket Claims: <b>{parsedData?.claimCount}</b>
               </p>
@@ -150,6 +191,30 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
         type: 'element-active',
       },
     ],
+    label: {
+      content: (data: any) => {
+        const dateStr = data?.date;
+        if (!dateStr) {
+          return '';
+        }
+        if (moment(dateStr).isSame(moment(), 'day')) {
+          return '📅';
+        }
+        if (props.eventCreatedAt) {
+          if (moment(dateStr).isSame(props.eventCreatedAt, 'day')) {
+            return '🏰';
+          }
+        }
+
+        if (props.eventScheduledAt) {
+          if (moment(dateStr).isSame(props.eventScheduledAt, 'day')) {
+            return '⚔️';
+          }
+        }
+
+        return '';
+      },
+    },
     xAxis: {
       position: 'top' as 'top',
       tickLine: null,
@@ -162,21 +227,19 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
           textBaseline: 'top' as 'top',
         },
         formatter: (val: any) => {
-          // TODO fix this shit
-
-          if (val === '2') {
-            return 'MAY';
-          } else if (val === '6') {
-            return 'JUN';
-          } else if (val === '10') {
-            return 'JUL';
-          } else if (val === '15') {
-            return 'AUG';
-          } else if (val === '19') {
-            return 'SEP';
-          } else if (val === '24') {
-            return 'OCT';
-          }
+          // if (val === '2') {
+          //   return 'MAY';
+          // } else if (val === '6') {
+          //   return 'JUN';
+          // } else if (val === '10') {
+          //   return 'JUL';
+          // } else if (val === '15') {
+          //   return 'AUG';
+          // } else if (val === '19') {
+          //   return 'SEP';
+          // } else if (val === '24') {
+          //   return 'OCT';
+          // }
 
           return '';
         },
