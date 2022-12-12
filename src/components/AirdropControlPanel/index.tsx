@@ -18,7 +18,7 @@ import Table, { ColumnsType } from 'antd/lib/table';
 import { useCallback, useMemo, useState } from 'react';
 import { $Horizontal, $InfoDescription, $Vertical, $ColumnGap } from '../generics';
 import { LIST_POTENTIAL_AIRDROP_CLAIMERS } from './index.gql';
-import { AirdropUserClaimStatus } from '../../api/graphql/generated/types';
+import { ClaimRedemptionStatus } from '../../api/graphql/generated/types';
 import { Link } from '@umijs/max';
 import { manifest } from '@/manifest';
 import { InfoCircleOutlined } from '@ant-design/icons';
@@ -37,7 +37,7 @@ export type AirdropPotentialUserTableRow = {
   tournamentID: TournamentID;
   advertiserID: AdvertiserID;
   offerID: OfferID;
-  status: AirdropUserClaimStatus;
+  status: ClaimRedemptionStatus;
   lootboxID: LootboxID;
   lootboxAddress: Address;
   batchAlias: string;
@@ -70,29 +70,29 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
       ) {
         const potentialClaimers = data.listPotentialAirdropClaimers.potentialClaimers;
         const offer = data.listPotentialAirdropClaimers.offer;
-        console.log(potentialClaimers);
+
         setPotentialClaimers(potentialClaimers);
         setOffer(offer);
       }
     },
   });
-  const renderColorForStatus = useCallback((status: AirdropUserClaimStatus) => {
-    if (status === AirdropUserClaimStatus.Awaiting) {
+  const renderColorForStatus = useCallback((status: ClaimRedemptionStatus) => {
+    if (status === ClaimRedemptionStatus.Awaiting) {
       return <Tag color="gold">{status}</Tag>;
     }
-    if (status === AirdropUserClaimStatus.Pending) {
+    if (status === ClaimRedemptionStatus.Started) {
       return <Tag color="cyan">{status}</Tag>;
     }
-    if (status === AirdropUserClaimStatus.InProgress) {
+    if (status === ClaimRedemptionStatus.InProgress) {
       return <Tag color="blue">{status}</Tag>;
     }
-    if (status === AirdropUserClaimStatus.Submitted) {
+    if (status === ClaimRedemptionStatus.Answered) {
       return <Tag color="geekblue">{status}</Tag>;
     }
-    if (status === AirdropUserClaimStatus.Completed) {
+    if (status === ClaimRedemptionStatus.Rewarded) {
       return <Tag color="green">{status}</Tag>;
     }
-    if (status === AirdropUserClaimStatus.Revoked) {
+    if (status === ClaimRedemptionStatus.Revoked) {
       return <Tag color="red">{status}</Tag>;
     }
     return null;
@@ -117,7 +117,9 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
       setSelectedUsers([]);
     }
   };
+
   const uniqueBatches = uniq(potentialClaimers.map((c) => c.batchAlias));
+
   const columns: ColumnsType<AirdropPotentialUserTableRow> = useMemo(
     () => [
       {
@@ -134,8 +136,6 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             <Checkbox
               checked={selectedUsers.includes(record.userID)}
               onClick={(e: any) => {
-                console.log(record);
-                console.log(e.target.checked);
                 addRemoveUserToSelected(record.userID, e.target.checked);
               }}
             />
@@ -165,20 +165,20 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
                 </p>
                 <p>
                   {
-                    'Pending    = User has received click on the ticket but not viewed the airdrop claim instructions yet'
+                    'Started    = User has seen the airdrop and may or may not have read the instructions'
                   }
                 </p>
                 <p>
                   {
-                    'InProgress = User has viewed the airdrop claim instructions and is assumed to be working on it'
+                    'InProgress = User has viewed the airdrop claim instructions and is in-progress of doing your tasks or answering your questions'
                   }
                 </p>
                 <p>
                   {
-                    'Submitted  = User has submitted the airdrop claim and reported completion, but has not yet redeemed their airdrop reward'
+                    'Answered  = User has answered all your airdrop questions, but has not yet redeemed their airdrop reward'
                   }
                 </p>
-                <p>{'Completed  = User has fully claimed their airdrop reward'}</p>
+                <p>{'Rewarded  = User has fully claimed their airdrop reward'}</p>
                 <p>
                   {'Revoked    = User had their airdrop revoked and their ticket no longer works'}
                 </p>
@@ -194,33 +194,15 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
         filterMode: 'menu',
         filters: [
           {
-            text: 'None',
+            text: `None (${potentialClaimers.filter((u) => !u.status).length})`,
             value: '',
           },
-          {
-            text: AirdropUserClaimStatus.Awaiting,
-            value: AirdropUserClaimStatus.Awaiting,
-          },
-          {
-            text: AirdropUserClaimStatus.Pending,
-            value: AirdropUserClaimStatus.Pending,
-          },
-          {
-            text: AirdropUserClaimStatus.InProgress,
-            value: AirdropUserClaimStatus.InProgress,
-          },
-          {
-            text: AirdropUserClaimStatus.Submitted,
-            value: AirdropUserClaimStatus.Submitted,
-          },
-          {
-            text: AirdropUserClaimStatus.Completed,
-            value: AirdropUserClaimStatus.Completed,
-          },
-          {
-            text: AirdropUserClaimStatus.Revoked,
-            value: AirdropUserClaimStatus.Revoked,
-          },
+          ...Object.keys(ClaimRedemptionStatus).map((key) => ({
+            text: `${ClaimRedemptionStatus[key]} (${
+              potentialClaimers.filter((u) => u.status === ClaimRedemptionStatus[key]).length
+            })`,
+            value: ClaimRedemptionStatus[key],
+          })),
         ],
         onFilter: (value: any, record) => {
           if (!value) return !record.status;
@@ -278,7 +260,7 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
         },
       },
     ],
-    [selectedUsers],
+    [selectedUsers, uniqueBatches],
   );
 
   if (error) {
@@ -384,7 +366,7 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
             })}
         />
       </$Vertical>
-      {offer && (
+      {offer && offer.airdropMetadata && (
         <Modal
           title="Deploy an Airdrop Batch"
           open={isModalOpen}
@@ -403,13 +385,14 @@ const AirdropControlPanel: React.FC<AirdropControlPanelProps> = ({ tournamentID,
           <AirdropDeployModal
             offerID={offerID}
             tournamentID={tournamentID}
-            title={offer?.title || ''}
-            oneLiner={offer?.airdropMetadata?.oneLiner || ''}
-            value={offer?.airdropMetadata?.value || ''}
-            instructionsLink={offer?.airdropMetadata?.instructionsLink || ''}
-            batchNumber={(offer?.airdropMetadata?.batchCount || 0) + 1}
+            title={offer.title || ''}
+            oneLiner={offer.airdropMetadata.oneLiner || ''}
+            value={offer.airdropMetadata?.value || ''}
+            instructionsLink={offer.airdropMetadata.instructionsLink || ''}
+            batchNumber={(offer.airdropMetadata.batchCount || 0) + 1}
             toggleModal={(bool: boolean) => setIsModalOpen(bool)}
             selectedClaimers={selectedUsers}
+            lootboxTemplateStamp={offer.airdropMetadata.lootboxTemplateStamp}
             exitClear={() => {
               setIsModalOpen(false);
               setSelectedUsers([]);

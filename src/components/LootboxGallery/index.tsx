@@ -71,7 +71,7 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
   const [lootboxForReferralModal, setLootboxForReferralModal] = useState<LootboxID | null>(null);
   const [searchString, setSearchString] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showLootboxType, setShowLootboxType] = useState<ShowLootboxType>(ShowLootboxType.All);
+  const [showLootboxType, setShowLootboxType] = useState<ShowLootboxType>(ShowLootboxType.Teams);
   const [bulkSelectedSnapshots, setBulkSelectedSnapshots] = useState<LootboxTournamentSnapshotID[]>(
     [],
   );

@@ -141,7 +141,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       });
       try {
         const { lootboxID } = await onSubmitCreate(payload);
-        console.log(`Look at this lootbox = ${lootboxID}`);
       } catch (e: any) {
         if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
           return;
@@ -338,7 +337,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             <$Horizontal justifyContent="flex-end" style={{ width: '100%' }}>
               <Form.Item className="form-footer">
                 <Button loading={pending} htmlType="submit" type="primary">
-                  Next
+                  Deploy
                 </Button>
               </Form.Item>
             </$Horizontal>
