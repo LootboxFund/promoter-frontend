@@ -132,8 +132,8 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
       <br />
       <Typography.Title level={3}>Tickets Distributed by Promoter</Typography.Title>
       <br />
-      <Row gutter={8}>
-        <Col span={5}>
+      <Row gutter={8} wrap>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="Number of distributed tickets for this Lootbox for all Promoters."
@@ -141,7 +141,7 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
             <Statistic loading={loading} title="Tickets Distributed" value={sumClaims} />
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title='Average number of tickets distributed per Promoter for this Lootbox. Defined as "Tickets Distributed" / "# Promoters".'
@@ -153,7 +153,7 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
             ></Statistic>
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="Total number of promoters that helped distribute this Lootbox's tickets."

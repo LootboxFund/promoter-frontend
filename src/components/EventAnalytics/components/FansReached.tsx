@@ -119,8 +119,8 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
       <br />
       <Typography.Title level={3}>Tickets Owned by Fans</Typography.Title>
       <br />
-      <Row gutter={8}>
-        <Col span={5}>
+      <Row gutter={8} wrap>
+        <Col sm={24} md={5}>
           <Tooltip placement="top" title="Average number of tickets owned for each fan.">
             <Statistic
               loading={loading}
@@ -129,7 +129,7 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
             ></Statistic>
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip placement="top" title="The total number of claims owned by all fans">
             <Statistic
               loading={loading}
@@ -138,7 +138,7 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
             ></Statistic>
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip placement="top" title="The total number of fans that own tickets for your event">
             <Statistic loading={loading} title="# Fans" value={nFans} />
           </Tooltip>

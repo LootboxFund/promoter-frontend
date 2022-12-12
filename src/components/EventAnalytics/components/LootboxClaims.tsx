@@ -162,8 +162,8 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
       <br />
       <Typography.Title level={3}>{`Lootbox Ticket Claims`}</Typography.Title>
       <br />
-      <Row gutter={8}>
-        <Col span={5}>
+      <Row gutter={8} wrap>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="Number of distributed tickets for all Lootboxes in your event."
@@ -180,7 +180,7 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
             />
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title='Average number of tickets distributed per Lootbox. Defined as "Tickets Distributed" / "# Lootbox".'
@@ -192,7 +192,7 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
             ></Statistic>
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title='Total number of tickets available for distribution in your event. Defined as the sum of all LOOTBOX "Max Tickets" in your event.'
@@ -200,7 +200,7 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
             <Statistic loading={loading} title="Ticket Capacity" value={sumMaxTickets}></Statistic>
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="Number of Lootboxes in your event (including disabled & sold out)."

@@ -157,8 +157,8 @@ const FansReached: React.FC<FansReachedProps> = ({
       <br />
       <Typography.Title level={3}>Tickets Owned by Fans</Typography.Title>
       <br />
-      <Row gutter={8}>
-        <Col span={5}>
+      <Row gutter={8} wrap>
+        <Col sm={24} md={5}>
           <Tooltip placement="top" title="Number of ticket claims for this Lootbox.">
             <Statistic
               title="Ticket Claims"
@@ -173,7 +173,7 @@ const FansReached: React.FC<FansReachedProps> = ({
           </Tooltip>
         </Col>
 
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="Percentage of completed claims over the total number of claim attempts per Lootbox."
@@ -187,7 +187,7 @@ const FansReached: React.FC<FansReachedProps> = ({
           </Tooltip>
         </Col>
 
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="Average number of tickets owned for each fan for this Lootbox"
@@ -199,7 +199,7 @@ const FansReached: React.FC<FansReachedProps> = ({
             ></Statistic>
           </Tooltip>
         </Col>
-        {/* <Col span={5}>
+        {/* <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="The total number of claims owned by all fans for this Lootbox"

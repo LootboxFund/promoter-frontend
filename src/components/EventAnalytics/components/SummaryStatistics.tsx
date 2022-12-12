@@ -392,7 +392,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
           <Typography.Title level={3}>{`${
             stats?.completedClaimCount || 0
           } Ticket Claims`}</Typography.Title>
-          <Row gutter={8} wrap={true}>
+          <Row gutter={8} wrap>
             <Col sm={24} md={16}>
               <Pie {...claimPieConfig} />
             </Col>
@@ -444,7 +444,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
               </Tooltip>
               <Tooltip
                 placement="right"
-                title="Percentage of completed claims over the total number of claim attempts for a Lootboxes in this event."
+                title="Percentage of all completed claims versus the total number of abandoned claims for all Lootboxes in this event."
               >
                 <Statistic
                   title="Completion Rate"

@@ -129,8 +129,8 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
       <br />
       <Typography.Title level={3}>Tickets Distributed by Campaign</Typography.Title>
       <br />
-      <Row gutter={8}>
-        <Col span={5}>
+      <Row gutter={8} wrap>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="Number of distributed tickets for all Campaigns for this Lootbox."
@@ -138,7 +138,7 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
             <Statistic loading={loading} title="Tickets Distributed" value={nClaims} />
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title='Average number of tickets distributed per Campaign. Defined as "Tickets Distributed" / "# Campaigns".'
@@ -146,7 +146,7 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
             <Statistic loading={loading} title="Average Distribution" value={avgClaims}></Statistic>
           </Tooltip>
         </Col>
-        <Col span={5}>
+        <Col sm={24} md={5}>
           <Tooltip
             placement="top"
             title="Total number of campaigns that helped distribute tickets for this Lootbox."
