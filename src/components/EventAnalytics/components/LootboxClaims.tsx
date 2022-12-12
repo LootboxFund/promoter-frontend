@@ -1,9 +1,9 @@
 import { QueryLootboxCompletedClaimsForTournamentArgs } from '@/api/graphql/generated/types';
 import { convertFilenameToThumbnail } from '@/lib/storage';
-import { Bar, BarConfig } from '@ant-design/plots';
+import { Bar, BarConfig, Liquid, LiquidConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Button, Result, Space, Typography } from 'antd';
+import { Button, Col, Result, Row, Space, Statistic, Tooltip, Typography } from 'antd';
 import { useMemo, useRef } from 'react';
 import {
   LootboxCompletedClaimRowFE,
@@ -56,11 +56,24 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
     };
   };
 
-  const parsedData = useMemo(() => {
-    return data?.lootboxCompletedClaimsForTournament &&
+  const { parsedData, nLootboxes, sumClaims, sumMaxTickets } = useMemo(() => {
+    const _parsedData =
+      data?.lootboxCompletedClaimsForTournament &&
       'data' in data?.lootboxCompletedClaimsForTournament
-      ? data.lootboxCompletedClaimsForTournament.data.map(convertDataRowFE)
-      : [];
+        ? data.lootboxCompletedClaimsForTournament.data.map(convertDataRowFE)
+        : [];
+
+    const nLootboxes = _parsedData.length;
+
+    const sumClaims = _parsedData.reduce((acc, cur) => acc + cur[XDataLabel], 0);
+    const sumMaxTickets = _parsedData.reduce((acc, cur) => acc + cur.maxTickets, 0);
+
+    return {
+      parsedData: _parsedData,
+      nLootboxes,
+      sumClaims,
+      sumMaxTickets,
+    };
   }, [data]);
 
   if (error || data?.lootboxCompletedClaimsForTournament?.__typename === 'ResponseError') {
@@ -142,9 +155,63 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
       },
     },
   };
+
+  // const liquidConfig: LiquidConfig = {
+  //   height: 200,
+  //   width: 200,
+  //   percent: 0.25,
+  //   outline: {
+  //     border: 4,
+  //     distance: 8,
+  //   },
+  //   wave: {
+  //     length: 128,
+  //   },
+  // };
+
   return (
     <div>
-      <h2>Lootbox Ticket Claims</h2>
+      <br />
+      <Typography.Title level={3}>{`Lootbox Ticket Claims`}</Typography.Title>
+      <Row gutter={8}>
+        {/* <Col span={6}>
+          <Liquid {...liquidConfig} />
+        </Col> */}
+        <Col span={6}>
+          <Tooltip
+            placement="top"
+            title="Number of Lootboxes in your event (including disabled & sold out)."
+          >
+            <Statistic loading={loading} title="# Lootbox" value={nLootboxes}></Statistic>
+          </Tooltip>
+        </Col>
+        <Col span={6}>
+          <Tooltip
+            placement="top"
+            title="Number of distributed tickets for all Lootboxes in your event."
+          >
+            <Statistic
+              loading={loading}
+              title="Tickets Distributed"
+              value={sumClaims}
+              suffix={
+                <Typography.Text type="secondary">
+                  ({Math.round((10000 * sumClaims) / sumMaxTickets) / 100}%)
+                </Typography.Text>
+              }
+            />
+          </Tooltip>
+        </Col>
+        <Col span={6}>
+          <Tooltip
+            placement="top"
+            title="Total number of tickets available for distribution in your event."
+          >
+            <Statistic loading={loading} title="Ticket Capacity" value={sumMaxTickets}></Statistic>
+          </Tooltip>
+        </Col>
+      </Row>
+      <br />
       <Bar {...config} />
     </div>
   );

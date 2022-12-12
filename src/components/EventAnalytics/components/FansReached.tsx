@@ -6,13 +6,14 @@ import { Button, Result } from 'antd';
 import { ClaimerStatsRowFE, ClaimerStatsForTournamentFE, CLAIMER_STATS } from '../api.gql';
 import { truncateUID } from '@/lib/string';
 import { convertClaimTypeForLegend } from '@/lib/graph';
+import { useMemo } from 'react';
 
 interface FansReachedProps {
   eventID: TournamentID;
   onInviteFanModalToggle: () => void;
 }
 
-const YDataKey = 'campaignName';
+const YDataKey = 'username';
 const XDataKey = 'ticketsClaimed';
 const SeriesKey = 'claimType';
 
@@ -34,14 +35,25 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
         row.claimerUserID as UserID,
       )}`,
       [XDataKey]: row.claimCount,
-      [SeriesKey]: convertClaimTypeForLegend(row.claimType),
+      [SeriesKey]: convertClaimTypeForLegend(row.claimType, row.referralType),
     };
   };
 
-  const parsedData =
-    data?.claimerStatsForTournament && 'data' in data?.claimerStatsForTournament
-      ? data.claimerStatsForTournament.data.map(convertDataRowFE)
-      : [];
+  const { parsedData, allClaims, nFans } = useMemo(() => {
+    const _parsedData =
+      data?.claimerStatsForTournament && 'data' in data?.claimerStatsForTournament
+        ? data.claimerStatsForTournament.data.map(convertDataRowFE)
+        : [];
+
+    const _allClaims = _parsedData.reduce((acc, cur) => acc + cur.ticketsClaimed, 0);
+    const _nFans = new Set(_parsedData.map((row) => row[YDataKey])).size;
+
+    return {
+      parsedData: _parsedData,
+      allClaims: _allClaims,
+      nFans: _nFans,
+    };
+  }, [data]);
 
   if (error || data?.claimerStatsForTournament?.__typename === 'ResponseError') {
     return (
@@ -100,7 +112,9 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
 
   return (
     <div>
-      <h2>Tickets Owed To Fans</h2>
+      <h2>
+        {allClaims} Tickets Owned by {nFans} Fans
+      </h2>
       <Bar {...config} />
     </div>
   );

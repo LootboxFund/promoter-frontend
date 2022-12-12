@@ -18,6 +18,7 @@ export interface BaseEventClaimStatsFE {
   completionRate: number;
   airdropCompletionRate: number;
   totalMaxTickets: number;
+  participationFans: number;
 }
 
 export interface BaseEventClaimStatsResponseFE {
@@ -49,6 +50,7 @@ export const BASE_EVENT_CLAIM_STATS = gql`
           completionRate
           airdropCompletionRate
           totalMaxTickets
+          participationFans
         }
       }
       ... on ResponseError {
@@ -219,6 +221,7 @@ export interface ClaimerStatsRowFE {
   claimCount: number;
   claimType: string;
   totalUserClaimCount: number;
+  referralType: string;
 }
 
 export interface ClaimerStatsForTournamentFE {
@@ -241,6 +244,7 @@ export const CLAIMER_STATS = gql`
           claimCount
           claimType
           totalUserClaimCount
+          referralType
         }
       }
       ... on ResponseError {

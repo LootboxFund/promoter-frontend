@@ -49,7 +49,7 @@ const FansReached: React.FC<FansReachedProps> = ({
       //   }`}</Typography.Text>
       // ),
       [XDataKey]: row.claimCount,
-      [SeriesKey]: convertClaimTypeForLegend(row.claimType),
+      [SeriesKey]: convertClaimTypeForLegend(row.claimType, row.referralType),
     };
   };
 

@@ -1,11 +1,17 @@
-import { ClaimType_Firestore } from '@wormgraph/helpers';
+import { ClaimType_Firestore, ReferralType_Firestore } from '@wormgraph/helpers';
 
-export const convertClaimTypeForLegend = (claimType: ClaimType_Firestore | string): string => {
+export const convertClaimTypeForLegend = (
+  claimType: ClaimType_Firestore | string,
+  referralType: ClaimType_Firestore | string,
+): string => {
   switch (claimType) {
     case ClaimType_Firestore.reward:
-      return 'Bonus Reward';
+      return 'Referral Bonus';
     case ClaimType_Firestore.referral:
-      return 'Referral';
+      if (referralType === ReferralType_Firestore.genesis) {
+        return 'Original Referral';
+      }
+      return 'Viral Referral';
     case ClaimType_Firestore.one_time:
       return 'Participation Reward';
     case ClaimType_Firestore.airdrop:

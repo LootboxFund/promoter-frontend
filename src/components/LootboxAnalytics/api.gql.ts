@@ -129,6 +129,7 @@ export interface ClaimerStatsLootboxTournamentRowFE {
   claimCount: number;
   claimType: string;
   totalUserClaimCount: number;
+  referralType: string;
 }
 
 export interface ClaimerStatsForLootboxTournamentFE {
@@ -152,6 +153,7 @@ export const CLAIMER_STATS_FOR_LOOTBOX_TOURNAMENT = gql`
           claimCount
           claimType
           totalUserClaimCount
+          referralType
         }
       }
       ... on ResponseError {

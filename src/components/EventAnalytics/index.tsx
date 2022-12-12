@@ -1,4 +1,4 @@
-import { Tabs, Divider } from 'antd';
+import { Tabs, Divider, Tooltip } from 'antd';
 import { TournamentID } from '@wormgraph/helpers';
 import BaseStats from './components/BaseStatistics';
 import LootboxClaims from './components/LootboxClaims';
@@ -18,6 +18,11 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({ eventID, onInviteFanMod
     {
       label: 'Summary',
       key: 'summary-statistics',
+      tab: (
+        <Tooltip title="Your hint that appears after user's mouse will be over the tab title">
+          <span>tab title</span>
+        </Tooltip>
+      ),
       children: (
         <SummaryStatistics eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />
       ),
@@ -59,8 +64,8 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({ eventID, onInviteFanMod
   ];
   return (
     <>
-      <BaseStats eventID={eventID} />
-      <Divider />
+      {/* <BaseStats eventID={eventID} />
+      <Divider /> */}
       <Tabs items={chartItems} />
     </>
   );
