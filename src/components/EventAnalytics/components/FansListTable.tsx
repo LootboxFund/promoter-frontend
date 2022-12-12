@@ -224,7 +224,7 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
 
   return (
     <div>
-      <h2>List of Fans</h2>
+      <h2>{`List of ${fans.length} Fans`}</h2>
       <$InfoDescription fontSize="0.9rem" maxWidth="50%">
         This is a list of all the fans that have claimed a ticket for your tournament. Try sorting
         by the various columns.
