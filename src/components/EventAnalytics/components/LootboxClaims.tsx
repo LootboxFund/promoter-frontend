@@ -1,7 +1,6 @@
 import { QueryLootboxCompletedClaimsForTournamentArgs } from '@/api/graphql/generated/types';
 import { convertFilenameToThumbnail } from '@/lib/storage';
-import { manifest } from '@/manifest';
-import { Bar, BarConfig, Liquid, LiquidConfig } from '@ant-design/plots';
+import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
 import { Button, Col, Divider, Result, Row, Space, Statistic, Tooltip, Typography } from 'antd';

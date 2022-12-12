@@ -7,8 +7,18 @@ import {
   BASE_EVENT_CLAIM_STATS,
   BaseEventClaimStatsFE,
 } from '../api.gql';
-import { Pie, PieConfig, measureTextWidth } from '@ant-design/plots';
+import {
+  Pie,
+  PieConfig,
+  measureTextWidth,
+  Gauge,
+  GaugeConfig,
+  Liquid,
+  LiquidConfig,
+} from '@ant-design/plots';
 import { green, grey, gold, magenta, cyan, geekblue } from '@ant-design/colors';
+import { useMemo } from 'react';
+import '../index.css';
 
 interface EventSummaryStatisticsProps {
   eventID: TournamentID;
@@ -85,10 +95,27 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     );
   }
 
-  const stats =
-    data?.baseClaimStatsForTournament && 'stats' in data.baseClaimStatsForTournament
-      ? data.baseClaimStatsForTournament.stats
-      : null;
+  const { parsedClaimData, parsedUserData, anonymousFans, stats, viralityCoef } = useMemo(() => {
+    const stats =
+      data?.baseClaimStatsForTournament && 'stats' in data.baseClaimStatsForTournament
+        ? data.baseClaimStatsForTournament.stats
+        : null;
+    const parsedClaimData = stats ? processClaimPieChart(stats) : [];
+    const parsedUserData = stats ? processUserPieChart(stats) : [];
+    const anonymousFans =
+      stats?.allFans != null &&
+      stats?.originalFans != null &&
+      stats?.viralFans != null &&
+      stats?.participationFans != null
+        ? stats.allFans - stats.originalFans - stats.viralFans - stats.participationFans
+        : 0;
+    const validClaimsInCalculation =
+      (stats?.totalClaimCount || 0) -
+      (stats?.referralBonusClaimCount || 0) -
+      (stats?.airdropClaimCount || 0);
+    const viralityCoef = (validClaimsInCalculation * (stats?.completionRate || 0)) / 100;
+    return { parsedClaimData, parsedUserData, anonymousFans, stats, viralityCoef };
+  }, [data]);
 
   const renderStatistic = (containerWidth: number, text: string, style: any): string => {
     const { width: textWidth, height: textHeight } = measureTextWidth(text, style);
@@ -114,7 +141,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
   const claimPieConfig: PieConfig = {
     appendPadding: 10,
     loading: loading,
-    data: stats ? processClaimPieChart(stats) : [],
+    data: parsedClaimData,
     angleField: 'value',
     colorField: 'type',
     radius: 1,
@@ -202,7 +229,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
   const userPieConfig: PieConfig = {
     appendPadding: 10,
     loading: loading,
-    data: stats ? processUserPieChart(stats) : [],
+    data: parsedUserData,
     angleField: 'value',
     colorField: 'type',
     radius: 1,
@@ -275,49 +302,60 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     },
   };
 
-  //   const gaugeConfig = {
-  //     percent: 0.75,
-  //     type: 'meter',
-  //     innerRadius: 0.75,
-  //     height: 200,
-  //     width: 200,
-  //     range: {
-  //       ticks: [0, 1 / 3, 2 / 3, 1],
-  //       color: ['#F4664A', '#FAAD14', '#30BF78'],
-  //     },
-  //     indicator: {
-  //       pointer: {
-  //         style: {
-  //           stroke: '#D0D0D0',
-  //         },
-  //       },
-  //       pin: {
-  //         style: {
-  //           stroke: '#D0D0D0',
-  //         },
-  //       },
-  //     },
-  //     statistic: {
-  //       content: {
-  //         style: {
-  //           fontSize: '36px',
-  //           lineHeight: '36px',
-  //         },
-  //       },
-  //     },
-  //   };
+  const gaugeConfig: GaugeConfig = {
+    // percent: viralityCoef,
+    percent: 0.76,
+    loading: loading,
+    // type: 'meter',
+    innerRadius: 0.75,
+    width: 180,
+    height: 180,
+    range: {
+      ticks: [0, 1 / 3, 2 / 3, 1],
+      color: ['#F4664A', '#FAAD14', '#30BF78'],
+    },
+    indicator: {
+      pointer: {
+        style: {
+          stroke: '#D0D0D0',
+        },
+      },
+      pin: {
+        style: {
+          stroke: '#D0D0D0',
+        },
+      },
+    },
+    // statistic: {
+    //   content: {
+    //     style: {
+    //       fontSize: '36px',
+    //       lineHeight: '36px',
+    //     },
+    //   },
+    // },
+  };
 
-  const anonymousFans =
-    stats?.allFans != null &&
-    stats?.originalFans != null &&
-    stats?.viralFans != null &&
-    stats?.participationFans != null
-      ? stats.allFans - stats.originalFans - stats.viralFans - stats.participationFans
-      : 0;
+  const liquidConfig: LiquidConfig = {
+    percent: (stats?.completionRate || 0) / 100,
+    width: 200,
+    height: 200,
+    loading: loading,
+    // outline: {
+    //   border: 4,
+    //   distance: 8,
+    // },
+    wave: {
+      length: 128,
+    },
+  };
+
+  const remainingTix = (stats?.totalMaxTickets || 0) - (stats?.completedClaimCount || 0);
+
   return (
     <div className="mainbody">
       <br />
-      <Row wrap={true}>
+      <Row className="scrollrow" wrap={false}>
         <Col sm={24} md={12} style={{ width: '100%' }}>
           <Typography.Title level={3}>{`${stats?.allFans || 0} People Reached`}</Typography.Title>
           <Row gutter={8} wrap={true}>
@@ -365,7 +403,9 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
               </Tooltip>
             </Col>
           </Row>
-          {/* <Row gutter={8} wrap={true}>
+          <br />
+          <br />
+          <Row gutter={8} wrap={true}>
             <Col sm={24} md={16}>
               <Gauge {...gaugeConfig} />
             </Col>
@@ -377,16 +417,12 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
             >
               <Tooltip
                 placement="right"
-                title='Fans generated by your own marketing campaigns. These fans come from "Regular" invite links, which do not reward bonus rewards for sign ups.'
+                title={`Calculated "Virality Coefficient" for your event. It is a measure of how many people shared an invite link for your event. The higher the coefficient, the more people shared your event. The most viral events have viral coefficients higher than 2.`}
               >
-                <Statistic
-                  title="Original Fans"
-                  loading={loading}
-                  value={stats?.originalFans || 0}
-                />
+                <Statistic title="Virality" loading={loading} value={viralityCoef} />
               </Tooltip>
             </Col>
-          </Row> */}
+          </Row>
         </Col>
 
         <Col sm={24} md={12} style={{ width: '100%' }}>
@@ -443,12 +479,56 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
                   value={stats?.participationRewardCount || 0}
                 />
               </Tooltip>
+            </Col>
+          </Row>
+          <br />
+          <br />
+          <Row gutter={8} wrap>
+            <Col sm={24} md={16}>
+              <Liquid {...liquidConfig} />
+            </Col>
+
+            <Col
+              md={8}
+              sm={24}
+              style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+            >
               <Tooltip
                 placement="right"
-                title="Percentage of all completed claims versus the total number of abandoned claims for all Lootboxes in this event."
+                title={`Percentage of how many tickets have been distributed for your event. Calculated as ${
+                  stats?.completedClaimCount || 0
+                } completed claims divided by ${stats?.totalMaxTickets || 0} total max tickets.`}
               >
                 <Statistic
-                  title="Completion Rate"
+                  title="Distribution Progress"
+                  loading={loading}
+                  value={
+                    stats?.completedClaimCount && stats?.totalMaxTickets > 0
+                      ? Math.round((10000 * stats.completedClaimCount) / stats.totalMaxTickets) /
+                        100
+                      : 0
+                  }
+                  suffix="%"
+                />
+              </Tooltip>
+
+              <Tooltip
+                placement="right"
+                title="The number of unclaimed tickets left for your event."
+              >
+                <Statistic
+                  title="# Tickets Remaining"
+                  loading={loading}
+                  value={remainingTix < 0 ? 0 : remainingTix}
+                />
+              </Tooltip>
+
+              <Tooltip
+                placement="right"
+                title="Percentage of all completed claims versus the total number of abandoned claims (completed & abandoned) for all Lootboxes in this event."
+              >
+                <Statistic
+                  title="Claim Completion Rate"
                   loading={loading}
                   value={stats?.completionRate || 0}
                   suffix="%"
