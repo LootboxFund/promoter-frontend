@@ -40,14 +40,14 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({
       children: <LootboxClaims eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
     },
     {
-      label: 'List of Fans',
-      key: 'fans-list',
-      children: <FansListTable eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
-    },
-    {
       label: 'By Fan',
       key: 'fans-distribution',
       children: <FansReached eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
+    },
+    {
+      label: 'List of Fans',
+      key: 'fans-list',
+      children: <FansListTable eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
     },
     {
       label: 'By Promoter',
