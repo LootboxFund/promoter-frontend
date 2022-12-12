@@ -19,6 +19,9 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
           communityURL
           organizer
           promoters
+          timestamps {
+            createdAt
+          }
           dealConfigs {
             tournamentID
             offerID

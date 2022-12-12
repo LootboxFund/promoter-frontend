@@ -1,12 +1,8 @@
-import { Tabs, Divider } from 'antd';
+import { Tabs } from 'antd';
 import { LootboxID, TournamentID } from '@wormgraph/helpers';
-import BaseStats from './components/BaseStatistics';
-// import LootboxClaims from './components/LootboxClaims';
-// import DailyDistributionHeatmap from './components/DailyDistributionHeatmap';
 import ReferrerClaims from './components/ReferrerClaims';
 import CampaignDistribution from './components/CampaignDistribution';
 import FansReached from './components/FansReached';
-// import CampaignDistribution from './components/CampaignDistribution';
 
 export interface EventAnalyticsProps {
   eventID: TournamentID;
@@ -66,8 +62,6 @@ const LootboxAnalytics: React.FC<EventAnalyticsProps> = ({
   ];
   return (
     <>
-      <BaseStats eventID={eventID} lootboxID={lootboxID} />
-      <Divider />
       <Tabs items={chartItems} />
     </>
   );
