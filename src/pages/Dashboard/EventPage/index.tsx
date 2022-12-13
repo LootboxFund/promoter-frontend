@@ -250,6 +250,7 @@ const EventPage: React.FC = () => {
   }
 
   const editTournament = async (payload: EditTournamentPayload) => {
+    console.log(`editTournament`, payload);
     const res = await editTournamentMutation({
       variables: {
         payload: {
@@ -262,6 +263,7 @@ const EventPage: React.FC = () => {
           tournamentDate: payload.tournamentDate,
           communityURL: payload.communityURL || '',
           magicLink: payload.magicLink || '',
+          privacyScope: payload.privacyScope || [],
         },
       },
     });
@@ -327,6 +329,7 @@ const EventPage: React.FC = () => {
                 magicLink: tournament.magicLink || '',
                 prize: tournament.prize || '',
                 communityURL: tournament.communityURL || '',
+                privacyScope: tournament.privacyScope || [],
               }}
               mode="view-edit"
               affiliateID={affiliateID as AffiliateID}

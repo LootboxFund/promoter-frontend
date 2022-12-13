@@ -4,6 +4,7 @@ import {
   ConquestStatus,
   MeasurementPartnerType,
   OfferStatus,
+  TournamentPrivacyScope,
 } from '@wormgraph/helpers';
 import moment from 'moment';
 import type { Moment } from 'moment';
@@ -31,6 +32,7 @@ export type CreateEventFormProps = {
     magicLink?: string;
     prize?: string;
     communityURL?: string;
+    privacyScope?: TournamentPrivacyScope[];
   };
   affiliateID: AffiliateID;
   onSubmitCreate?: (payload: CreateTournamentPayload) => void;
@@ -47,6 +49,7 @@ const TOURNAMENT_INFO = {
   magicLink: '',
   prize: '',
   communityURL: '',
+  privacyScope: [] as TournamentPrivacyScope[],
 };
 const CreateEventForm: React.FC<CreateEventFormProps> = ({
   tournament,
@@ -78,6 +81,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         magicLink: tournament.magicLink || '',
         prize: tournament.prize || '',
         communityURL: tournament.communityURL || '',
+        privacyScope: tournament.privacyScope || [],
       });
     }
   }, [tournament]);
@@ -109,6 +113,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       payload.prize = values.prize;
     }
     payload.organizer = affiliateID;
+    console.log(`payload = `, payload);
     setPending(true);
     try {
       await onSubmitCreate(payload);
@@ -156,6 +161,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     }
     if (values.prize) {
       payload.prize = values.prize;
+    }
+    if (values.privacyScope) {
+      payload.privacyScope = values.privacyScope;
     }
     setPending(true);
     try {
@@ -237,6 +245,19 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         label: 'Prize',
         tooltip:
           'The total prize pool for fan ticket holders, shown publically on marketing materials',
+      });
+      // @ts-ignore
+      meta.fields.push({
+        key: 'privacyScope',
+        label: 'Privacy Scope',
+        tooltip:
+          'Select the privacy settings this tournament. DataSharing means you intend to download user emails and possibly even share them with a 3rd party such as an advertiser. MarketingEmails means you intend to send marketing emails to users who claim tickets to this event. Checking either of these options will cause your event to use the appropriate Terms and Conditions & Privacy Policy that fans must consent to.',
+        // @ts-ignore
+        widget: 'checkbox-group',
+        options: [
+          TournamentPrivacyScope.DataSharing,
+          TournamentPrivacyScope.MarketingEmails,
+        ] as TournamentPrivacyScope[],
       });
       if (!viewMode) {
         meta.fields.push({
