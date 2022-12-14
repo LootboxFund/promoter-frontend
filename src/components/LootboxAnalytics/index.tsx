@@ -3,6 +3,7 @@ import { LootboxID, TournamentID } from '@wormgraph/helpers';
 import ReferrerClaims from './components/ReferrerClaims';
 import CampaignDistribution from './components/CampaignDistribution';
 import FansReached from './components/FansReached';
+import FansListTableLootbox from './components/FansListTableLootbox';
 
 export interface EventAnalyticsProps {
   eventID: TournamentID;
@@ -31,6 +32,11 @@ const LootboxAnalytics: React.FC<EventAnalyticsProps> = ({
           onInviteFanModalToggle={onInviteFanModalToggle}
         />
       ),
+    },
+    {
+      label: 'List of Fans',
+      key: 'fans-list',
+      children: <FansListTableLootbox lootboxID={lootboxID} />,
     },
     {
       label: 'Promoter Distribution',

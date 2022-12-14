@@ -250,7 +250,6 @@ const EventPage: React.FC = () => {
   }
 
   const editTournament = async (payload: EditTournamentPayload) => {
-    console.log(`editTournament`, payload);
     const res = await editTournamentMutation({
       variables: {
         payload: {
@@ -264,6 +263,7 @@ const EventPage: React.FC = () => {
           communityURL: payload.communityURL || '',
           magicLink: payload.magicLink || '',
           privacyScope: payload.privacyScope || [],
+          playbookUrl: payload.playbookUrl || '',
         },
       },
     });
@@ -281,7 +281,7 @@ const EventPage: React.FC = () => {
 
   const renderHelpText = () => {
     return (
-      <$InfoDescription>
+      <$InfoDescription maxWidth="70%">
         {`This is the Event Control Panel for "${
           tournament?.title || 'your event'
         }". You can manage partners, revenue & Lootboxes as well as view analytics.`}{' '}
@@ -307,13 +307,19 @@ const EventPage: React.FC = () => {
           <BreadCrumbDynamic breadLine={breadLine} />
           <$Horizontal justifyContent="space-between">
             <h1>{tournament.title}</h1>
-            <a
-              href={`${manifest.microfrontends.webflow.battlePage}?tournament=${tournament.id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Button type="primary">View Event</Button>
-            </a>
+            <$Horizontal justifyContent="flex-start">
+              <a
+                href={`${manifest.microfrontends.webflow.battlePage}?tournament=${tournament.id}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Button type="ghost">View Event</Button>
+              </a>
+              <$ColumnGap />
+              <a href={tournament.playbookUrl || ''} target="_blank" rel="noreferrer">
+                <Button type="primary">Open Checklist</Button>
+              </a>
+            </$Horizontal>
           </$Horizontal>
           {renderHelpText()}
 
@@ -330,6 +336,7 @@ const EventPage: React.FC = () => {
                 prize: tournament.prize || '',
                 communityURL: tournament.communityURL || '',
                 privacyScope: tournament.privacyScope || [],
+                playbookUrl: tournament.playbookUrl || '',
               }}
               mode="view-edit"
               affiliateID={affiliateID as AffiliateID}
@@ -348,7 +355,7 @@ const EventPage: React.FC = () => {
                     <Anchor.Link href="#breadcrumbs" title="Event Info" />
                     <Anchor.Link href="#ticket-analytics" title="Ticket Analytics" />
                     <Anchor.Link href="#lootbox-gallery" title="Lootbox Gallery" />
-                    <Anchor.Link href="#revenue-sharing" title="Revenue Sharing">
+                    <Anchor.Link href="#advertisements" title="Advertisements">
                       {tournament.dealConfigs.map((dealConfig) => {
                         return (
                           <Anchor.Link
@@ -435,7 +442,7 @@ const EventPage: React.FC = () => {
           <br />
 
           <$Horizontal justifyContent="space-between">
-            <h2 id="revenue-sharing">Revenue Sharing</h2>
+            <h2 id="advertisements">Advertisements</h2>
             <Popconfirm
               title="Go to the Offers Page to add them as a revenue for this Event"
               onConfirm={() => history.push(`/dashboard/offers`)}
@@ -494,7 +501,104 @@ const EventPage: React.FC = () => {
                   </Link>
                 </$Horizontal>
                 <Tabs defaultActiveKey="1" type="card" style={{ width: '100%' }}>
-                  <Tabs.TabPane tab="Revenue Sharing" key="1">
+                  <Tabs.TabPane tab="Ad Placements" key="1">
+                    <$Horizontal justifyContent="flex-end">
+                      <Popconfirm
+                        title={
+                          <span>
+                            Go to the Offer Page to include new Ad Sets into this Event. Or{' '}
+                            <a href="https://lootbox.fyi/3EJQmLb" target="_blank" rel="noreferrer">
+                              Watch Tutorial.
+                            </a>
+                          </span>
+                        }
+                        onConfirm={() => history.push(`/dashboard/offers/id/${dealConfig.offerID}`)}
+                        okText="Go to Offer"
+                        showCancel={false}
+                      >
+                        <Button>Include Ad Set</Button>
+                      </Popconfirm>
+                    </$Horizontal>
+                    <div className={styles.content}>
+                      {dealConfig.adSets
+                        .filter((adSet) => adSet.status === AdSetInTournamentStatus.Active)
+                        .map((adSet) => {
+                          let isLoading = false;
+                          return (
+                            <Card
+                              key={`${dealConfig.offerID}-${adSet.id}`}
+                              hoverable
+                              className={styles.card}
+                              cover={
+                                <img
+                                  alt="example"
+                                  src={adSet.thumbnail || ''}
+                                  className={styles.cardImage}
+                                />
+                              }
+                              actions={[
+                                <Button
+                                  key={`${dealConfig.offerID}-${adSet.id}-view`}
+                                  type="primary"
+                                  onClick={(e: any) => {
+                                    e.preventDefault();
+                                    if (adSet.ad) {
+                                      setSimulatedAd({
+                                        title: `Offer "${dealConfig.offerName}" - Ad Set "${adSet.name}"`,
+                                        // @ts-ignore
+                                        placement: adSet.placement,
+                                        creative: {
+                                          themeColor: adSet.ad.themeColor,
+                                          callToAction: adSet.ad.callToAction,
+                                          creativeType: adSet.ad.creativeType,
+                                          creativeLinks: adSet.ad.creativeLinks,
+                                          aspectRatio: adSet.ad.aspectRatio,
+                                        },
+                                      });
+                                    }
+                                  }}
+                                  style={{ width: '85%' }}
+                                >
+                                  View
+                                </Button>,
+                                <Popconfirm
+                                  key={`${dealConfig.offerID}-${adSet.id}-button`}
+                                  title="Are you sure to remove this Ad from your Event?"
+                                  onConfirm={async (e: any) => {
+                                    if (eventID) {
+                                      isLoading = true;
+                                      await removeAdSetOffer({
+                                        variables: {
+                                          payload: {
+                                            adSetID: adSet.id,
+                                            tournamentID: eventID,
+                                            offerID: dealConfig.offerID,
+                                          },
+                                        },
+                                      });
+                                      isLoading = false;
+                                    }
+                                  }}
+                                  okText="Remove"
+                                  cancelText="Cancel"
+                                >
+                                  <Button
+                                    onClick={(e: any) => e.preventDefault()}
+                                    loading={isLoading}
+                                    style={{ width: '85%' }}
+                                  >
+                                    Remove
+                                  </Button>
+                                </Popconfirm>,
+                              ]}
+                            >
+                              <Meta title={adSet.name} description={adSet.placement} />
+                            </Card>
+                          );
+                        })}
+                    </div>
+                  </Tabs.TabPane>
+                  <Tabs.TabPane tab="Revenue Sharing" key="2">
                     <$Horizontal justifyContent="flex-end" style={{ marginBottom: '10px' }}>
                       <Button onClick={() => setOfferToAddPromoter(dealConfig)}>
                         Add Promoter
@@ -632,103 +736,6 @@ const EventPage: React.FC = () => {
                         }}
                       />
                     )}
-                  </Tabs.TabPane>
-                  <Tabs.TabPane tab="Ad Placements" key="2">
-                    <$Horizontal justifyContent="flex-end">
-                      <Popconfirm
-                        title={
-                          <span>
-                            Go to the Offer Page to include new Ad Sets into this Event. Or{' '}
-                            <a href="https://lootbox.fyi/3EJQmLb" target="_blank" rel="noreferrer">
-                              Watch Tutorial.
-                            </a>
-                          </span>
-                        }
-                        onConfirm={() => history.push(`/dashboard/offers/id/${dealConfig.offerID}`)}
-                        okText="Go to Offer"
-                        showCancel={false}
-                      >
-                        <Button>Include Ad Set</Button>
-                      </Popconfirm>
-                    </$Horizontal>
-                    <div className={styles.content}>
-                      {dealConfig.adSets
-                        .filter((adSet) => adSet.status === AdSetInTournamentStatus.Active)
-                        .map((adSet) => {
-                          let isLoading = false;
-                          return (
-                            <Card
-                              key={`${dealConfig.offerID}-${adSet.id}`}
-                              hoverable
-                              className={styles.card}
-                              cover={
-                                <img
-                                  alt="example"
-                                  src={adSet.thumbnail || ''}
-                                  className={styles.cardImage}
-                                />
-                              }
-                              actions={[
-                                <Button
-                                  key={`${dealConfig.offerID}-${adSet.id}-view`}
-                                  type="primary"
-                                  onClick={(e: any) => {
-                                    e.preventDefault();
-                                    if (adSet.ad) {
-                                      setSimulatedAd({
-                                        title: `Offer "${dealConfig.offerName}" - Ad Set "${adSet.name}"`,
-                                        // @ts-ignore
-                                        placement: adSet.placement,
-                                        creative: {
-                                          themeColor: adSet.ad.themeColor,
-                                          callToAction: adSet.ad.callToAction,
-                                          creativeType: adSet.ad.creativeType,
-                                          creativeLinks: adSet.ad.creativeLinks,
-                                          aspectRatio: adSet.ad.aspectRatio,
-                                        },
-                                      });
-                                    }
-                                  }}
-                                  style={{ width: '85%' }}
-                                >
-                                  View
-                                </Button>,
-                                <Popconfirm
-                                  key={`${dealConfig.offerID}-${adSet.id}-button`}
-                                  title="Are you sure to remove this Ad from your Event?"
-                                  onConfirm={async (e: any) => {
-                                    if (eventID) {
-                                      isLoading = true;
-                                      await removeAdSetOffer({
-                                        variables: {
-                                          payload: {
-                                            adSetID: adSet.id,
-                                            tournamentID: eventID,
-                                            offerID: dealConfig.offerID,
-                                          },
-                                        },
-                                      });
-                                      isLoading = false;
-                                    }
-                                  }}
-                                  okText="Remove"
-                                  cancelText="Cancel"
-                                >
-                                  <Button
-                                    onClick={(e: any) => e.preventDefault()}
-                                    loading={isLoading}
-                                    style={{ width: '85%' }}
-                                  >
-                                    Remove
-                                  </Button>
-                                </Popconfirm>,
-                              ]}
-                            >
-                              <Meta title={adSet.name} description={adSet.placement} />
-                            </Card>
-                          );
-                        })}
-                    </div>
                   </Tabs.TabPane>
                   {dealConfig.strategy === OfferStrategyType.Airdrop && (
                     <Tabs.TabPane tab="Airdrop" key="3">

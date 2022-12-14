@@ -25,12 +25,11 @@ import { Link } from '@umijs/max';
 import moment from 'moment';
 import { manifest } from '@/manifest';
 
-interface FansReachedProps {
+interface FansListTableEventProps {
   eventID: TournamentID;
-  onInviteFanModalToggle: () => void;
 }
 
-const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalToggle }) => {
+const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
   const { data, loading, error } = useQuery<
     { fansListForTournament: FansListForTournamentResponse },
     QueryFansListForTournamentArgs
@@ -255,4 +254,4 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
   );
 };
 
-export default FansReached;
+export default FansListTableEvent;

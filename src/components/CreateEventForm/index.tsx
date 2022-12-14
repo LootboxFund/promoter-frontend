@@ -33,6 +33,7 @@ export type CreateEventFormProps = {
     prize?: string;
     communityURL?: string;
     privacyScope?: TournamentPrivacyScope[];
+    playbookUrl?: string;
   };
   affiliateID: AffiliateID;
   onSubmitCreate?: (payload: CreateTournamentPayload) => void;
@@ -49,6 +50,7 @@ const TOURNAMENT_INFO = {
   magicLink: '',
   prize: '',
   communityURL: '',
+  playbookUrl: '',
   privacyScope: [] as TournamentPrivacyScope[],
 };
 const CreateEventForm: React.FC<CreateEventFormProps> = ({
@@ -82,6 +84,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         prize: tournament.prize || '',
         communityURL: tournament.communityURL || '',
         privacyScope: tournament.privacyScope || [],
+        playbookUrl: tournament.playbookUrl || '',
       });
     }
   }, [tournament]);
@@ -152,6 +155,9 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     }
     if (values.communityURL) {
       payload.communityURL = values.communityURL;
+    }
+    if (values.playbookUrl) {
+      payload.playbookUrl = values.playbookUrl;
     }
     if (values.magicLink) {
       payload.magicLink = values.magicLink;
@@ -238,6 +244,26 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         rules: [{ type: 'url' } as Rule],
         tooltip:
           'Link to where you want to funnel audience members. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
+        // @ts-ignore
+        viewWidget: () => (
+          <a href={tournamentInfo.communityURL} target="_blank" rel="noreferrer">
+            {tournamentInfo.communityURL && `${tournamentInfo.communityURL.slice(0, 25)}...`}
+          </a>
+        ),
+      });
+      // @ts-ignore
+      meta.fields.push({
+        key: 'playbookUrl',
+        label: 'Event Checklist',
+        rules: [{ type: 'url' } as Rule],
+        tooltip:
+          'Your checklist for running a successful event. This could be a Google Doc, Notion, or other document.',
+        // @ts-ignore
+        viewWidget: () => (
+          <a href={tournamentInfo.playbookUrl} target="_blank" rel="noreferrer">
+            {tournamentInfo.playbookUrl && `${tournamentInfo.playbookUrl.slice(0, 25)}...`}
+          </a>
+        ),
       });
       // @ts-ignore
       meta.fields.push({
