@@ -1,7 +1,7 @@
 import { QueryBaseClaimStatsForTournamentArgs } from '@/api/graphql/generated/types';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Col, Result, Row, Statistic, Tooltip, Typography } from 'antd';
+import { Col, Divider, Result, Row, Statistic, Tooltip, Typography } from 'antd';
 import {
   BaseEventClaimStatsResponseFE,
   BASE_EVENT_CLAIM_STATS,
@@ -41,7 +41,7 @@ const processUserPieChart = (row: BaseEventClaimStatsFE): DataRowUserFE[] => {
     ...(anonymousFans > 0
       ? [
           {
-            type: 'Anonymous Fans',
+            type: 'Unverified Fans',
             value: anonymousFans,
           },
         ]
@@ -95,7 +95,14 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     );
   }
 
-  const { parsedClaimData, parsedUserData, anonymousFans, stats, viralityCoef } = useMemo(() => {
+  const {
+    parsedClaimData,
+    parsedUserData,
+    anonymousFans,
+    stats,
+    distributionProgress,
+    viralityCoef,
+  } = useMemo(() => {
     const stats =
       data?.baseClaimStatsForTournament && 'stats' in data.baseClaimStatsForTournament
         ? data.baseClaimStatsForTournament.stats
@@ -109,12 +116,22 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
       stats?.participationFans != null
         ? stats.allFans - stats.originalFans - stats.viralFans - stats.participationFans
         : 0;
-    const validClaimsInCalculation =
-      (stats?.totalClaimCount || 0) -
-      (stats?.referralBonusClaimCount || 0) -
-      (stats?.airdropClaimCount || 0);
-    const viralityCoef = (validClaimsInCalculation * (stats?.completionRate || 0)) / 100;
-    return { parsedClaimData, parsedUserData, anonymousFans, stats, viralityCoef };
+    const viralityCoef =
+      stats?.viralFans && stats?.originalFans > 0 ? stats.viralFans / stats.originalFans + 1 : 0;
+
+    const distributionProgress =
+      stats?.completedClaimCount && stats?.totalMaxTickets > 0
+        ? // ? Math.round((10000 * stats.completedClaimCount) / stats.totalMaxTickets) / 100
+          stats.completedClaimCount / stats.totalMaxTickets
+        : 0;
+    return {
+      parsedClaimData,
+      parsedUserData,
+      anonymousFans,
+      stats,
+      viralityCoef,
+      distributionProgress,
+    };
   }, [data]);
 
   const renderStatistic = (containerWidth: number, text: string, style: any): string => {
@@ -139,7 +156,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
   };
 
   const claimPieConfig: PieConfig = {
-    appendPadding: 10,
+    appendPadding: 20,
     loading: loading,
     data: parsedClaimData,
     angleField: 'value',
@@ -170,7 +187,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
       },
     },
     label: {
-      type: 'inner',
+      type: 'outer',
       offset: '-50%',
       style: {
         textAlign: 'center',
@@ -227,7 +244,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
   };
 
   const userPieConfig: PieConfig = {
-    appendPadding: 10,
+    appendPadding: 20,
     loading: loading,
     data: parsedUserData,
     angleField: 'value',
@@ -242,7 +259,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
           return green[6];
         case 'Participation Fans':
           return gold[5];
-        case 'Anonymous Fans':
+        case 'Unverified Fans':
           return magenta[7];
         default:
           return grey[6];
@@ -252,7 +269,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
       position: 'bottom',
     },
     label: {
-      type: 'inner',
+      type: 'outer',
       offset: '-50%',
       style: {
         textAlign: 'center',
@@ -302,44 +319,45 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     },
   };
 
-  const gaugeConfig: GaugeConfig = {
-    // percent: viralityCoef,
-    percent: 0.76,
-    loading: loading,
-    // type: 'meter',
-    innerRadius: 0.75,
-    width: 180,
-    height: 180,
-    range: {
-      ticks: [0, 1 / 3, 2 / 3, 1],
-      color: ['#F4664A', '#FAAD14', '#30BF78'],
-    },
-    indicator: {
-      pointer: {
-        style: {
-          stroke: '#D0D0D0',
-        },
-      },
-      pin: {
-        style: {
-          stroke: '#D0D0D0',
-        },
-      },
-    },
-    // statistic: {
-    //   content: {
-    //     style: {
-    //       fontSize: '36px',
-    //       lineHeight: '36px',
-    //     },
-    //   },
-    // },
-  };
+  // const gaugeConfig: GaugeConfig = {
+  //   // percent: viralityCoef,
+  //   percent: 0.76,
+  //   loading: loading,
+  //   // type: 'meter',
+  //   innerRadius: 0.75,
+  //   width: 180,
+  //   height: 180,
+  //   range: {
+  //     ticks: [0, 1 / 3, 2 / 3, 1],
+  //     color: ['#F4664A', '#FAAD14', '#30BF78'],
+  //   },
+  //   indicator: {
+  //     pointer: {
+  //       style: {
+  //         stroke: '#D0D0D0',
+  //       },
+  //     },
+  //     pin: {
+  //       style: {
+  //         stroke: '#D0D0D0',
+  //       },
+  //     },
+  //   },
+  //   // statistic: {
+  //   //   content: {
+  //   //     style: {
+  //   //       fontSize: '36px',
+  //   //       lineHeight: '36px',
+  //   //     },
+  //   //   },
+  //   // },
+  // };
 
   const liquidConfig: LiquidConfig = {
-    percent: (stats?.completionRate || 0) / 100,
-    width: 200,
-    height: 200,
+    // percent: Math.round(10000 * distributionProgress) / 100,
+    percent: distributionProgress,
+    width: 160,
+    height: 160,
     loading: loading,
     // outline: {
     //   border: 4,
@@ -355,16 +373,92 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
   return (
     <div className="mainbody">
       <br />
+      <Typography.Title level={3}>{`Summary Analytics`}</Typography.Title>
+      <br />
+      <Row gutter={8} wrap>
+        <Col sm={24} md={7}>
+          <Liquid {...liquidConfig} />
+        </Col>
+
+        <Col
+          md={4}
+          sm={24}
+          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+        >
+          <Tooltip
+            placement="top"
+            title={`Percentage of how many tickets have been distributed for your event. Calculated as ${
+              stats?.completedClaimCount || 0
+            } completed claims divided by ${stats?.totalMaxTickets || 0} total max tickets.`}
+          >
+            <Statistic
+              title="Distribution Progress"
+              loading={loading}
+              value={Math.round(10000 * distributionProgress) / 100}
+              suffix="%"
+            />
+          </Tooltip>
+        </Col>
+
+        <Col
+          md={4}
+          sm={24}
+          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+        >
+          <Tooltip
+            placement="top"
+            title="Percentage of all completed claims versus the total number of abandoned claims (completed & abandoned) for all Lootboxes in this event."
+          >
+            <Statistic
+              title="Completion Rate"
+              loading={loading}
+              value={stats?.completionRate || 0}
+              suffix="%"
+            />
+          </Tooltip>
+        </Col>
+
+        <Col
+          md={4}
+          sm={24}
+          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+        >
+          <Tooltip
+            placement="top"
+            title={`Calculated "Virality Coefficient" for your event. It is a measure of how many people shared an invite link for your event. The higher the coefficient, the more people shared your event calculated as the number of referred fans divided by your original fans + 1. The most viral events have viral coefficients higher than 2.`}
+          >
+            <Statistic title="Virality Coefficient" loading={loading} value={viralityCoef} />
+          </Tooltip>
+        </Col>
+
+        <Col
+          md={4}
+          sm={24}
+          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+        >
+          <Tooltip placement="top" title="The number of unclaimed tickets left for your event.">
+            <Statistic
+              title="# Tickets Remaining"
+              loading={loading}
+              value={remainingTix < 0 ? 0 : remainingTix}
+            />
+          </Tooltip>
+        </Col>
+      </Row>
+      <Divider />
       <Row className="scrollrow" wrap={false}>
         <Col sm={24} md={12} style={{ width: '100%' }}>
-          <Typography.Title level={3}>{`${stats?.allFans || 0} People Reached`}</Typography.Title>
           <Row gutter={8} wrap={true}>
-            <Col sm={24} md={16}>
+            <Col sm={24} md={14}>
+              <Typography.Title
+                level={4}
+                style={{ textAlign: 'center' }}
+              >{`Fans Reached`}</Typography.Title>
               <Pie {...userPieConfig} />
             </Col>
 
             <Col
-              md={8}
+              md={10}
               sm={24}
               style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
             >
@@ -386,7 +480,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
               </Tooltip>
               <Tooltip
                 placement="right"
-                title="Fans coming from a invite link that does not make bonus rewards. Usually used by event organisers."
+                title='Fans that claimed a ticket from a "Participation Reward" invite link, which can only be redeemed ONCE.'
               >
                 <Statistic
                   title="Participation Fans"
@@ -394,48 +488,32 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
                   value={stats?.participationFans || 0}
                 />
               </Tooltip>
-              <Tooltip placement="right" title="Fans that did not complete a claim.">
+              <Tooltip
+                placement="right"
+                title="Fans that did not complete a claim but started the claim process."
+              >
                 <Statistic
-                  title="Anonymous Fans"
+                  title="Unverified Fans"
                   loading={loading}
                   value={anonymousFans < 0 ? 0 : anonymousFans}
                 />
               </Tooltip>
             </Col>
           </Row>
-          <br />
-          <br />
-          <Row gutter={8} wrap={true}>
-            <Col sm={24} md={16}>
-              <Gauge {...gaugeConfig} />
-            </Col>
-
-            <Col
-              md={8}
-              sm={24}
-              style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
-            >
-              <Tooltip
-                placement="right"
-                title={`Calculated "Virality Coefficient" for your event. It is a measure of how many people shared an invite link for your event. The higher the coefficient, the more people shared your event. The most viral events have viral coefficients higher than 2.`}
-              >
-                <Statistic title="Virality" loading={loading} value={viralityCoef} />
-              </Tooltip>
-            </Col>
-          </Row>
         </Col>
 
         <Col sm={24} md={12} style={{ width: '100%' }}>
-          <Typography.Title level={3}>{`${
-            stats?.completedClaimCount || 0
-          } Ticket Claims`}</Typography.Title>
           <Row gutter={8} wrap>
-            <Col sm={24} md={16}>
+            <Col sm={24} md={14}>
+              <Typography.Title
+                level={4}
+                style={{ textAlign: 'center' }}
+              >{`Ticket Claims`}</Typography.Title>
               <Pie {...claimPieConfig} />
             </Col>
 
             <Col
-              md={8}
+              md={10}
               sm={24}
               style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
             >
@@ -481,63 +559,11 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
               </Tooltip>
             </Col>
           </Row>
-          <br />
-          <br />
-          <Row gutter={8} wrap>
-            <Col sm={24} md={16}>
-              <Liquid {...liquidConfig} />
-            </Col>
-
-            <Col
-              md={8}
-              sm={24}
-              style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
-            >
-              <Tooltip
-                placement="right"
-                title={`Percentage of how many tickets have been distributed for your event. Calculated as ${
-                  stats?.completedClaimCount || 0
-                } completed claims divided by ${stats?.totalMaxTickets || 0} total max tickets.`}
-              >
-                <Statistic
-                  title="Distribution Progress"
-                  loading={loading}
-                  value={
-                    stats?.completedClaimCount && stats?.totalMaxTickets > 0
-                      ? Math.round((10000 * stats.completedClaimCount) / stats.totalMaxTickets) /
-                        100
-                      : 0
-                  }
-                  suffix="%"
-                />
-              </Tooltip>
-
-              <Tooltip
-                placement="right"
-                title="The number of unclaimed tickets left for your event."
-              >
-                <Statistic
-                  title="# Tickets Remaining"
-                  loading={loading}
-                  value={remainingTix < 0 ? 0 : remainingTix}
-                />
-              </Tooltip>
-
-              <Tooltip
-                placement="right"
-                title="Percentage of all completed claims versus the total number of abandoned claims (completed & abandoned) for all Lootboxes in this event."
-              >
-                <Statistic
-                  title="Claim Completion Rate"
-                  loading={loading}
-                  value={stats?.completionRate || 0}
-                  suffix="%"
-                />
-              </Tooltip>
-            </Col>
-          </Row>
         </Col>
       </Row>
+
+      <br />
+      <br />
     </div>
   );
 };
