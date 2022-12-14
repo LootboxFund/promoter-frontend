@@ -427,7 +427,11 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
             placement="top"
             title={`Calculated "Virality Coefficient" for your event. It is a measure of how many people shared an invite link for your event. The higher the coefficient, the more people shared your event calculated as the number of referred fans divided by your original fans + 1. The most viral events have viral coefficients higher than 2.`}
           >
-            <Statistic title="Virality Coefficient" loading={loading} value={viralityCoef} />
+            <Statistic
+              title="Virality Coefficient"
+              loading={loading}
+              value={Math.round(100 * viralityCoef) / 100}
+            />
           </Tooltip>
         </Col>
 
