@@ -19,6 +19,7 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
           communityURL
           organizer
           promoters
+          privacyScope
           timestamps {
             createdAt
           }
@@ -207,6 +208,7 @@ export const EDIT_TOURNAMENT_AS_ORGANIZER = gql`
           coverPhoto
           communityURL
           organizer
+          privacyScope
           organizerProfile {
             id
             name

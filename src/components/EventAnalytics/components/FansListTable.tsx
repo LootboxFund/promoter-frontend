@@ -4,6 +4,7 @@ import {
   QueryClaimerStatsForTournamentArgs,
   QueryFansListForTournamentArgs,
 } from '@/api/graphql/generated/types';
+import enUS from 'antd/es/locale/en_US';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID, UserID } from '@wormgraph/helpers';
@@ -247,6 +248,8 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
         // @ts-ignore
         columns={columns}
         dataSource={matchingFans}
+        // @ts-ignore
+        locale={enUS}
       />
     </div>
   );
