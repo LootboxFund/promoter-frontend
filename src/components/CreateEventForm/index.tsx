@@ -251,7 +251,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         key: 'privacyScope',
         label: 'Privacy Scope',
         tooltip:
-          'Select the privacy settings this tournament. DataSharing means you intend to download user emails and possibly even share them with a 3rd party such as an advertiser. MarketingEmails means you intend to send marketing emails to users who claim tickets to this event. Checking either of these options will cause your event to use the appropriate Terms and Conditions & Privacy Policy that fans must consent to.',
+          'Privacy scope sets the appropriate Terms and Conditions & Privacy Policy that fans must consent to.\n\n DataSharing means you intend to download user emails and possibly even share them with a 3rd party such as an advertiser.\n\n MarketingEmails means you intend to send marketing emails to users who claim tickets to this event.',
         // @ts-ignore
         widget: 'checkbox-group',
         options: [

@@ -28,7 +28,6 @@ export interface UserAdvertiserFE {
   description?: string;
   avatar: string;
 }
-
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
  * */
