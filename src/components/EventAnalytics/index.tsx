@@ -6,7 +6,7 @@ import ReferrerClaims from './components/ReferrerClaims';
 import CampaignDistribution from './components/CampaignDistribution';
 import FansReached from './components/FansReached';
 import SummaryStatistics from './components/SummaryStatistics';
-import FansListTable from './components/FansListTable';
+import FansListTableEvent from './components/FansListTableEvent';
 
 export interface EventAnalyticsProps {
   eventID: TournamentID;
@@ -35,6 +35,11 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({
       ),
     },
     {
+      label: 'List of Fans',
+      key: 'fans-list',
+      children: <FansListTableEvent eventID={eventID} />,
+    },
+    {
       label: 'By Lootbox',
       key: 'lootbox-claims',
       children: <LootboxClaims eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
@@ -43,11 +48,6 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({
       label: 'By Fan',
       key: 'fans-distribution',
       children: <FansReached eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
-    },
-    {
-      label: 'List of Fans',
-      key: 'fans-list',
-      children: <FansListTable eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />,
     },
     {
       label: 'By Promoter',

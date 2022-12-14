@@ -165,3 +165,28 @@ export const CLAIMER_STATS_FOR_LOOTBOX_TOURNAMENT = gql`
     }
   }
 `;
+
+export const FANS_LIST_FOR_LOOTBOX = gql`
+  query FansListForLootbox($lootboxID: ID!) {
+    fansListForLootbox(lootboxID: $lootboxID) {
+      ... on FansListForLootboxResponseSuccess {
+        lootboxID
+        fans {
+          userID
+          username
+          avatar
+          claimsCount
+          referralsCount
+          participationRewardsCount
+          joinedDate
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
