@@ -355,7 +355,7 @@ const EventPage: React.FC = () => {
                     <Anchor.Link href="#breadcrumbs" title="Event Info" />
                     <Anchor.Link href="#ticket-analytics" title="Ticket Analytics" />
                     <Anchor.Link href="#lootbox-gallery" title="Lootbox Gallery" />
-                    <Anchor.Link href="#advertisements" title="Advertisements">
+                    <Anchor.Link href="#offers" title="Offers">
                       {tournament.dealConfigs.map((dealConfig) => {
                         return (
                           <Anchor.Link
@@ -442,18 +442,18 @@ const EventPage: React.FC = () => {
           <br />
 
           <$Horizontal justifyContent="space-between">
-            <h2 id="advertisements">Advertisements</h2>
+            <h2 id="offers">Offers</h2>
             <Popconfirm
               title="Go to the Offers Page to add them as a revenue for this Event"
               onConfirm={() => history.push(`/dashboard/offers`)}
               okText="Go To Offers Page"
               showCancel={false}
             >
-              <Button type="primary">Add Revenue</Button>
+              <Button type="primary">Add Offer</Button>
             </Popconfirm>
           </$Horizontal>
           <$InfoDescription maxWidth={maxWidth}>
-            {`Earn revenue from the video ads played on Lootbox tickets. `}
+            {`Earn revenue from offers and video ads played on Lootbox tickets. `}
             <a href="https://lootbox.fyi/3Xw9fdp" target="_blank" rel="noreferrer">
               View Tutorial
             </a>
@@ -466,14 +466,14 @@ const EventPage: React.FC = () => {
               }}
               description={
                 <span style={{ maxWidth: '200px' }}>
-                  {`You have not created any revenue streams yet.
+                  {`You have not included any offers yet.
                   Go to the Offers Page to get started!`}
                 </span>
               }
               style={{ border: '1px solid rgba(0,0,0,0.1)', padding: '50px' }}
             >
               <Link to="/dashboard/offers">
-                <Button>Add Revenue</Button>
+                <Button>Add Offers</Button>
               </Link>
             </Empty>
           ) : null}
