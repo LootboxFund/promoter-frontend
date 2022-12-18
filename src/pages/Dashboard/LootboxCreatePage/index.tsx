@@ -52,7 +52,7 @@ const LootboxCreatePage: React.FC = () => {
           joinCommunityUrl: request.payload.joinCommunityUrl,
           maxTickets: request.payload.maxTickets,
           themeColor: request.payload.themeColor,
-          tournamentID: magicLinkParams.tournamentID,
+          tournamentID: magicLinkParams.tournamentID as TournamentID,
         },
       },
     });
