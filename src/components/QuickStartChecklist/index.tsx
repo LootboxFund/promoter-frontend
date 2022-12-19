@@ -53,8 +53,8 @@ const data = [
     title: 'Add Revenue Streams',
     description:
       'Add affiliate offers from the Marketplace to start earning from each Lootbox ticket distributed.',
-    tutorial: 'https://lootbox.fund',
-    examples: 'https://google.com',
+    tutorial: 'https://lootbox.fyi/3FQahu3',
+    examples: 'https://lootbox.fyi/3FQahu3',
     action: '/marketplace/browse',
     isAdvanced: true,
     key: 'add-revenue-streams',
@@ -63,8 +63,8 @@ const data = [
     title: 'Recruit Promoters',
     description:
       'Recruit influencers & partners to help promote your events and share the revenue.',
-    tutorial: 'https://lootbox.fund',
-    examples: 'https://google.com',
+    tutorial: 'https://lootbox.fyi/3Uiu6hM',
+    examples: 'https://lootbox.fyi/3Uiu6hM',
     action: '/marketplace/recruit',
     isAdvanced: true,
     key: 'recruit-promoters',
@@ -72,8 +72,8 @@ const data = [
   {
     title: 'Create Your First Lootbox',
     description: 'Customize a Lootbox using the branding of your favorite team.',
-    tutorial: 'https://lootbox.fund',
-    examples: 'https://google.com',
+    tutorial: 'https://lootbox.fyi/3DyNQXz',
+    examples: 'https://lootbox.fyi/3DyNQXz',
     isAdvanced: false,
     key: 'create-first-lootbox',
   },
@@ -81,16 +81,16 @@ const data = [
     title: 'Share Free Tickets',
     description:
       'Share 10 tickets of your Lootbox with your followers to start building your community.',
-    tutorial: 'https://lootbox.fund',
-    examples: 'https://google.com',
+    tutorial: 'https://lootbox.fyi/3ikApDX',
+    examples: 'https://lootbox.fyi/3ikApDX',
     isAdvanced: false,
     key: 'share-free-tickets',
   },
   {
     title: 'Reward Your Fans',
     description: 'Deposit rewards into the Lootbox for ticket holders to redeem their winnings.',
-    tutorial: 'https://lootbox.fund',
-    examples: 'https://google.com',
+    tutorial: 'https://lootbox.fyi/3GDQqyQ',
+    examples: 'https://lootbox.fyi/3GDQqyQ',
     isAdvanced: true,
     key: 'reward-fans',
   },
@@ -98,7 +98,7 @@ const data = [
     title: 'View Your Earnings',
     description:
       'View the affiliate revenue earned from ticket distribution and withdraw to your wallet.',
-    tutorial: 'https://lootbox.fund',
+    tutorial: 'https://lootbox.fyi/3h7Rv78',
     action: '/dashboard/payouts',
     isAdvanced: true,
     key: 'view-earnings',
@@ -108,6 +108,7 @@ const data = [
     description: 'Schedule a call with the LOOTBOX team to get bonus perks.',
     isAdvanced: true,
     key: 'meet-lootbox-team',
+    action: 'https://lootbox.fyi/3F1jhuC',
   },
 ];
 
