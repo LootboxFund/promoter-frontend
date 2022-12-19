@@ -17,7 +17,7 @@ const data = [
   {
     title: 'Watch the Getting Started Video',
     description: 'Get a quick overview of the platform and learn how to get started.',
-    tutorial: 'https://lootbox.fund',
+    tutorial: 'https://youtu.be/Pk0shfapa8o',
     isAdvanced: false,
     key: 'watch-getting-started-video',
   },
