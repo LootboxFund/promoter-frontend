@@ -512,7 +512,7 @@ const LootboxPage: React.FC = () => {
         </a>
       </$Horizontal>
       {renderHelpText()}
-      <div style={{ minWidth: '1000px', maxWidth: '1000px' }}>
+      <div id="create-lootbox-form" style={{ minWidth: '1000px', maxWidth: '1000px' }}>
         <CreateLootboxForm
           lootbox={{
             description: lootbox.description,
@@ -631,7 +631,7 @@ const LootboxPage: React.FC = () => {
       </$Horizontal>
       <br />
       {renderDepositHelpText()}
-      {!lootbox.address || !lootbox.chainIdHex ? (
+      {/* {!lootbox.address || !lootbox.chainIdHex ? (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           imageStyle={{
@@ -675,7 +675,18 @@ const LootboxPage: React.FC = () => {
           sendEmails={sendTournamentEmails}
           lootboxID={(lootboxID || '') as LootboxID}
         />
-      )}
+      )} */}
+      <DepositRewardForm
+        lootboxDeposits={deposits}
+        chainIDHex={lootbox.chainIdHex || undefined}
+        lootbox={lootbox}
+        onSubmitReward={rewardSponsors}
+        onTokenApprove={approveAllowance}
+        onCheckAllowance={isWithinAllowance}
+        refetchDeposits={handleDepositLoad}
+        sendEmails={sendTournamentEmails}
+        lootboxID={(lootboxID || '') as LootboxID}
+      />
 
       <GenerateReferralModal
         isOpen={isReferralModalOpen}
