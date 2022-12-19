@@ -631,51 +631,7 @@ const LootboxPage: React.FC = () => {
       </$Horizontal>
       <br />
       {renderDepositHelpText()}
-      {/* {!lootbox.address || !lootbox.chainIdHex ? (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          imageStyle={{
-            height: 60,
-          }}
-          description={
-            <span style={{ maxWidth: '200px' }}>
-              {`This LOOTBOX has not been deployed to the blockchain yet`}
-              &nbsp;
-              <Tooltip
-                title={
-                  <span>
-                    This Lootbox can not pay out rewards to fans until it is deployed on the
-                    Blockchain. To deploy this Lootbox, you must install MetaMask and connect your
-                    wallet by clicking below.{' '}
-                    <a href="https://lootbox.fyi/3VFzk80" target="_blank" rel="noreferrer">
-                      View Tutorial
-                    </a>
-                  </span>
-                }
-              >
-                <InfoCircleTwoTone />
-              </Tooltip>
-            </span>
-          }
-          style={{
-            flex: 1,
-            padding: '100px',
-            border: '1px solid rgba(0,0,0,0.1)',
-          }}
-        />
-      ) : (
-        <DepositRewardForm
-          lootboxDeposits={deposits}
-          chainIDHex={lootbox.chainIdHex}
-          lootbox={lootbox}
-          onSubmitReward={rewardSponsors}
-          onTokenApprove={approveAllowance}
-          onCheckAllowance={isWithinAllowance}
-          refetchDeposits={handleDepositLoad}
-          sendEmails={sendTournamentEmails}
-          lootboxID={(lootboxID || '') as LootboxID}
-        />
-      )} */}
+
       <DepositRewardForm
         lootboxDeposits={deposits}
         chainIDHex={lootbox.chainIdHex || undefined}

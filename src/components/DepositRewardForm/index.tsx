@@ -20,7 +20,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { $Horizontal, $Vertical, $ColumnGap } from '@/components/generics';
 import ConnectWalletButton from '../ConnectWalletButton';
 import { useWeb3 } from '@/hooks/useWeb3';
@@ -89,6 +89,12 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   const [loadingEmails, setLoadingEmails] = useState(false);
 
   const userChainIDHex = network?.chainId ? chainIdToHex(network.chainId) : null;
+
+  const oneTimeVoucherTextRef = useRef<string>('');
+  const oneTimeVoucherText = form.getFieldValue('oneTimeVouchers');
+  useEffect(() => {
+    oneTimeVoucherTextRef.current = oneTimeVoucherText;
+  }, [oneTimeVoucherText]);
 
   const updateTokenSymbol = async (addr: Address) => {
     if (isValidEVMAddress(addr) && library) {
@@ -336,6 +342,9 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         reuseableVoucher: '',
         oneTimeVouchers: '',
       },
+      onChange: (evt: any) => {
+        console.log(evt);
+      },
       fields: [
         {
           key: 'rewardType',
@@ -370,14 +379,59 @@ Token is an ERC20/BEP20/etc token on a chosen blockchain.
         // @ts-ignore
         widget: () => <Input style={{ width: '100%', maxWidth: '500px' }} />,
       });
+      // @ts-ignore
       infoMeta.fields.push({
         key: 'oneTimeVouchers',
         label: 'One-Time Use Vouchers',
+        widget: 'textarea',
         tooltip:
           'Enter a CSV list of coupon codes or links that fans can redeem. Each fan will be given one voucher, so they ideally should be one-time use vouchers that expire after redemption.',
-        preserving: true,
         // @ts-ignore
-        widget: () => <Input.TextArea style={{ width: '100%', maxWidth: '500px' }} />,
+        // widget: ({ value, onChange }) => {
+        //   console.log(`-v === `, value.target?.value);
+        //   console.log(`-vc === `, value.currentTarget?.value);
+        //   const textValue = value.oneTimeVouchers?.target?.value || '';
+        //   const secondTextValue = v.target?.value
+        //   return (
+        //     <$Vertical>
+        //       <span style={{ color: 'gray', margin: '0px 0px 10px 0px' }}>{`${
+        //         !textValue ? 0 : (textValue || '').split(',').length
+        //       } Vouchers`}</span>
+        //       <Input.TextArea
+        //         value={textValue}
+        //         onChange={(v) => {
+        //           console.log(`v === `, v.target?.value);
+        //           console.log(`vc === `, v.currentTarget?.value);
+        //           onChange({ oneTimeVouchers: v?.target?.value || '' });
+        //         }}
+        //         style={{ width: '100%', maxWidth: '500px' }}
+        //       />
+        //     </$Vertical>
+        //   );
+        // },
+      });
+      infoMeta.fields.push({
+        key: 'oneTimeVouchersPreview',
+        // @ts-ignore
+        widget: () => (
+          <fieldset>
+            <Form.Item
+              wrapperCol={{ span: 16, offset: 8 }}
+              className="form-footer"
+              style={{ textAlign: 'right' }}
+            >
+              <span style={{ color: 'gray', margin: '0px 0px 10px 0px' }}>{`${
+                !oneTimeVoucherTextRef.current
+                  ? 0
+                  : (`${oneTimeVoucherTextRef.current} ` || '')
+                      .replace(/[,\n]+/g, ',')
+                      .split(/[,\n\r]/).length
+              } Vouchers for ${lootbox.runningCompletedClaims} of ${
+                lootbox.maxTickets
+              } max tickets`}</span>
+            </Form.Item>
+          </fieldset>
+        ),
       });
       infoMeta.fields.push({
         key: 'submitButton',
@@ -663,74 +717,83 @@ Token is an ERC20/BEP20/etc token on a chosen blockchain.
         </Form>
       ),
     }, // remember to pass the key prop
-    {
-      label: 'Deposit History',
-      key: 'deposit-history',
-      children:
-        lootboxDeposits.length > 0 ? (
-          <Table
-            dataSource={lootboxDeposits}
-            columns={[
-              {
-                title: 'Token',
-                dataIndex: 'tokenSymbol',
-                key: 'tokenSymbol',
-              },
-              {
-                title: 'Amount',
-                dataIndex: 'tokenAmount',
-                key: 'amount',
-                render: (amount: string, record: Deposit) => {
-                  return `${ethers.utils.formatUnits(amount, record.decimal)} ${
-                    record.tokenSymbol
-                  }`;
-                },
-              },
-              {
-                title: 'Type',
-                render: (_value: any, record: Deposit) => {
-                  return (
-                    <Tooltip
-                      title={
-                        record.tokenAddress === ethers.constants.AddressZero
-                          ? 'Deposit was in Native currency (i.e. Matic or ETH)'
-                          : 'Deposit was in ERC20 token'
-                      }
-                    >
-                      {record.tokenAddress === ethers.constants.AddressZero ? (
-                        <Tag color="success">Native</Tag>
-                      ) : (
-                        <Tag color="processing">Token</Tag>
-                      )}
-                    </Tooltip>
-                  );
-                },
-              },
-              {
-                title: 'Address',
-                dataIndex: 'tokenAddress',
-                key: 'tokenAddress',
-                render: (address: string) => {
-                  if (address === ethers.constants.AddressZero) {
-                    return null;
-                  }
-                  return (
-                    <Tooltip title={address}>
-                      <Typography.Text copyable>{shortenAddress(address)}</Typography.Text>
-                    </Tooltip>
-                  );
-                },
-              },
-            ]}
-          />
-        ) : (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={<Typography.Text>No deposits have been made yet</Typography.Text>}
-            style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
-          />
-        ),
-    },
+    ...(lootboxDeposits && lootboxDeposits.length > 0
+      ? [
+          {
+            label: 'Deposit History',
+            key: 'deposit-history',
+            children:
+              lootboxDeposits.length > 0 ? (
+                <div>
+                  <span style={{ color: 'gray', margin: '20px 0px 40px 0px' }}>
+                    Blockchain Deposits Only
+                  </span>
+                  <Table
+                    dataSource={lootboxDeposits}
+                    columns={[
+                      {
+                        title: 'Token',
+                        dataIndex: 'tokenSymbol',
+                        key: 'tokenSymbol',
+                      },
+                      {
+                        title: 'Amount',
+                        dataIndex: 'tokenAmount',
+                        key: 'amount',
+                        render: (amount: string, record: Deposit) => {
+                          return `${ethers.utils.formatUnits(amount, record.decimal)} ${
+                            record.tokenSymbol
+                          }`;
+                        },
+                      },
+                      {
+                        title: 'Type',
+                        render: (_value: any, record: Deposit) => {
+                          return (
+                            <Tooltip
+                              title={
+                                record.tokenAddress === ethers.constants.AddressZero
+                                  ? 'Deposit was in Native currency (i.e. Matic or ETH)'
+                                  : 'Deposit was in ERC20 token'
+                              }
+                            >
+                              {record.tokenAddress === ethers.constants.AddressZero ? (
+                                <Tag color="success">Native</Tag>
+                              ) : (
+                                <Tag color="processing">Token</Tag>
+                              )}
+                            </Tooltip>
+                          );
+                        },
+                      },
+                      {
+                        title: 'Address',
+                        dataIndex: 'tokenAddress',
+                        key: 'tokenAddress',
+                        render: (address: string) => {
+                          if (address === ethers.constants.AddressZero) {
+                            return null;
+                          }
+                          return (
+                            <Tooltip title={address}>
+                              <Typography.Text copyable>{shortenAddress(address)}</Typography.Text>
+                            </Tooltip>
+                          );
+                        },
+                      },
+                    ]}
+                  />
+                </div>
+              ) : (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={<Typography.Text>No deposits have been made yet</Typography.Text>}
+                  style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
+                />
+              ),
+          },
+        ]
+      : []),
     ...(isUserTournamentHost
       ? [
           {

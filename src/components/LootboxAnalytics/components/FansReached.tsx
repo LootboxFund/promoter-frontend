@@ -125,7 +125,6 @@ const FansReached: React.FC<FansReachedProps> = ({
     label: {
       position: 'middle' as 'middle',
       content: (data: any) => {
-        console.log('data?', data);
         return data[XDataKey];
       },
     },
