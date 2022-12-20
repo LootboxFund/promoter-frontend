@@ -15,3 +15,25 @@ export const DEPOSIT_VOUCHER_REWARDS = gql`
     }
   }
 `;
+
+export const GET_EXISTING_LOOTBOX_DEPOSITS = gql`
+  query GetLootboxDeposits($lootboxID: ID!) {
+    getLootboxDeposits(lootboxID: $lootboxID) {
+      ... on GetLootboxDepositsResponseSuccess {
+        deposits {
+          id
+          title
+          createdAt
+          oneTimeVouchersCount
+          hasReuseableVoucher
+        }
+      }
+      ... on ResponseError {
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;

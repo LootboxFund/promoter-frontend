@@ -20,7 +20,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { $Horizontal, $Vertical, $ColumnGap } from '@/components/generics';
 import ConnectWalletButton from '../ConnectWalletButton';
 import { useWeb3 } from '@/hooks/useWeb3';
@@ -29,17 +29,20 @@ import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
 import { isValidEVMAddress, shortenAddress } from '@/lib/address';
 import styles from './index.less';
 import useERC20 from '@/hooks/useERC20';
-import { Deposit } from '@/hooks/useLootbox';
+import { Deposit, DepositTypeFE, DepositWeb3 } from '@/hooks/useLootbox';
 import { InfoCircleTwoTone, NotificationOutlined } from '@ant-design/icons';
 import { LootboxFE } from '@/pages/Dashboard/LootboxPage/api.gql';
 import { useAuth } from '@/api/firebase/useAuth';
-import { useMutation } from '@apollo/client';
-import { DEPOSIT_VOUCHER_REWARDS } from './api.gql';
+import { useMutation, useQuery } from '@apollo/client';
+import { DEPOSIT_VOUCHER_REWARDS, GET_EXISTING_LOOTBOX_DEPOSITS } from './api.gql';
 import {
   DepositVoucherRewardsResponse,
+  GetLootboxDepositsResponse,
   MutationDepositVoucherRewardsArgs,
+  QueryGetLootboxDepositsArgs,
   ResponseError,
 } from '@/api/graphql/generated/types';
+import moment from 'moment';
 
 export interface RewardSponsorsPayload {
   rewardType: RewardType;
@@ -62,7 +65,7 @@ export type DepositRewardForm = {
   chainIDHex?: ChainIDHex;
   lootboxID: LootboxID;
   lootbox: LootboxFE;
-  lootboxDeposits: Deposit[];
+  lootboxDeposits: DepositWeb3[];
   onSubmitReward: (payload: RewardSponsorsPayload) => Promise<ContractTransaction>;
   onTokenApprove: (payload: RewardSponsorsPayload) => Promise<ContractTransaction | null>;
   onCheckAllowance: (payload: CheckAllowancePayload) => Promise<boolean>;
@@ -95,10 +98,32 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   const [activeTabKey, setActiveTabKey] = useState('deposit-form');
   const [loadingEmails, setLoadingEmails] = useState(false);
 
+  // query deposits
+  const {
+    data: existingDepositsData,
+    loading: existingDepositsLoading,
+    error: existingDepositsError,
+  } = useQuery<
+    { getLootboxDeposits: GetLootboxDepositsResponse | ResponseError },
+    QueryGetLootboxDepositsArgs
+  >(GET_EXISTING_LOOTBOX_DEPOSITS, {
+    variables: {
+      lootboxID: lootboxID,
+    },
+  });
+
+  // deposit vouchers
   const [depositVoucherRewards, { loading: loadingDepositVoucherRewards }] = useMutation<
     { depositVoucherRewards: DepositVoucherRewardsResponse | ResponseError },
     MutationDepositVoucherRewardsArgs
-  >(DEPOSIT_VOUCHER_REWARDS);
+  >(DEPOSIT_VOUCHER_REWARDS, {
+    refetchQueries: [
+      {
+        query: GET_EXISTING_LOOTBOX_DEPOSITS,
+        variables: { lootboxID: lootboxID },
+      },
+    ],
+  });
 
   const userChainIDHex = network?.chainId ? chainIdToHex(network.chainId) : null;
 
@@ -155,6 +180,50 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
       setLoadingEmails(false);
     }
   };
+
+  console.log(`existingDepositsData`, existingDepositsData);
+  const existingVoucherDeposits = useMemo(() => {
+    if (
+      existingDepositsData?.getLootboxDeposits &&
+      existingDepositsData?.getLootboxDeposits.__typename === 'GetLootboxDepositsResponseSuccess'
+    ) {
+      const existingDeposits = existingDepositsData?.getLootboxDeposits.deposits;
+      return existingDeposits;
+    }
+    return [];
+  }, [existingDepositsData?.getLootboxDeposits]);
+
+  const combinedDeposits = useMemo(() => {
+    const convertedLootboxDeposits = lootboxDeposits.map((deposit, i): Deposit => {
+      // const timestamp = moment().format('YYYY-MM-DD HH:mm:ss'),
+      return {
+        id: `${deposit.tokenSymbol}_${i}`,
+        title: deposit.tokenSymbol,
+        quantity: ethers.utils.formatUnits(deposit.tokenAmount, deposit.decimal),
+        type:
+          deposit.tokenAddress === ethers.constants.AddressZero
+            ? DepositTypeFE.Native
+            : DepositTypeFE.Token,
+        date: '',
+      };
+    });
+    const convertedVoucherDeposits = existingVoucherDeposits.map((deposit): Deposit => {
+      return {
+        id: deposit.id,
+        title: deposit.title,
+        quantity: `${deposit.oneTimeVouchersCount} one-time vouchers${
+          deposit.hasReuseableVoucher ? ' & 1 reuseable voucher' : ''
+        }`,
+        type: DepositTypeFE.Voucher,
+        date: moment(deposit.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+      };
+    });
+    const combinedDeposits = [...convertedLootboxDeposits, ...convertedVoucherDeposits];
+    const combinedDepositsSorted = combinedDeposits
+      .slice()
+      .sort((a, b) => (a.date > b.date ? -1 : 1));
+    return combinedDepositsSorted;
+  }, [lootboxDeposits, existingVoucherDeposits]);
 
   const resetForm = () => {
     form.resetFields();
@@ -362,8 +431,6 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
               'An error occurred when depositing the voucher rewards',
           );
         }
-        // https://pizza.com/1, pizza1
-        // https://pizza.com/2, pizza2
         setLoading(false);
         Modal.info({
           type: 'success',
@@ -765,83 +832,59 @@ url3, code3
         </Form>
       ),
     }, // remember to pass the key prop
-    ...(lootboxDeposits && lootboxDeposits.length > 0
-      ? [
-          {
-            label: 'Deposit History',
-            key: 'deposit-history',
-            children:
-              lootboxDeposits.length > 0 ? (
-                <div>
-                  <span style={{ color: 'gray', margin: '20px 0px 40px 0px' }}>
-                    Blockchain Deposits Only
-                  </span>
-                  <Table
-                    dataSource={lootboxDeposits}
-                    columns={[
-                      {
-                        title: 'Token',
-                        dataIndex: 'tokenSymbol',
-                        key: 'tokenSymbol',
-                      },
-                      {
-                        title: 'Amount',
-                        dataIndex: 'tokenAmount',
-                        key: 'amount',
-                        render: (amount: string, record: Deposit) => {
-                          return `${ethers.utils.formatUnits(amount, record.decimal)} ${
-                            record.tokenSymbol
-                          }`;
-                        },
-                      },
-                      {
-                        title: 'Type',
-                        render: (_value: any, record: Deposit) => {
-                          return (
-                            <Tooltip
-                              title={
-                                record.tokenAddress === ethers.constants.AddressZero
-                                  ? 'Deposit was in Native currency (i.e. Matic or ETH)'
-                                  : 'Deposit was in ERC20 token'
-                              }
-                            >
-                              {record.tokenAddress === ethers.constants.AddressZero ? (
-                                <Tag color="success">Native</Tag>
-                              ) : (
-                                <Tag color="processing">Token</Tag>
-                              )}
-                            </Tooltip>
-                          );
-                        },
-                      },
-                      {
-                        title: 'Address',
-                        dataIndex: 'tokenAddress',
-                        key: 'tokenAddress',
-                        render: (address: string) => {
-                          if (address === ethers.constants.AddressZero) {
-                            return null;
-                          }
-                          return (
-                            <Tooltip title={address}>
-                              <Typography.Text copyable>{shortenAddress(address)}</Typography.Text>
-                            </Tooltip>
-                          );
-                        },
-                      },
-                    ]}
-                  />
-                </div>
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={<Typography.Text>No deposits have been made yet</Typography.Text>}
-                  style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
-                />
-              ),
-          },
-        ]
-      : []),
+
+    {
+      label: 'Deposit History',
+      key: 'deposit-history',
+      children:
+        lootboxDeposits.length > 0 || existingVoucherDeposits.length > 0 ? (
+          <div>
+            <Table
+              dataSource={combinedDeposits}
+              columns={[
+                {
+                  title: 'Title',
+                  dataIndex: 'title',
+                  key: 'title',
+                },
+                {
+                  title: 'Quantity',
+                  dataIndex: 'quantity',
+                  key: 'quantity',
+                  render: (_, record: Deposit) => {
+                    return record.quantity;
+                  },
+                },
+                {
+                  title: 'Type',
+                  key: 'type',
+                  render: (_value: any, record: Deposit) => {
+                    if (record.type === DepositTypeFE.Native) {
+                      return <Tag color="purple">Native</Tag>;
+                    } else if (record.type === DepositTypeFE.Token) {
+                      return <Tag color="gold">Token</Tag>;
+                    } else if (record.type === DepositTypeFE.Voucher) {
+                      return <Tag color="green">Voucher</Tag>;
+                    }
+                    return null;
+                  },
+                },
+                {
+                  title: 'Date',
+                  dataIndex: 'date',
+                  key: 'date',
+                },
+              ]}
+            />
+          </div>
+        ) : (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={<Typography.Text>No deposits have been made yet</Typography.Text>}
+            style={{ padding: '100px', border: '1px solid rgba(0,0,0,0.1)' }}
+          />
+        ),
+    },
     ...(isUserTournamentHost
       ? [
           {

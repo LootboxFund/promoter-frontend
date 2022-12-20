@@ -1,6 +1,6 @@
 import { chainIdToHex } from '@/lib/chain';
 import { promiseChain } from '@/lib/promise';
-import { Address, BLOCKCHAINS, ChainIDHex, chainIdHexToSlug } from '@wormgraph/helpers';
+import { Address, BLOCKCHAINS, ChainIDHex, chainIdHexToSlug, DepositID } from '@wormgraph/helpers';
 import LootboxABI from '@wormgraph/helpers/lib/abi/LootboxCosmic.json';
 import { Contract, ContractTransaction, ethers } from 'ethers';
 import useERC20 from './useERC20';
@@ -12,14 +12,27 @@ interface UseLootboxProps {
   chainIDHex?: ChainIDHex;
 }
 
-export interface DepositFragment {
+export interface DepositWeb3Fragment {
   tokenAddress: Address;
   tokenAmount: string;
 }
 
-export interface Deposit extends DepositFragment {
+export interface DepositWeb3 extends DepositWeb3Fragment {
   tokenSymbol: string;
   decimal: string;
+}
+
+export interface Deposit {
+  id: DepositID | string;
+  title: string;
+  quantity: string;
+  type: DepositTypeFE;
+  date: string;
+}
+export enum DepositTypeFE {
+  Voucher = 'Voucher',
+  Native = 'Native',
+  Token = 'Token',
 }
 
 interface UseLootboxResult {
@@ -30,7 +43,7 @@ interface UseLootboxResult {
     tokenAddress: Address,
   ) => Promise<ethers.ContractTransaction>;
   changeMaxTickets: (maxTickets: number) => Promise<ethers.ContractTransaction>;
-  getLootboxDeposits: () => Promise<Deposit[]>;
+  getLootboxDeposits: () => Promise<DepositWeb3[]>;
 }
 
 export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootboxResult => {
@@ -92,14 +105,14 @@ export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootbox
       .changeMaxTickets(maxTickets) as Promise<ethers.ContractTransaction>;
   };
 
-  const getLootboxDeposits = async (): Promise<Deposit[]> => {
+  const getLootboxDeposits = async (): Promise<DepositWeb3[]> => {
     if (!lootbox) {
       return [];
     }
 
     const erc20Mapping: { [key: Address]: { symbol: string; decimals: string } } = {};
 
-    const convertDepositFragmentToDeposit = async (fragment: DepositFragment) => {
+    const convertDepositFragmentToDeposit = async (fragment: DepositWeb3Fragment) => {
       let symbol: string;
       let decimal: string;
       if (erc20Mapping[fragment.tokenAddress]) {
@@ -133,8 +146,9 @@ export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootbox
     try {
       const deposits = await lootbox.viewAllDeposits();
 
-      const res: DepositFragment[] = [];
-      for (let deposit of deposits) {
+      const res: DepositWeb3Fragment[] = [];
+
+      for (const deposit of deposits) {
         if (deposit?.nativeTokenAmount && deposit?.nativeTokenAmount?.gt('0')) {
           res.push({
             tokenAddress: ethers.constants.AddressZero as Address,
