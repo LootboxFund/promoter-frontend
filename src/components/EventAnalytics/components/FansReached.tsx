@@ -59,30 +59,6 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
     };
   }, [data]);
 
-  if (error || data?.claimerStatsForTournament?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
-  if (!loading && parsedData.length === 0) {
-    return (
-      <Result
-        status="info"
-        title="Invite Fans"
-        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
-        extra={[
-          <Button onClick={onInviteFanModalToggle} type="primary">
-            Invite Fans
-          </Button>,
-        ]}
-      />
-    );
-  }
-
   const config: BarConfig = {
     loading,
     data: parsedData,
@@ -114,6 +90,30 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
       title: { text: '# Tickets Distributed' },
     },
   };
+
+  if (error || data?.claimerStatsForTournament?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   return (
     <div>

@@ -56,31 +56,6 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanMod
     };
   }, [data]);
 
-  if (error || data?.referrerClaimsForTournament?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
-
-  if (!loading && parsedData.length === 0) {
-    return (
-      <Result
-        status="info"
-        title="Invite Fans"
-        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
-        extra={[
-          <Button onClick={onInviteFanModalToggle} type="primary">
-            Invite Fans
-          </Button>,
-        ]}
-      />
-    );
-  }
-
   const config = {
     loading,
     data: parsedData,
@@ -111,6 +86,31 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanMod
       },
     },
   };
+
+  if (error || data?.referrerClaimsForTournament?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
+
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
   return (
     <div>
       <br />

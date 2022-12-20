@@ -166,16 +166,6 @@ const FansListTableLootbox: React.FC<FansListTableLootboxProps> = ({ lootboxID }
     [fans],
   );
 
-  if (error || data?.fansListForLootbox.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
-
   const filterBySearchString = (fan: FanListRowForLootbox) => {
     return (
       fan.userID.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
@@ -194,6 +184,16 @@ const FansListTableLootbox: React.FC<FansListTableLootboxProps> = ({ lootboxID }
           <Spin />
         </$Horizontal>
       </div>
+    );
+  }
+
+  if (error || data?.fansListForLootbox.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
     );
   }
 

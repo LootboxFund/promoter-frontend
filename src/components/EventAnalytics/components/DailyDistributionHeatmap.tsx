@@ -75,31 +75,6 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
       : [];
   }, [data]);
 
-  if (error || data?.dailyClaimStatisticsForTournament?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
-
-  if (!loading && parsedData.length === 0) {
-    return (
-      <Result
-        status="info"
-        title="Invite Fans"
-        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
-        extra={[
-          <Button onClick={props.onInviteFanModalToggle} type="primary">
-            Invite Fans
-          </Button>,
-        ]}
-      />
-    );
-  }
-
   const config: HeatmapConfig = {
     data: parsedData,
     loading,
@@ -246,6 +221,31 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
       },
     },
   };
+
+  if (error || data?.dailyClaimStatisticsForTournament?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
+
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={props.onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   return (
     <Space direction="vertical" id="daily-distribution-container" style={{ width: '100%' }}>

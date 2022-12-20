@@ -86,21 +86,6 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
     );
   }
 
-  if (!loading && parsedData.length === 0) {
-    return (
-      <Result
-        status="info"
-        title="Invite Fans"
-        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
-        extra={[
-          <Button onClick={onInviteFanModalToggle} type="primary">
-            Invite Fans
-          </Button>,
-        ]}
-      />
-    );
-  }
-
   const config: BarConfig = {
     loading,
     data: parsedData,
@@ -156,6 +141,21 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
       },
     },
   };
+
+  if (!loading && parsedData.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="Invite Fans"
+        subTitle="View detailed analytics for your event by inviting fans to claim their LOOTBOX reward."
+        extra={[
+          <Button onClick={onInviteFanModalToggle} type="primary">
+            Invite Fans
+          </Button>,
+        ]}
+      />
+    );
+  }
 
   return (
     <div>

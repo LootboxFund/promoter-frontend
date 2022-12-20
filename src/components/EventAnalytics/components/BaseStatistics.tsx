@@ -17,6 +17,11 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
     },
   });
 
+  const stats =
+    data?.baseClaimStatsForTournament && 'stats' in data.baseClaimStatsForTournament
+      ? data.baseClaimStatsForTournament.stats
+      : null;
+
   if (error || data?.baseClaimStatsForTournament?.__typename === 'ResponseError') {
     return (
       <Result
@@ -26,11 +31,6 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID }) => {
       />
     );
   }
-
-  const stats =
-    data?.baseClaimStatsForTournament && 'stats' in data.baseClaimStatsForTournament
-      ? data.baseClaimStatsForTournament.stats
-      : null;
 
   return (
     <Row gutter={8}>
