@@ -189,16 +189,6 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
     [fans],
   );
 
-  if (error || data?.fansListForTournament.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
-
   const filterBySearchString = (fan: FanListRowForTournament) => {
     return (
       fan.userID.toLowerCase().indexOf(searchString.toLowerCase()) > -1 ||
@@ -219,6 +209,16 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
           <Spin />
         </$Horizontal>
       </div>
+    );
+  }
+
+  if (error || data?.fansListForTournament.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
     );
   }
 

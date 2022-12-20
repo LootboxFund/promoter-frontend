@@ -19,6 +19,11 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID, lootboxID }) => {
     },
   });
 
+  const stats =
+    data?.baseClaimStatsForLootbox && 'stats' in data.baseClaimStatsForLootbox
+      ? data.baseClaimStatsForLootbox.stats
+      : null;
+
   if (error || data?.baseClaimStatsForLootbox?.__typename === 'ResponseError') {
     return (
       <Result
@@ -28,11 +33,6 @@ const BaseStats: React.FC<BaseStatsProps> = ({ eventID, lootboxID }) => {
       />
     );
   }
-
-  const stats =
-    data?.baseClaimStatsForLootbox && 'stats' in data.baseClaimStatsForLootbox
-      ? data.baseClaimStatsForLootbox.stats
-      : null;
 
   return (
     <Row gutter={8}>
