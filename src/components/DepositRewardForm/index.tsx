@@ -386,29 +386,6 @@ Token is an ERC20/BEP20/etc token on a chosen blockchain.
         widget: 'textarea',
         tooltip:
           'Enter a CSV list of coupon codes or links that fans can redeem. Each fan will be given one voucher, so they ideally should be one-time use vouchers that expire after redemption.',
-        // @ts-ignore
-        // widget: ({ value, onChange }) => {
-        //   console.log(`-v === `, value.target?.value);
-        //   console.log(`-vc === `, value.currentTarget?.value);
-        //   const textValue = value.oneTimeVouchers?.target?.value || '';
-        //   const secondTextValue = v.target?.value
-        //   return (
-        //     <$Vertical>
-        //       <span style={{ color: 'gray', margin: '0px 0px 10px 0px' }}>{`${
-        //         !textValue ? 0 : (textValue || '').split(',').length
-        //       } Vouchers`}</span>
-        //       <Input.TextArea
-        //         value={textValue}
-        //         onChange={(v) => {
-        //           console.log(`v === `, v.target?.value);
-        //           console.log(`vc === `, v.currentTarget?.value);
-        //           onChange({ oneTimeVouchers: v?.target?.value || '' });
-        //         }}
-        //         style={{ width: '100%', maxWidth: '500px' }}
-        //       />
-        //     </$Vertical>
-        //   );
-        // },
       });
       infoMeta.fields.push({
         key: 'oneTimeVouchersPreview',
