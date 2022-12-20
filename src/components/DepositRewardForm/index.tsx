@@ -181,7 +181,6 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
     }
   };
 
-  console.log(`existingDepositsData`, existingDepositsData);
   const existingVoucherDeposits = useMemo(() => {
     if (
       existingDepositsData?.getLootboxDeposits &&
@@ -230,7 +229,6 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   };
   const handleOnRewardSubmit = useCallback(
     async (values) => {
-      console.log(`values`, values);
       if (
         !library &&
         (values.rewardType === RewardType.Token || values.rewardType === RewardType.Native)
@@ -410,7 +408,6 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         }
       }
       if (values.rewardType === RewardType.Voucher) {
-        console.log(`Depositing voucher rewards...`);
         const { data } = await depositVoucherRewards({
           variables: {
             payload: {
