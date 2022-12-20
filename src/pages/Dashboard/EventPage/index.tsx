@@ -243,12 +243,6 @@ const EventPage: React.FC = () => {
     }
   };
 
-  if (error) {
-    return <span>{error?.message || ''}</span>;
-  } else if (data?.viewTournamentAsOrganizer.__typename === 'ResponseError') {
-    return <span>{data?.viewTournamentAsOrganizer.error?.message || ''}</span>;
-  }
-
   const editTournament = async (payload: EditTournamentPayload) => {
     const res = await editTournamentMutation({
       variables: {
@@ -295,6 +289,12 @@ const EventPage: React.FC = () => {
     );
   };
   const maxWidth = '1000px';
+
+  if (error) {
+    return <span>{error?.message || ''}</span>;
+  } else if (data?.viewTournamentAsOrganizer.__typename === 'ResponseError') {
+    return <span>{data?.viewTournamentAsOrganizer.error?.message || ''}</span>;
+  }
 
   return (
     <div>

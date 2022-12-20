@@ -1,11 +1,13 @@
 import { Address, ChainIDHex, chainIdHexToName, LootboxID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
+import ERC20ABI from '../../api/abi/erc20.json';
 import {
   Alert,
   Button,
   Card,
   Empty,
   Form,
+  Input,
   Modal,
   notification,
   Popconfirm,
@@ -18,26 +20,40 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { useCallback, useState } from 'react';
-import { $Horizontal, $Vertical } from '@/components/generics';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { $Horizontal, $Vertical, $ColumnGap } from '@/components/generics';
 import ConnectWalletButton from '../ConnectWalletButton';
 import { useWeb3 } from '@/hooks/useWeb3';
 import { ContractTransaction, ethers } from 'ethers';
 import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
-import { shortenAddress } from '@/lib/address';
+import { isValidEVMAddress, shortenAddress } from '@/lib/address';
 import styles from './index.less';
 import useERC20 from '@/hooks/useERC20';
-import { Deposit } from '@/hooks/useLootbox';
-import { NotificationOutlined } from '@ant-design/icons';
+import { Deposit, DepositTypeFE, DepositWeb3 } from '@/hooks/useLootbox';
+import { InfoCircleTwoTone, NotificationOutlined } from '@ant-design/icons';
 import { LootboxFE } from '@/pages/Dashboard/LootboxPage/api.gql';
 import { useAuth } from '@/api/firebase/useAuth';
-
-type RewardType = 'Native' | 'ERC20';
+import { useMutation, useQuery } from '@apollo/client';
+import { DEPOSIT_VOUCHER_REWARDS, GET_EXISTING_LOOTBOX_DEPOSITS } from './api.gql';
+import {
+  DepositVoucherRewardsResponse,
+  GetLootboxDepositsResponse,
+  MutationDepositVoucherRewardsArgs,
+  QueryGetLootboxDepositsArgs,
+  ResponseError,
+} from '@/api/graphql/generated/types';
+import moment from 'moment';
 
 export interface RewardSponsorsPayload {
   rewardType: RewardType;
   amount: ethers.BigNumber;
   tokenAddress?: Address; // undefined == native
+}
+
+export enum RewardType {
+  Voucher = 'Voucher',
+  Native = 'Native',
+  Token = 'Token',
 }
 
 export interface CheckAllowancePayload {
@@ -46,10 +62,10 @@ export interface CheckAllowancePayload {
 }
 
 export type DepositRewardForm = {
-  chainIDHex: ChainIDHex;
+  chainIDHex?: ChainIDHex;
   lootboxID: LootboxID;
   lootbox: LootboxFE;
-  lootboxDeposits: Deposit[];
+  lootboxDeposits: DepositWeb3[];
   onSubmitReward: (payload: RewardSponsorsPayload) => Promise<ContractTransaction>;
   onTokenApprove: (payload: RewardSponsorsPayload) => Promise<ContractTransaction | null>;
   onCheckAllowance: (payload: CheckAllowancePayload) => Promise<boolean>;
@@ -72,17 +88,67 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   const { currentAccount, library, network, switchNetwork } = useWeb3();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [tokenAddress, _setTokenAddress] = useState<Address>();
+  const [tokenName, setTokenName] = useState<string>();
   // @ts-ignore
   const forceUpdate = FormBuilder.useForceUpdate();
   const { getBalance, getNativeBalance, parseAmount } = useERC20({
     chainIDHex,
   });
+  const [activeTabKey, setActiveTabKey] = useState('deposit-form');
   const [loadingEmails, setLoadingEmails] = useState(false);
+
+  // query deposits
+  const {
+    data: existingDepositsData,
+    loading: existingDepositsLoading,
+    error: existingDepositsError,
+  } = useQuery<
+    { getLootboxDeposits: GetLootboxDepositsResponse | ResponseError },
+    QueryGetLootboxDepositsArgs
+  >(GET_EXISTING_LOOTBOX_DEPOSITS, {
+    variables: {
+      lootboxID: lootboxID,
+    },
+  });
+
+  // deposit vouchers
+  const [depositVoucherRewards, { loading: loadingDepositVoucherRewards }] = useMutation<
+    { depositVoucherRewards: DepositVoucherRewardsResponse | ResponseError },
+    MutationDepositVoucherRewardsArgs
+  >(DEPOSIT_VOUCHER_REWARDS, {
+    refetchQueries: [
+      {
+        query: GET_EXISTING_LOOTBOX_DEPOSITS,
+        variables: { lootboxID: lootboxID },
+      },
+    ],
+  });
 
   const userChainIDHex = network?.chainId ? chainIdToHex(network.chainId) : null;
 
+  const oneTimeVoucherTextRef = useRef<string>('');
+  const oneTimeVoucherText = form.getFieldValue('oneTimeVouchers');
+  useEffect(() => {
+    oneTimeVoucherTextRef.current = oneTimeVoucherText;
+  }, [oneTimeVoucherText]);
+
+  const updateTokenSymbol = async (addr: Address) => {
+    if (isValidEVMAddress(addr) && library) {
+      const signer = await library.getSigner();
+      const erc20 = new ethers.Contract(addr, ERC20ABI, signer);
+      const name = await erc20.symbol();
+      setTokenName(name);
+    } else {
+      setTokenName('');
+    }
+  };
+  const setTokenAddress = (addr: Address) => {
+    _setTokenAddress(addr);
+    updateTokenSymbol(addr);
+  };
+
   const handleNotifyVictors = async () => {
-    console.log('notify victors');
     setLoadingEmails(true);
     try {
       if (lootboxDeposits.length === 0) {
@@ -115,172 +181,267 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
     }
   };
 
+  const existingVoucherDeposits = useMemo(() => {
+    if (
+      existingDepositsData?.getLootboxDeposits &&
+      existingDepositsData?.getLootboxDeposits.__typename === 'GetLootboxDepositsResponseSuccess'
+    ) {
+      const existingDeposits = existingDepositsData?.getLootboxDeposits.deposits;
+      return existingDeposits;
+    }
+    return [];
+  }, [existingDepositsData?.getLootboxDeposits]);
+
+  const combinedDeposits = useMemo(() => {
+    const convertedLootboxDeposits = lootboxDeposits.map((deposit, i): Deposit => {
+      // const timestamp = moment().format('YYYY-MM-DD HH:mm:ss'),
+      return {
+        id: `${deposit.tokenSymbol}_${i}`,
+        title: deposit.tokenSymbol,
+        quantity: ethers.utils.formatUnits(deposit.tokenAmount, deposit.decimal),
+        type:
+          deposit.tokenAddress === ethers.constants.AddressZero
+            ? DepositTypeFE.Native
+            : DepositTypeFE.Token,
+        date: '',
+      };
+    });
+    const convertedVoucherDeposits = existingVoucherDeposits.map((deposit): Deposit => {
+      return {
+        id: deposit.id,
+        title: deposit.title,
+        quantity: `${deposit.oneTimeVouchersCount} one-time vouchers${
+          deposit.hasReuseableVoucher ? ' & 1 reuseable voucher' : ''
+        }`,
+        type: DepositTypeFE.Voucher,
+        date: moment(deposit.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+      };
+    });
+    const combinedDeposits = [...convertedLootboxDeposits, ...convertedVoucherDeposits];
+    const combinedDepositsSorted = combinedDeposits
+      .slice()
+      .sort((a, b) => (a.date > b.date ? -1 : 1));
+    return combinedDepositsSorted;
+  }, [lootboxDeposits, existingVoucherDeposits]);
+
   const resetForm = () => {
     form.resetFields();
   };
   const handleOnRewardSubmit = useCallback(
     async (values) => {
-      if (!library) {
+      if (
+        !library &&
+        (values.rewardType === RewardType.Token || values.rewardType === RewardType.Native)
+      ) {
         console.error('no web3 library available');
         return;
       }
 
       setLoading(true);
       let controlledModal = undefined;
-      try {
-        const amount = await parseAmount(
-          values.amount,
-          (values.rewardType as RewardType) === 'Native' ? undefined : values.tokenAddress,
-        );
+      if (
+        chainIDHex &&
+        (values.rewardType === RewardType.Token || values.rewardType === RewardType.Native)
+      ) {
+        try {
+          const amount = await parseAmount(
+            values.amount,
+            (values.rewardType as RewardType) === RewardType.Native
+              ? undefined
+              : values.tokenAddress,
+          );
 
-        let balance: ethers.BigNumber;
-        // Make sure user has enough tokens
-        if (values.rewardType === 'ERC20') {
-          // erc20
-          balance = await getBalance(values.tokenAddress, currentAccount);
-        } else {
-          // native
-          balance = await getNativeBalance(currentAccount);
-        }
+          let balance: ethers.BigNumber;
+          // Make sure user has enough tokens
+          if (values.rewardType === RewardType.Token) {
+            // erc20
+            balance = await getBalance(values.tokenAddress, currentAccount);
+          } else {
+            // native
+            balance = await getNativeBalance(currentAccount);
+          }
 
-        if (amount.gt(balance)) {
-          throw new Error('Insufficient balance');
-        }
+          if (amount.gt(balance)) {
+            throw new Error('Insufficient balance');
+          }
 
-        const payload: RewardSponsorsPayload = {
-          rewardType: values.rewardType as RewardType,
-          amount,
-          tokenAddress:
-            (values.rewardType as RewardType) === 'ERC20' ? values.tokenAddress : undefined,
-        };
-
-        if ((values.rewardType as RewardType) === 'ERC20') {
-          // Check if within allowance:
-          const isWithinAllowance = await onCheckAllowance({
+          const payload: RewardSponsorsPayload = {
+            rewardType: values.rewardType as RewardType,
             amount,
-            tokenAddress: values.tokenAddress,
-          });
+            tokenAddress:
+              (values.rewardType as RewardType) === RewardType.Token
+                ? values.tokenAddress
+                : undefined,
+          };
 
-          if (!isWithinAllowance) {
-            const closeLoadingModal = Modal.info({
-              title: 'Approving Transaction',
-              content: (
-                <span>
-                  You must give Lootbox permission to transfer your tokens.{' '}
-                  <b>Please approve Lootbox in your wallet.</b>
-                  <br />
-                  <br />
-                  <i>
-                    There is a one-time cost associated to this transaction to pay for gas. Lootbox
-                    does not receive or control this fee.
-                  </i>
-                </span>
-              ),
-              okButtonProps: { style: { display: 'none' } },
-              okCancel: true,
+          if ((values.rewardType as RewardType) === RewardType.Token) {
+            // Check if within allowance:
+            const isWithinAllowance = await onCheckAllowance({
+              amount,
+              tokenAddress: values.tokenAddress,
             });
 
-            try {
-              // We approve MaxUint256 so that we only need to do it once
-              const tx = await onTokenApprove({ ...payload, amount: ethers.constants.MaxUint256 });
+            if (!isWithinAllowance) {
+              const closeLoadingModal = Modal.info({
+                title: 'Approving Transaction',
+                content: (
+                  <span>
+                    You must give Lootbox permission to transfer your tokens.{' '}
+                    <b>Please approve Lootbox in your wallet.</b>
+                    <br />
+                    <br />
+                    <i>
+                      There is a one-time cost associated to this transaction to pay for gas.
+                      Lootbox does not receive or control this fee.
+                    </i>
+                  </span>
+                ),
+                okButtonProps: { style: { display: 'none' } },
+                okCancel: true,
+              });
 
-              if (tx) {
-                closeLoadingModal.update({
-                  content: (
-                    <$Vertical spacing={4}>
-                      <span>Waiting for transaction confirmation...</span>
-                      <br />
-                      <br />
-                      <Spin className={styles.spin} />
-                    </$Vertical>
-                  ),
-                  okButtonProps: { style: { display: 'none' } },
-                  okCancel: false,
+              try {
+                // We approve MaxUint256 so that we only need to do it once
+                const tx = await onTokenApprove({
+                  ...payload,
+                  amount: ethers.constants.MaxUint256,
                 });
 
-                await tx.wait();
-                controlledModal = Modal.success({
-                  maskClosable: false,
-                  title: 'Deposit Approved',
-                  content: (
-                    <span>
-                      Almost done...&nbsp;
-                      <b>Please open your MetaMask wallet and complete the transaction.</b>
-                    </span>
-                  ),
-                  okButtonProps: { style: { display: 'none' } },
-                  okCancel: true,
-                });
+                if (tx) {
+                  closeLoadingModal.update({
+                    content: (
+                      <$Vertical spacing={4}>
+                        <span>Waiting for transaction confirmation...</span>
+                        <br />
+                        <br />
+                        <Spin className={styles.spin} />
+                      </$Vertical>
+                    ),
+                    okButtonProps: { style: { display: 'none' } },
+                    okCancel: false,
+                  });
+
+                  await tx.wait();
+                  controlledModal = Modal.success({
+                    maskClosable: false,
+                    title: 'Deposit Approved',
+                    content: (
+                      <span>
+                        Almost done...&nbsp;
+                        <b>Please open your MetaMask wallet and complete the transaction.</b>
+                      </span>
+                    ),
+                    okButtonProps: { style: { display: 'none' } },
+                    okCancel: true,
+                  });
+                }
+              } catch (err) {
+                throw err;
+              } finally {
+                closeLoadingModal?.destroy();
               }
-            } catch (err) {
-              throw err;
-            } finally {
-              closeLoadingModal?.destroy();
             }
           }
+
+          // Native
+          const tx = await onSubmitReward(payload);
+          const modalConfig = {
+            title: 'Depositing Rewards',
+            content: (
+              <$Vertical spacing={4}>
+                <span>
+                  Depositing your funds...&nbsp;
+                  <b>Please wait while we confirm your transaction.</b>
+                </span>
+                <br />
+                <Spin className={styles.spin} />
+                <br />
+              </$Vertical>
+            ),
+            okButtonProps: { style: { display: 'none' } },
+            okCancel: false,
+          };
+          if (controlledModal === undefined) {
+            controlledModal = Modal.info(modalConfig);
+          } else {
+            controlledModal.update(modalConfig);
+          }
+          await tx.wait();
+
+          refetchDeposits();
+
+          const explorerURL = getBlockExplorerUrl(chainIDHex);
+          controlledModal.update({
+            type: 'success',
+            title: 'Success',
+            content: (
+              <$Vertical spacing={4}>
+                Deposit received! View it in explorer:
+                <Typography.Link
+                  href={`${explorerURL}/tx/${tx.hash}`}
+                  copyable
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {tx.hash}
+                </Typography.Link>
+              </$Vertical>
+            ),
+            okButtonProps: { style: { display: 'initial' } },
+            okCancel: false,
+            onOk: resetForm,
+          });
+
+          setActiveTabKey('notifyFans');
+        } catch (e: any) {
+          if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
+            // code === 4001 = user denied signature
+            return;
+          }
+
+          Modal.error({
+            title: 'Failure',
+            content: `${e.message}`,
+          });
+        } finally {
+          setLoading(false);
         }
-
-        // Native
-        const tx = await onSubmitReward(payload);
-        const modalConfig = {
-          title: 'Depositing Rewards',
-          content: (
-            <$Vertical spacing={4}>
-              <span>
-                Depositing your funds...&nbsp;
-                <b>Please wait while we confirm your transaction.</b>
-              </span>
-              <br />
-              <Spin className={styles.spin} />
-              <br />
-            </$Vertical>
-          ),
-          okButtonProps: { style: { display: 'none' } },
-          okCancel: false,
-        };
-        if (controlledModal === undefined) {
-          controlledModal = Modal.info(modalConfig);
-        } else {
-          controlledModal.update(modalConfig);
+      }
+      if (values.rewardType === RewardType.Voucher) {
+        const { data } = await depositVoucherRewards({
+          variables: {
+            payload: {
+              lootboxID,
+              oneTimeVouchers: values.oneTimeVouchers,
+              reuseableVoucher: values.reuseableVoucher,
+              title: values.voucherTitle,
+            },
+          },
+        });
+        if (!data) {
+          setLoading(false);
+          throw new Error(`An error occurred!`);
+        } else if (data?.depositVoucherRewards?.__typename === 'ResponseError') {
+          setLoading(false);
+          throw new Error(
+            data?.depositVoucherRewards.error?.message ||
+              'An error occurred when depositing the voucher rewards',
+          );
         }
-        await tx.wait();
-
-        refetchDeposits();
-
-        console.log('tx', tx.hash);
-        const explorerURL = getBlockExplorerUrl(chainIDHex);
-        controlledModal.update({
+        setLoading(false);
+        Modal.info({
           type: 'success',
           title: 'Success',
           content: (
-            <$Vertical spacing={4}>
-              Deposit received! View it in explorer:
-              <Typography.Link
-                href={`${explorerURL}/tx/${tx.hash}`}
-                copyable
-                target="_blank"
-                rel="noreferrer"
-              >
-                {tx.hash}
-              </Typography.Link>
-            </$Vertical>
+            <$Vertical spacing={4}>Deposit received! Notify fans with an email blast.</$Vertical>
           ),
           okButtonProps: { style: { display: 'initial' } },
           okCancel: false,
-          onOk: resetForm,
+          onOk: () => {
+            resetForm();
+            setActiveTabKey('notifyFans');
+          },
         });
-      } catch (e: any) {
-        if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
-          // code === 4001 = user denied signature
-          return;
-        }
-
-        Modal.error({
-          title: 'Failure',
-          content: `${e.message}`,
-        });
-      } finally {
-        setLoading(false);
       }
     },
     [onSubmitReward, onTokenApprove],
@@ -290,55 +451,271 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
     const infoMeta = {
       columns: 1,
       disabled: loading,
-      initialValues: { amount: '0', tokenAddress: undefined },
+      initialValues: {
+        rewardType: RewardType.Voucher,
+        amount: '0',
+        tokenAddress: undefined,
+        voucherTitle: '',
+        reuseableVoucher: '',
+        oneTimeVouchers: '',
+      },
+      onChange: (evt: any) => {
+        console.log(evt);
+      },
       fields: [
         {
           key: 'rewardType',
           label: 'Pick a Reward Method',
           widget: 'select',
-          options: ['Native', 'ERC20'] as RewardType[],
-          initialValue: 'Native',
+          tooltip: `
+Voucher is a link or coupon code that fans can redeem as a reward. Fans do not need any blockchain.
+
+The other options require blockchain deployment. Fans will need Metamask to redeem.
+Native is the native currency of a chosen blockchain.
+Token is an ERC20/BEP20/etc token on a chosen blockchain.
+          `,
+          required: true,
+          options: [RewardType.Voucher, RewardType.Native, RewardType.Token] as RewardType[],
+          initialValue: RewardType.Voucher,
           widgetProps: { style: { width: '180px' } },
           preserving: true,
           onChange: () => form.setFieldValue('amount', 0),
-        },
-        {
-          key: 'amount',
-          label: 'Amount',
-          widget: 'number',
-          required: true,
-          preserving: true,
-          widgetProps: { style: { width: '180px' } },
-          rules: [
-            {
-              validator: (_rule: any, value: any, _callback: any) => {
-                console.log('validate?', value);
-                return new Promise((resolve, reject) => {
-                  setTimeout(() => {
-                    if (value <= 0) {
-                      reject(new Error(`Must be greater than 0.`));
-                    } else {
-                      resolve(null);
-                    }
-                  }, 500);
-                });
-              },
-            },
-          ],
         },
       ],
     };
 
     const rewardType = form.getFieldValue('rewardType') as RewardType;
 
-    if (!!rewardType && rewardType === 'ERC20') {
+    if (!!rewardType && rewardType === RewardType.Voucher) {
+      infoMeta.fields.push({
+        key: 'voucherTitle',
+        label: 'Reward Title',
+        required: true,
+        tooltip: 'The title of the voucher shown to fans. It should be descriptive.',
+        // @ts-ignore
+        placeholder: 'Reward Title',
+        preserving: true,
+        rules: [
+          {
+            max: 30,
+            message: 'Title should be less than 30 characters',
+          },
+        ],
+      });
+      infoMeta.fields.push({
+        key: 'reuseableVoucher',
+        label: 'Reuseable Voucher',
+        tooltip:
+          'All users will be shown this same voucher. Enter a link and/or coupon code that fans can redeem. Be sure to follow the recommended input format.',
+        // @ts-ignore
+        placeholder: 'url, code',
+        preserving: true,
+      });
+      // @ts-ignore
+      infoMeta.fields.push({
+        key: 'oneTimeVouchers',
+        label: 'One-Time Use Vouchers',
+        widget: 'textarea',
+        // @ts-ignore
+        placeholder: `url1, code1
+url2, code2
+url3, code3
+        `,
+        tooltip:
+          'Enter a line by line list of coupon codes and/or links that fans can redeem. Each fan will be given one voucher, so they ideally should be one-time use vouchers that expire after redemption. Be sure to follow the recommended input format.',
+      });
+      infoMeta.fields.push({
+        key: 'oneTimeVouchersPreview',
+        // @ts-ignore
+        widget: () => (
+          <fieldset>
+            <Form.Item
+              wrapperCol={{ span: 16, offset: 8 }}
+              className="form-footer"
+              style={{ textAlign: 'right' }}
+            >
+              <span style={{ color: 'gray', margin: '0px 0px 10px 0px' }}>{`${
+                !oneTimeVoucherTextRef.current
+                  ? 0
+                  : (`${oneTimeVoucherTextRef.current} ` || '').split(/[\n\r]/).length
+              } Vouchers for ${lootbox.runningCompletedClaims} of ${
+                lootbox.maxTickets
+              } max tickets`}</span>
+            </Form.Item>
+          </fieldset>
+        ),
+      });
+      infoMeta.fields.push({
+        key: 'submitButton',
+        label: '',
+        // @ts-ignore
+        widget: () => (
+          <fieldset>
+            <Form.Item
+              wrapperCol={{ span: 16, offset: 8 }}
+              className="form-footer"
+              style={{ textAlign: 'right' }}
+            >
+              <$Horizontal justifyContent="flex-start">
+                <Button htmlType="submit" type="primary" disabled={loading}>
+                  {loading ? 'Loading...' : 'Deposit'}
+                </Button>
+                <Button type="text" onClick={resetForm}>
+                  Clear
+                </Button>
+              </$Horizontal>
+            </Form.Item>
+          </fieldset>
+        ),
+      });
+    }
+    if (
+      (rewardType === RewardType.Native || rewardType === RewardType.Token) &&
+      (!currentAccount || !userChainIDHex || chainIDHex !== userChainIDHex) &&
+      lootbox.address
+    ) {
+      infoMeta.fields.push({
+        key: 'infoTip',
+        label: '',
+        // @ts-ignore
+        widget: () => (
+          <fieldset>
+            <Form.Item
+              wrapperCol={{ span: 18, offset: 4 }}
+              className="form-footer"
+              style={{ textAlign: 'right' }}
+            >
+              {!currentAccount || !userChainIDHex ? (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  imageStyle={{
+                    height: 60,
+                  }}
+                  description={
+                    <Typography.Text style={{ maxWidth: '200px' }}>
+                      {`You must connect your Metamask wallet before you can deposit rewards`}
+                    </Typography.Text>
+                  }
+                  style={{
+                    padding: '50px',
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    flex: 1,
+                  }}
+                >
+                  <ConnectWalletButton type="default" />
+                </Empty>
+              ) : chainIDHex && chainIDHex !== userChainIDHex ? (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  imageStyle={{
+                    height: 60,
+                  }}
+                  description={
+                    <Typography.Text style={{ maxWidth: '200px' }}>
+                      {`Please switch networks to ${chainIdHexToName(
+                        chainIDHex,
+                      )} to deposit rewards`}
+                    </Typography.Text>
+                  }
+                  style={{
+                    padding: '50px',
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    flex: 1,
+                  }}
+                >
+                  <Button type="default" onClick={() => switchNetwork(chainIDHex)}>
+                    Switch Network
+                  </Button>
+                </Empty>
+              ) : null}
+            </Form.Item>
+          </fieldset>
+        ),
+      });
+
+      return infoMeta;
+    }
+    if (
+      (rewardType === RewardType.Native || rewardType === RewardType.Token) &&
+      (!lootbox.address || !lootbox.chainIdHex)
+    ) {
+      infoMeta.fields.push({
+        key: 'deployBlockchain',
+        label: '',
+        // @ts-ignore
+        widget: () => (
+          <fieldset>
+            <Form.Item
+              wrapperCol={{ span: 18, offset: 4 }}
+              className="form-footer"
+              style={{ textAlign: 'right' }}
+            >
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                imageStyle={{
+                  height: 60,
+                }}
+                description={
+                  <span style={{ maxWidth: '200px' }}>
+                    {`This LOOTBOX has not been deployed to the blockchain yet`}
+                    &nbsp;
+                    <Tooltip
+                      title={
+                        <span>
+                          This Lootbox can not pay out rewards to fans until it is deployed on the
+                          Blockchain. To deploy this Lootbox, you must install MetaMask and connect
+                          your wallet by clicking below.{' '}
+                          <a href="https://lootbox.fyi/3VFzk80" target="_blank" rel="noreferrer">
+                            View Tutorial
+                          </a>
+                        </span>
+                      }
+                    >
+                      <InfoCircleTwoTone />
+                    </Tooltip>
+                  </span>
+                }
+                style={{
+                  flex: 1,
+                  padding: '100px',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                }}
+              >
+                <Button type="ghost" href="#create-lootbox-form">
+                  Get Started
+                </Button>
+              </Empty>
+            </Form.Item>
+          </fieldset>
+        ),
+      });
+
+      return infoMeta;
+    }
+
+    if (!!rewardType && rewardType === RewardType.Token) {
       infoMeta.fields.push({
         key: 'tokenAddress',
-        label: 'ERC20 Contract Address',
+        label: 'Token Contract Address',
         required: true,
-        widget: 'input',
+        tooltip:
+          'You can find the contract address for the token on CoinMarketCap or a Blockchain Explorer. Make sure you find the contract address for the right blockchain.',
+        // @ts-ignore
+        widget: () => {
+          return (
+            <$Horizontal verticalCenter>
+              <Input
+                value={tokenAddress}
+                onChange={(e) => setTokenAddress(e.target.value as Address)}
+                style={{ maxWidth: '300px' }}
+              />{' '}
+              <$ColumnGap /> <span style={{ color: 'gray' }}>{tokenName}</span>
+            </$Horizontal>
+          );
+        },
         preserving: true,
-        widgetProps: { style: { width: '400px' } } as any,
+        widgetProps: { style: { width: '100%', maxWidth: '300px' } } as any,
+        // @ts-ignore
         rules: [
           {
             validator: (_rule: any, value: any, _callback: any) => {
@@ -356,6 +733,75 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         ],
       });
     }
+
+    if (!!rewardType && (rewardType === RewardType.Native || rewardType === RewardType.Token)) {
+      infoMeta.fields.push({
+        key: 'amount',
+        label: 'Amount',
+        widget: 'number',
+        required: true,
+        preserving: true,
+        tooltip: 'Enter the amount that you want to deposit, being mindful of the tokens decimals.',
+        widgetProps: { style: { width: '180px' } },
+        // @ts-ignore
+        rules: [
+          {
+            validator: (_rule: any, value: any, _callback: any) => {
+              return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  if (value <= 0) {
+                    reject(new Error(`Must be greater than 0.`));
+                  } else {
+                    resolve(null);
+                  }
+                }, 500);
+              });
+            },
+          },
+        ],
+      });
+      infoMeta.fields.push({
+        key: 'submitButton',
+        label: '',
+        // @ts-ignore
+        widget: () => (
+          <fieldset>
+            <Form.Item
+              wrapperCol={{ span: 16, offset: 8 }}
+              className="form-footer"
+              style={{ textAlign: 'right' }}
+            >
+              {currentAccount ? (
+                <>
+                  <$Horizontal justifyContent="flex-start">
+                    <Typography.Text copyable>
+                      <span>💳</span>&nbsp;
+                      <Tooltip title={`Your connected wallet: ${currentAccount}`}>
+                        {shortenAddress(currentAccount)}
+                      </Tooltip>
+                    </Typography.Text>
+                  </$Horizontal>
+                  <br />
+                </>
+              ) : null}
+              {!currentAccount ? (
+                <ConnectWalletButton />
+              ) : (
+                <$Horizontal justifyContent="flex-start">
+                  <Button htmlType="submit" type="primary" disabled={loading}>
+                    {loading ? 'Loading...' : 'Deposit'}
+                  </Button>
+                  <Button type="text" onClick={resetForm}>
+                    Clear
+                  </Button>
+                </$Horizontal>
+              )}
+            </Form.Item>
+          </fieldset>
+        ),
+      });
+    }
+
     return infoMeta;
   };
 
@@ -366,157 +812,68 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
 
   const tabItems = [
     {
-      label: 'Reward Sponsors',
+      label: 'Reward Fans',
       key: 'deposit-form',
-      children:
-        !currentAccount || !userChainIDHex ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            imageStyle={{
-              height: 60,
-            }}
-            description={
-              <Typography.Text style={{ maxWidth: '200px' }}>
-                {`You must connect your Metamask wallet before you can deposit rewards`}
-              </Typography.Text>
-            }
-            style={{
-              padding: '50px',
-              border: '1px solid rgba(0,0,0,0.1)',
-              flex: 1,
-            }}
-          >
-            <ConnectWalletButton type="default" />
-          </Empty>
-        ) : chainIDHex !== userChainIDHex ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            imageStyle={{
-              height: 60,
-            }}
-            description={
-              <Typography.Text style={{ maxWidth: '200px' }}>
-                {`Please switch networks to ${chainIdHexToName(chainIDHex)} to deposit rewards`}
-              </Typography.Text>
-            }
-            style={{
-              padding: '50px',
-              border: '1px solid rgba(0,0,0,0.1)',
-              flex: 1,
-            }}
-          >
-            <Button type="default" onClick={() => switchNetwork(chainIDHex)}>
-              Switch Network
-            </Button>
-          </Empty>
-        ) : (
-          <Form
-            layout="horizontal"
-            form={form}
-            onFinish={handleOnRewardSubmit}
-            onValuesChange={forceUpdate}
-          >
-            <fieldset>
-              <br />
-              {/* <legend style={{ textAlign: 'center' }}>Deposit Rewards to Fans</legend> */}
-              <FormBuilder form={form} meta={meta} />
-            </fieldset>
-            <fieldset>
-              <Form.Item
-                wrapperCol={{ span: 16, offset: 8 }}
-                className="form-footer"
-                style={{ textAlign: 'right' }}
-              >
-                {currentAccount ? (
-                  <>
-                    <$Horizontal justifyContent="flex-start">
-                      <Typography.Text copyable>
-                        <span>💳</span>&nbsp;
-                        <Tooltip title={`Your connected wallet: ${currentAccount}`}>
-                          {shortenAddress(currentAccount)}
-                        </Tooltip>
-                      </Typography.Text>
-                    </$Horizontal>
-                    <br />
-                  </>
-                ) : null}
-                {!currentAccount ? (
-                  <ConnectWalletButton />
-                ) : (
-                  <$Horizontal justifyContent="flex-start">
-                    <Button htmlType="submit" type="primary" disabled={loading}>
-                      {loading ? 'Loading...' : 'Deposit'}
-                    </Button>
-                    <Button type="text" onClick={resetForm}>
-                      Clear
-                    </Button>
-                  </$Horizontal>
-                )}
-              </Form.Item>
-            </fieldset>
-          </Form>
-        ),
+      children: (
+        <Form
+          layout="horizontal"
+          form={form}
+          onFinish={handleOnRewardSubmit}
+          onValuesChange={forceUpdate}
+        >
+          <fieldset>
+            <br />
+            {/* <legend style={{ textAlign: 'center' }}>Deposit Rewards to Fans</legend> */}
+            <FormBuilder form={form} meta={meta} />
+          </fieldset>
+        </Form>
+      ),
     }, // remember to pass the key prop
+
     {
       label: 'Deposit History',
       key: 'deposit-history',
       children:
-        lootboxDeposits.length > 0 ? (
-          <Table
-            dataSource={lootboxDeposits}
-            columns={[
-              {
-                title: 'Token',
-                dataIndex: 'tokenSymbol',
-                key: 'tokenSymbol',
-              },
-              {
-                title: 'Amount',
-                dataIndex: 'tokenAmount',
-                key: 'amount',
-                render: (amount: string, record: Deposit) => {
-                  return `${ethers.utils.formatUnits(amount, record.decimal)} ${
-                    record.tokenSymbol
-                  }`;
+        lootboxDeposits.length > 0 || existingVoucherDeposits.length > 0 ? (
+          <div>
+            <Table
+              dataSource={combinedDeposits}
+              columns={[
+                {
+                  title: 'Title',
+                  dataIndex: 'title',
+                  key: 'title',
                 },
-              },
-              {
-                title: 'Type',
-                render: (_value: any, record: Deposit) => {
-                  return (
-                    <Tooltip
-                      title={
-                        record.tokenAddress === ethers.constants.AddressZero
-                          ? 'Deposit was in Native currency (i.e. Matic or ETH)'
-                          : 'Deposit was in ERC20 token'
-                      }
-                    >
-                      {record.tokenAddress === ethers.constants.AddressZero ? (
-                        <Tag color="success">Native</Tag>
-                      ) : (
-                        <Tag color="processing">ERC20</Tag>
-                      )}
-                    </Tooltip>
-                  );
+                {
+                  title: 'Quantity',
+                  dataIndex: 'quantity',
+                  key: 'quantity',
+                  render: (_, record: Deposit) => {
+                    return record.quantity;
+                  },
                 },
-              },
-              {
-                title: 'Address',
-                dataIndex: 'tokenAddress',
-                key: 'tokenAddress',
-                render: (address: string) => {
-                  if (address === ethers.constants.AddressZero) {
+                {
+                  title: 'Type',
+                  key: 'type',
+                  render: (_value: any, record: Deposit) => {
+                    if (record.type === DepositTypeFE.Native) {
+                      return <Tag color="purple">Native</Tag>;
+                    } else if (record.type === DepositTypeFE.Token) {
+                      return <Tag color="gold">Token</Tag>;
+                    } else if (record.type === DepositTypeFE.Voucher) {
+                      return <Tag color="green">Voucher</Tag>;
+                    }
                     return null;
-                  }
-                  return (
-                    <Tooltip title={address}>
-                      <Typography.Text copyable>{shortenAddress(address)}</Typography.Text>
-                    </Tooltip>
-                  );
+                  },
                 },
-              },
-            ]}
-          />
+                {
+                  title: 'Date',
+                  dataIndex: 'date',
+                  key: 'date',
+                },
+              ]}
+            />
+          </div>
         ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -578,7 +935,12 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           minWidth: '500px',
         }}
       >
-        <Tabs items={tabItems} centered />
+        <Tabs
+          activeKey={activeTabKey}
+          onChange={(key) => setActiveTabKey(key)}
+          items={tabItems}
+          centered
+        />
       </div>
     </Card>
   );
