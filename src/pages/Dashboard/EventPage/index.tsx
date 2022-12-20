@@ -317,7 +317,7 @@ const EventPage: React.FC = () => {
               </a>
               <$ColumnGap />
               <a href={tournament.playbookUrl || ''} target="_blank" rel="noreferrer">
-                <Button type="primary">Open Checklist</Button>
+                <Button type="primary">Open Playbook</Button>
               </a>
             </$Horizontal>
           </$Horizontal>

@@ -115,8 +115,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     if (values.prize) {
       payload.prize = values.prize;
     }
-    payload.organizer = affiliateID;
-    console.log(`payload = `, payload);
+    // payload.organizer = affiliateID;
     setPending(true);
     try {
       await onSubmitCreate(payload);
@@ -254,7 +253,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       // @ts-ignore
       meta.fields.push({
         key: 'playbookUrl',
-        label: 'Event Checklist',
+        label: 'Event Playbook',
         rules: [{ type: 'url' } as Rule],
         tooltip:
           'Your checklist for running a successful event. This could be a Google Doc, Notion, or other document.',
