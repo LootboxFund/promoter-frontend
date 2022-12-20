@@ -33,6 +33,13 @@ import { Deposit } from '@/hooks/useLootbox';
 import { InfoCircleTwoTone, NotificationOutlined } from '@ant-design/icons';
 import { LootboxFE } from '@/pages/Dashboard/LootboxPage/api.gql';
 import { useAuth } from '@/api/firebase/useAuth';
+import { useMutation } from '@apollo/client';
+import { DEPOSIT_VOUCHER_REWARDS } from './api.gql';
+import {
+  DepositVoucherRewardsResponse,
+  MutationDepositVoucherRewardsArgs,
+  ResponseError,
+} from '@/api/graphql/generated/types';
 
 export interface RewardSponsorsPayload {
   rewardType: RewardType;
@@ -87,6 +94,11 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   });
   const [activeTabKey, setActiveTabKey] = useState('deposit-form');
   const [loadingEmails, setLoadingEmails] = useState(false);
+
+  const [depositVoucherRewards, { loading: loadingDepositVoucherRewards }] = useMutation<
+    { depositVoucherRewards: DepositVoucherRewardsResponse | ResponseError },
+    MutationDepositVoucherRewardsArgs
+  >(DEPOSIT_VOUCHER_REWARDS);
 
   const userChainIDHex = network?.chainId ? chainIdToHex(network.chainId) : null;
 
@@ -149,6 +161,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   };
   const handleOnRewardSubmit = useCallback(
     async (values) => {
+      console.log(`values`, values);
       if (
         !library &&
         (values.rewardType === RewardType.Token || values.rewardType === RewardType.Native)
@@ -327,6 +340,45 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           setLoading(false);
         }
       }
+      if (values.rewardType === RewardType.Voucher) {
+        console.log(`Depositing voucher rewards...`);
+        const { data } = await depositVoucherRewards({
+          variables: {
+            payload: {
+              lootboxID,
+              oneTimeVouchers: values.oneTimeVouchers,
+              reuseableVoucher: values.reuseableVoucher,
+              title: values.voucherTitle,
+            },
+          },
+        });
+        if (!data) {
+          setLoading(false);
+          throw new Error(`An error occurred!`);
+        } else if (data?.depositVoucherRewards?.__typename === 'ResponseError') {
+          setLoading(false);
+          throw new Error(
+            data?.depositVoucherRewards.error?.message ||
+              'An error occurred when depositing the voucher rewards',
+          );
+        }
+        // https://pizza.com/1, pizza1
+        // https://pizza.com/2, pizza2
+        setLoading(false);
+        Modal.info({
+          type: 'success',
+          title: 'Success',
+          content: (
+            <$Vertical spacing={4}>Deposit received! Notify fans with an email blast.</$Vertical>
+          ),
+          okButtonProps: { style: { display: 'initial' } },
+          okCancel: false,
+          onOk: () => {
+            resetForm();
+            setActiveTabKey('notifyFans');
+          },
+        });
+      }
     },
     [onSubmitReward, onTokenApprove],
   );
@@ -339,6 +391,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
         rewardType: RewardType.Voucher,
         amount: '0',
         tokenAddress: undefined,
+        voucherTitle: '',
         reuseableVoucher: '',
         oneTimeVouchers: '',
       },
@@ -371,21 +424,41 @@ Token is an ERC20/BEP20/etc token on a chosen blockchain.
 
     if (!!rewardType && rewardType === RewardType.Voucher) {
       infoMeta.fields.push({
+        key: 'voucherTitle',
+        label: 'Reward Title',
+        required: true,
+        tooltip: 'The title of the voucher shown to fans. It should be descriptive.',
+        // @ts-ignore
+        placeholder: 'Reward Title',
+        preserving: true,
+        rules: [
+          {
+            max: 30,
+            message: 'Title should be less than 30 characters',
+          },
+        ],
+      });
+      infoMeta.fields.push({
         key: 'reuseableVoucher',
         label: 'Reuseable Voucher',
         tooltip:
-          'All users will be shown this same voucher. Enter a link or coupon code that fans can redeem.',
-        preserving: true,
+          'All users will be shown this same voucher. Enter a link and/or coupon code that fans can redeem. Be sure to follow the recommended input format.',
         // @ts-ignore
-        widget: () => <Input style={{ width: '100%', maxWidth: '500px' }} />,
+        placeholder: 'url, code',
+        preserving: true,
       });
       // @ts-ignore
       infoMeta.fields.push({
         key: 'oneTimeVouchers',
         label: 'One-Time Use Vouchers',
         widget: 'textarea',
+        // @ts-ignore
+        placeholder: `url1, code1
+url2, code2
+url3, code3
+        `,
         tooltip:
-          'Enter a CSV list of coupon codes or links that fans can redeem. Each fan will be given one voucher, so they ideally should be one-time use vouchers that expire after redemption.',
+          'Enter a line by line list of coupon codes and/or links that fans can redeem. Each fan will be given one voucher, so they ideally should be one-time use vouchers that expire after redemption. Be sure to follow the recommended input format.',
       });
       infoMeta.fields.push({
         key: 'oneTimeVouchersPreview',
@@ -400,9 +473,7 @@ Token is an ERC20/BEP20/etc token on a chosen blockchain.
               <span style={{ color: 'gray', margin: '0px 0px 10px 0px' }}>{`${
                 !oneTimeVoucherTextRef.current
                   ? 0
-                  : (`${oneTimeVoucherTextRef.current} ` || '')
-                      .replace(/[,\n]+/g, ',')
-                      .split(/[,\n\r]/).length
+                  : (`${oneTimeVoucherTextRef.current} ` || '').split(/[\n\r]/).length
               } Vouchers for ${lootbox.runningCompletedClaims} of ${
                 lootbox.maxTickets
               } max tickets`}</span>

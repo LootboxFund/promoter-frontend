@@ -85,16 +85,6 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     },
   });
 
-  if (error || data?.baseClaimStatsForTournament?.__typename === 'ResponseError') {
-    return (
-      <Result
-        status="error"
-        title="An error occured"
-        subTitle="We can't load that data right now. Please try again later."
-      />
-    );
-  }
-
   const {
     parsedClaimData,
     parsedUserData,
@@ -369,6 +359,16 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
   };
 
   const remainingTix = (stats?.totalMaxTickets || 0) - (stats?.completedClaimCount || 0);
+
+  if (error || data?.baseClaimStatsForTournament?.__typename === 'ResponseError') {
+    return (
+      <Result
+        status="error"
+        title="An error occured"
+        subTitle="We can't load that data right now. Please try again later."
+      />
+    );
+  }
 
   return (
     <div className="mainbody">
