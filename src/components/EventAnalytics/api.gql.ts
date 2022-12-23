@@ -269,6 +269,7 @@ export const FANS_LIST_FOR_TOURNAMENT = gql`
           claimsCount
           referralsCount
           participationRewardsCount
+          expiredClaimsCount
           joinedDate
           favoriteLootbox {
             lootboxID

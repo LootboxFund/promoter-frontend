@@ -157,6 +157,16 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
         sortDirections: ['descend', 'ascend'],
       },
       {
+        title: 'Expired Claims',
+        dataIndex: 'expiredClaims',
+        key: 'expiredClaims',
+        render: (_, record) => {
+          return <span>{record.expiredClaimsCount}</span>;
+        },
+        sorter: (a, b) => a.expiredClaimsCount - b.expiredClaimsCount,
+        sortDirections: ['descend', 'ascend'],
+      },
+      {
         title: 'Date Joined',
         dataIndex: 'joinDate',
         key: 'joinDate',
