@@ -1,4 +1,5 @@
 import { QueryLootboxCompletedClaimsForTournamentArgs } from '@/api/graphql/generated/types';
+import { $InfoDescription } from '@/components/generics';
 import { convertFilenameToThumbnail } from '@/lib/storage';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
@@ -159,9 +160,12 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
 
   return (
     <div>
-      <br />
-      <Typography.Title level={3}>{`Lootbox Ticket Claims`}</Typography.Title>
-      <br />
+      <h2>Lootbox Ticket Claims</h2>
+      <$InfoDescription>
+        Track ticket distribution and see which teams are most popular at your event by seeing which
+        tickets have been claimed by your fans. This shows the Lootboxes for your event & the number
+        of ticket claims for each.
+      </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={5}>
           <Tooltip

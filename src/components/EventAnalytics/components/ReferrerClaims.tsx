@@ -1,4 +1,5 @@
 import { QueryReferrerClaimsForTournamentArgs } from '@/api/graphql/generated/types';
+import { $InfoDescription } from '@/components/generics';
 import { manifest } from '@/manifest';
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
@@ -113,9 +114,11 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanMod
   }
   return (
     <div>
-      <br />
-      <Typography.Title level={3}>Tickets Distributed by Promoter</Typography.Title>
-      <br />
+      <h2>Tickets Distributed by Promoter</h2>
+      <$InfoDescription>
+        Track event promotion and see which fans have made the most referrals for your event. This
+        graph shows you how many tickets each of your fans have distributed to their network.
+      </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={5} span={5}>
           <Tooltip

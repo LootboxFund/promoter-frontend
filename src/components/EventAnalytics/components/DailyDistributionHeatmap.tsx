@@ -6,6 +6,7 @@ import { useQuery } from '@apollo/client';
 import { Button, Col, DatePicker, Result, Row, Space, Statistic, Typography } from 'antd';
 import { QueryDailyClaimStatisticsForTournamentArgs } from '@/api/graphql/generated/types';
 import moment from 'moment';
+import { $InfoDescription } from '@/components/generics';
 
 const { RangePicker } = DatePicker;
 
@@ -248,11 +249,15 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
   }
 
   return (
-    <Space direction="vertical" id="daily-distribution-container" style={{ width: '100%' }}>
+    <div id="daily-distribution-container" style={{ width: '100%' }}>
+      <h2>Tickets Distributed Per Day</h2>
+      <$InfoDescription>
+        This is a calendar heatmap showing the number of tickets distributed per day. The darker the
+        color, the more tickets were distributed on that day. The brighter the color, the fewer
+        tickets were distributed on that day.
+      </$InfoDescription>
       <Row justify="space-between">
         <Col span={12}>
-          <br />
-          <Typography.Title level={3}>Tickets Distributed Per Day</Typography.Title>
           <RangePicker
             value={[moment(startDate), moment(endDate)]}
             onChange={(dates) => {
@@ -264,7 +269,6 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
           />
         </Col>
         <Col span={6}>
-          <br />
           <Statistic
             title="Ticket Claims"
             loading={loading}
@@ -275,7 +279,7 @@ const DailyDistributionHeatmap: React.FC<DailyDistributionHeatmapProps> = (
       </Row>
       <br />
       <Heatmap {...config} />
-    </Space>
+    </div>
   );
 };
 

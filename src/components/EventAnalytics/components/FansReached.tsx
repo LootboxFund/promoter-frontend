@@ -8,6 +8,7 @@ import { truncateUID } from '@/lib/string';
 import { convertClaimTypeForLegend } from '@/lib/graph';
 import { useMemo } from 'react';
 import { manifest } from '@/manifest';
+import { $InfoDescription } from '@/components/generics';
 
 interface FansReachedProps {
   eventID: TournamentID;
@@ -117,9 +118,11 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
 
   return (
     <div>
-      <br />
-      <Typography.Title level={3}>Tickets Owned by Fans</Typography.Title>
-      <br />
+      <h2>Tickets Owned by Fans</h2>
+      <$InfoDescription>
+        Track ticket distribution and see which fans have claimed the most tickets for your event.
+        This shows your fans & the number of valid tickets that they own.
+      </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={5}>
           <Tooltip placement="top" title="Average number of tickets owned for each fan.">

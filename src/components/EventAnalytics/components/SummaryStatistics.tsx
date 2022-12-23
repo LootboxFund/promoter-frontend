@@ -7,18 +7,11 @@ import {
   BASE_EVENT_CLAIM_STATS,
   BaseEventClaimStatsFE,
 } from '../api.gql';
-import {
-  Pie,
-  PieConfig,
-  measureTextWidth,
-  Gauge,
-  GaugeConfig,
-  Liquid,
-  LiquidConfig,
-} from '@ant-design/plots';
+import { Pie, PieConfig, measureTextWidth, Liquid, LiquidConfig } from '@ant-design/plots';
 import { green, grey, gold, magenta, cyan, geekblue } from '@ant-design/colors';
 import { useMemo } from 'react';
 import '../index.css';
+import { $InfoDescription } from '@/components/generics';
 
 interface EventSummaryStatisticsProps {
   eventID: TournamentID;
@@ -372,9 +365,12 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
 
   return (
     <div className="mainbody">
-      <br />
-      <Typography.Title level={3}>{`Summary Analytics`}</Typography.Title>
-      <br />
+      <h2>Analytics Overview</h2>
+      <$InfoDescription>
+        Grow your community through ticket sharing. Encourage fans to share their own referral links
+        to spread the word. View how many people your event has reached & how many tickets have been
+        claimed.
+      </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={7}>
           <Liquid {...liquidConfig} />
