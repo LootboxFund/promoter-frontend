@@ -78,7 +78,7 @@ import LootboxGallery from '@/components/LootboxGallery';
 import EventAnalytics from '@/components/EventAnalytics';
 import AirdropControlPanel from '@/components/AirdropControlPanel';
 import { OfferStrategyType } from '../../../api/graphql/generated/types';
-import ActivationFunnel from '@/components/OfferAnalytics/components/ActivationFunnel';
+import EventActivationFunnel from '@/components/OfferAnalytics/components/EventActivationFunnel';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -502,7 +502,15 @@ const EventPage: React.FC = () => {
                   </Link>
                 </$Horizontal>
                 <Tabs defaultActiveKey="1" type="card" style={{ width: '100%' }}>
-                  <Tabs.TabPane tab="Ad Placements" key="1">
+                  <Tabs.TabPane tab="Activation Funnel" key="1">
+                    <EventActivationFunnel
+                      eventID={tournament.id as TournamentID}
+                      offerID={dealConfig.offerID as OfferID}
+                      onInviteFanModalToggle={() => setIsReferralModalOpen(!isReferralModalOpen)}
+                    />
+                  </Tabs.TabPane>
+
+                  <Tabs.TabPane tab="Ad Placements" key="2">
                     <$Horizontal justifyContent="flex-end">
                       <Popconfirm
                         title={
@@ -598,13 +606,6 @@ const EventPage: React.FC = () => {
                           );
                         })}
                     </div>
-                  </Tabs.TabPane>
-
-                  <Tabs.TabPane tab="Activation Funnel" key="2">
-                    <ActivationFunnel
-                      eventID={tournament.id as TournamentID}
-                      offerID={dealConfig.offerID as OfferID}
-                    />
                   </Tabs.TabPane>
 
                   <Tabs.TabPane tab="Revenue Sharing" key="3">

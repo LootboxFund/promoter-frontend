@@ -7,7 +7,7 @@ import { useMemo } from 'react';
 import { OfferActivationsForEventFE, OFFER_ACTIVATIONS_FOR_EVENT } from '../api.gql';
 import { $InfoDescription } from '../../generics';
 
-interface ActivationFunnelProps {
+interface EventActivationFunnelProps {
   eventID: TournamentID;
   offerID: OfferID;
   onInviteFanModalToggle: () => void;
@@ -16,7 +16,7 @@ interface ActivationFunnelProps {
 const YDataLabel = 'activationName';
 const XDataLabel = 'adEventCount';
 
-const ActivationFunnel: React.FC<ActivationFunnelProps> = (props) => {
+const EventActivationFunnel: React.FC<EventActivationFunnelProps> = (props) => {
   const { data, loading, error } = useQuery<
     OfferActivationsForEventFE,
     QueryOfferActivationsForEventArgs
@@ -82,9 +82,9 @@ const ActivationFunnel: React.FC<ActivationFunnelProps> = (props) => {
         Promote fan tickets for your event to increase revenue and earn commission on successful
         conversions for this offer. Monetize your platform and provide value to followers.
       </$InfoDescription>
-      <Divider />
       <Row>
         <Col sm={24} md={18}>
+          <br />
           {isEmptyData ? (
             <Result
               status="info"
@@ -106,6 +106,7 @@ const ActivationFunnel: React.FC<ActivationFunnelProps> = (props) => {
           style={{
             display: 'flex',
             flexDirection: 'column',
+            justifyContent: 'center',
           }}
         >
           {loading && [
@@ -134,4 +135,4 @@ const ActivationFunnel: React.FC<ActivationFunnelProps> = (props) => {
   );
 };
 
-export default ActivationFunnel;
+export default EventActivationFunnel;
