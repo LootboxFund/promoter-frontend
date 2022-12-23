@@ -367,9 +367,8 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     <div className="mainbody">
       <h2>Analytics Overview</h2>
       <$InfoDescription>
-        Grow your community through ticket sharing. Encourage fans to share their own referral links
-        to spread the word. View how many people your event has reached & how many tickets have been
-        claimed.
+        Grow your community through ticket sharing. View how many people your event has reached &
+        how many tickets have been claimed.
       </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={7}>

@@ -4,7 +4,19 @@ import { manifest } from '@/manifest';
 import { Bar } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Button, Col, Divider, Result, Row, Statistic, Tooltip, Typography } from 'antd';
+import {
+  Avatar,
+  Image,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Result,
+  Row,
+  Statistic,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { useMemo } from 'react';
 import {
   ReferrerClaimsForTournamentResponseFE,
@@ -29,11 +41,12 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanMod
 
   const convertDataRowFE = (
     row: ReferrerClaimsForTournamentRow,
-  ): { userName: string; ticketsClaimed: number; userID: string } => {
+  ): { userName: string; ticketsClaimed: number; userID: string; userAvatar: string } => {
     return {
       userName: row.userName,
       ticketsClaimed: row.claimCount,
       userID: row.userID,
+      userAvatar: row.userAvatar,
     };
   };
 
@@ -66,6 +79,29 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanMod
     seriesField: 'ticketsClaimed',
     label: {
       position: 'middle' as 'middle',
+    },
+    tooltip: {
+      customContent: (title: string, items: any) => {
+        const item = items[0];
+        const data = item?.data;
+        return (
+          <Card bordered={false}>
+            <Avatar
+              src={data?.userAvatar ? <Image src={data?.userAvatar} /> : undefined}
+              style={{ marginRight: '12px' }}
+            />
+            <Typography.Text strong>{title}</Typography.Text>
+            <br />
+            <br />
+            <Typography.Text>
+              Generated <b>{data?.ticketsClaimed || 0}</b> ticket claims for your event via
+              referrals
+            </Typography.Text>
+            <br />
+            <Typography.Text type="secondary">Click to view their profile.</Typography.Text>
+          </Card>
+        );
+      },
     },
     legend: {
       position: 'top-left' as 'top-left',
@@ -116,8 +152,7 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({ eventID, onInviteFanMod
     <div>
       <h2>Tickets Distributed by Promoter</h2>
       <$InfoDescription>
-        Track event promotion and see which fans have made the most referrals for your event. This
-        graph shows you how many tickets each of your fans have distributed to their network.
+        Track event promotion and see which promoters have made the most referrals for your event.
       </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={5} span={5}>

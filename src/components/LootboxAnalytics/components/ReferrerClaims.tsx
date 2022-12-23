@@ -3,7 +3,19 @@ import { manifest } from '@/manifest';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { LootboxID, TournamentID } from '@wormgraph/helpers';
-import { Button, Col, Divider, Result, Row, Statistic, Tooltip, Typography } from 'antd';
+import {
+  Avatar,
+  Image,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Result,
+  Row,
+  Statistic,
+  Tooltip,
+  Typography,
+} from 'antd';
 import { useMemo, useRef } from 'react';
 import {
   GET_REFERRER_CLAIM_STATS,
@@ -38,7 +50,7 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
 
   const convertDataRowFE = (
     row: ReferrerLootboxClaimRowFE,
-  ): { [YDataLabel]: string; [XDataLabel]: number; userID: string } => {
+  ): { [YDataLabel]: string; [XDataLabel]: number; userID: string; userAvatar: string } => {
     let userName = row.userName;
     if (row.userName in dataMapping.current) {
       userName = `${row.userName} (${dataMapping.current[row.userName]})`;
@@ -50,6 +62,7 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
       [YDataLabel]: userName,
       [XDataLabel]: row.claimCount,
       userID: row.userID,
+      userAvatar: row.userAvatar,
     };
   };
 
@@ -82,6 +95,29 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
     height: 520,
     label: {
       position: 'middle' as 'middle',
+    },
+    tooltip: {
+      customContent: (title: string, items: any) => {
+        const item = items[0];
+        const data = item?.data;
+        return (
+          <Card bordered={false}>
+            <Avatar
+              src={data?.userAvatar ? <Image src={data?.userAvatar} /> : undefined}
+              style={{ marginRight: '12px' }}
+            />
+            <Typography.Text strong>{title}</Typography.Text>
+            <br />
+            <br />
+            <Typography.Text>
+              Generated <b>{data?.ticketsClaimed || 0}</b> ticket claims for your Lootbox via
+              referrals
+            </Typography.Text>
+            <br />
+            <Typography.Text type="secondary">Click to view their profile.</Typography.Text>
+          </Card>
+        );
+      },
     },
     legend: {
       position: 'top-left' as 'top-left',
@@ -131,9 +167,7 @@ const ReferrerClaims: React.FC<ReferrerClaimsProps> = ({
 
   return (
     <div>
-      <br />
-      <Typography.Title level={3}>Tickets Distributed by Promoter</Typography.Title>
-      <br />
+      <h2>Tickets Distributed by Promoter</h2>
       <Row gutter={8} wrap>
         <Col sm={24} md={5}>
           <Tooltip

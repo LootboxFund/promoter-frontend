@@ -128,9 +128,7 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
 
   return (
     <div>
-      <br />
-      <Typography.Title level={3}>Tickets Distributed by Campaign</Typography.Title>
-      <br />
+      <h2>Tickets Distributed by Campaign</h2>
       <Row gutter={8} wrap>
         <Col sm={24} md={5}>
           <Tooltip

@@ -121,7 +121,6 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
       <h2>Tickets Owned by Fans</h2>
       <$InfoDescription>
         Track ticket distribution and see which fans have claimed the most tickets for your event.
-        This shows your fans & the number of valid tickets that they own.
       </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={5}>

@@ -57,10 +57,12 @@ const EventActivationFunnel: React.FC<EventActivationFunnelProps> = (props) => {
     data: parsedData,
     xField: XDataLabel,
     yField: YDataLabel,
-    legend: false,
     shape: 'pyramid',
     loading,
   };
+
+  const isEmptyData =
+    !loading && (parsedData.length === 0 || parsedData.every((row) => row[YDataLabel] === 0));
 
   if (error || data?.offerActivationsForEvent?.__typename === 'ResponseError') {
     return (
@@ -72,15 +74,12 @@ const EventActivationFunnel: React.FC<EventActivationFunnelProps> = (props) => {
     );
   }
 
-  const isEmptyData =
-    !loading && (parsedData.length === 0 || parsedData.every((row) => row[YDataLabel] === 0));
-
   return (
     <div>
       <h2>Activation Funnel</h2>
       <$InfoDescription>
         Promote fan tickets for your event to increase revenue and earn commission on successful
-        conversions for this offer. Monetize your platform and provide value to followers.
+        conversions for this offer.
       </$InfoDescription>
       <Row>
         <Col sm={24} md={18}>

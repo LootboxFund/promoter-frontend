@@ -162,9 +162,8 @@ const LootboxClaims: React.FC<LootboxClaimsProps> = ({ eventID, onInviteFanModal
     <div>
       <h2>Lootbox Ticket Claims</h2>
       <$InfoDescription>
-        Track ticket distribution and see which teams are most popular at your event by seeing which
-        tickets have been claimed by your fans. This shows the Lootboxes for your event & the number
-        of ticket claims for each.
+        See which teams are the most popular at your event by seeing which Lootboxes have the most
+        claimed tickets.
       </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={5}>

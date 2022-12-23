@@ -35,5 +35,3 @@ export const OFFER_ACTIVATIONS_FOR_EVENT = gql`
     }
   }
 `;
-
-export {};
