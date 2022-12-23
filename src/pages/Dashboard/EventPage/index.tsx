@@ -78,6 +78,7 @@ import LootboxGallery from '@/components/LootboxGallery';
 import EventAnalytics from '@/components/EventAnalytics';
 import AirdropControlPanel from '@/components/AirdropControlPanel';
 import { OfferStrategyType } from '../../../api/graphql/generated/types';
+import EventActivationFunnel from '@/components/OfferAnalytics/components/EventActivationFunnel';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -308,14 +309,6 @@ const EventPage: React.FC = () => {
           <$Horizontal justifyContent="space-between">
             <h1>{tournament.title}</h1>
             <$Horizontal justifyContent="flex-start">
-              <a
-                href={`${manifest.microfrontends.webflow.battlePage}?tournament=${tournament.id}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Button type="ghost">View Event</Button>
-              </a>
-              <$ColumnGap />
               <a href={tournament.playbookUrl || ''} target="_blank" rel="noreferrer">
                 <Button type="primary">Open Playbook</Button>
               </a>
@@ -501,7 +494,15 @@ const EventPage: React.FC = () => {
                   </Link>
                 </$Horizontal>
                 <Tabs defaultActiveKey="1" type="card" style={{ width: '100%' }}>
-                  <Tabs.TabPane tab="Ad Placements" key="1">
+                  <Tabs.TabPane tab="Activation Funnel" key="1">
+                    <EventActivationFunnel
+                      eventID={tournament.id as TournamentID}
+                      offerID={dealConfig.offerID as OfferID}
+                      onInviteFanModalToggle={() => setIsReferralModalOpen(!isReferralModalOpen)}
+                    />
+                  </Tabs.TabPane>
+
+                  <Tabs.TabPane tab="Ad Placements" key="2">
                     <$Horizontal justifyContent="flex-end">
                       <Popconfirm
                         title={
@@ -598,7 +599,8 @@ const EventPage: React.FC = () => {
                         })}
                     </div>
                   </Tabs.TabPane>
-                  <Tabs.TabPane tab="Revenue Sharing" key="2">
+
+                  <Tabs.TabPane tab="Revenue Sharing" key="3">
                     <$Horizontal justifyContent="flex-end" style={{ marginBottom: '10px' }}>
                       <Button onClick={() => setOfferToAddPromoter(dealConfig)}>
                         Add Promoter
@@ -738,7 +740,7 @@ const EventPage: React.FC = () => {
                     )}
                   </Tabs.TabPane>
                   {dealConfig.strategy === OfferStrategyType.Airdrop && (
-                    <Tabs.TabPane tab="Airdrop" key="3">
+                    <Tabs.TabPane tab="Airdrop" key="4">
                       {eventID && (
                         <AirdropControlPanel
                           tournamentID={eventID as TournamentID}

@@ -154,9 +154,7 @@ const FansReached: React.FC<FansReachedProps> = ({
 
   return (
     <div>
-      <br />
-      <Typography.Title level={3}>Tickets Owned by Fans</Typography.Title>
-      <br />
+      <h2>Tickets Owned by Fans</h2>
       <Row gutter={8} wrap>
         <Col sm={24} md={5}>
           <Tooltip placement="top" title="Number of ticket claims for this Lootbox.">

@@ -1,4 +1,5 @@
 import { QueryCampaignClaimsForTournamentArgs } from '@/api/graphql/generated/types';
+import { $InfoDescription } from '@/components/generics';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
@@ -127,9 +128,11 @@ const CampaignDistribution: React.FC<CampaignDistributionProps> = ({
 
   return (
     <div>
-      <br />
-      <Typography.Title level={3}>Tickets Distributed by Campaign</Typography.Title>
-      <br />
+      <h2>Tickets Distributed by Campaign</h2>
+      <$InfoDescription>
+        See which campaigns are the best at promoting your event. This is a graph showing how many
+        referrals each campaign has made.
+      </$InfoDescription>
       <Row gutter={8} wrap>
         <Col sm={24} md={5}>
           <Tooltip

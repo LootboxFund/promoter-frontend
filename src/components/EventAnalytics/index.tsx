@@ -78,7 +78,7 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({
   ];
   return (
     <>
-      <Tabs items={chartItems} />
+      <Tabs items={chartItems} type="card" />
     </>
   );
 };
