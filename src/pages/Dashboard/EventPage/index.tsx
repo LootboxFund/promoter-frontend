@@ -78,6 +78,7 @@ import LootboxGallery from '@/components/LootboxGallery';
 import EventAnalytics from '@/components/EventAnalytics';
 import AirdropControlPanel from '@/components/AirdropControlPanel';
 import { OfferStrategyType } from '../../../api/graphql/generated/types';
+import ActivationFunnel from '@/components/OfferAnalytics/components/ActivationFunnel';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -598,7 +599,15 @@ const EventPage: React.FC = () => {
                         })}
                     </div>
                   </Tabs.TabPane>
-                  <Tabs.TabPane tab="Revenue Sharing" key="2">
+
+                  <Tabs.TabPane tab="Activation Funnel" key="2">
+                    <ActivationFunnel
+                      eventID={tournament.id as TournamentID}
+                      offerID={dealConfig.offerID as OfferID}
+                    />
+                  </Tabs.TabPane>
+
+                  <Tabs.TabPane tab="Revenue Sharing" key="3">
                     <$Horizontal justifyContent="flex-end" style={{ marginBottom: '10px' }}>
                       <Button onClick={() => setOfferToAddPromoter(dealConfig)}>
                         Add Promoter
@@ -738,7 +747,7 @@ const EventPage: React.FC = () => {
                     )}
                   </Tabs.TabPane>
                   {dealConfig.strategy === OfferStrategyType.Airdrop && (
-                    <Tabs.TabPane tab="Airdrop" key="3">
+                    <Tabs.TabPane tab="Airdrop" key="4">
                       {eventID && (
                         <AirdropControlPanel
                           tournamentID={eventID as TournamentID}
