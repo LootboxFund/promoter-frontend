@@ -2,7 +2,7 @@ import { QueryOfferActivationsForEventArgs } from '@/api/graphql/generated/types
 import { Funnel, FunnelConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { OfferID, TournamentID } from '@wormgraph/helpers';
-import { Button, Col, Divider, Result, Row, Statistic, Tooltip, Typography } from 'antd';
+import { Button, Col, Result, Row, Statistic, Tooltip } from 'antd';
 import { useMemo } from 'react';
 import { OfferActivationsForEventFE, OFFER_ACTIVATIONS_FOR_EVENT } from '../api.gql';
 import { $InfoDescription } from '../../generics';

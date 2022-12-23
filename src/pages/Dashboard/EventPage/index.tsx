@@ -309,14 +309,6 @@ const EventPage: React.FC = () => {
           <$Horizontal justifyContent="space-between">
             <h1>{tournament.title}</h1>
             <$Horizontal justifyContent="flex-start">
-              <a
-                href={`${manifest.microfrontends.webflow.battlePage}?tournament=${tournament.id}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Button type="ghost">View Event</Button>
-              </a>
-              <$ColumnGap />
               <a href={tournament.playbookUrl || ''} target="_blank" rel="noreferrer">
                 <Button type="primary">Open Playbook</Button>
               </a>
