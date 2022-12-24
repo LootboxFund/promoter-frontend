@@ -312,6 +312,7 @@ const EventPage: React.FC = () => {
               <a href={tournament.playbookUrl || ''} target="_blank" rel="noreferrer">
                 <Button type="ghost">Open Playbook</Button>
               </a>
+              <$ColumnGap />
               <Button
                 type="primary"
                 onClick={() => setIsReferralModalOpen(true)}
