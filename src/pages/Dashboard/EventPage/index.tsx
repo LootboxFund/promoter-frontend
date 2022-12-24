@@ -310,8 +310,15 @@ const EventPage: React.FC = () => {
             <h1>{tournament.title}</h1>
             <$Horizontal justifyContent="flex-start">
               <a href={tournament.playbookUrl || ''} target="_blank" rel="noreferrer">
-                <Button type="primary">Open Playbook</Button>
+                <Button type="ghost">Open Playbook</Button>
               </a>
+              <Button
+                type="primary"
+                onClick={() => setIsReferralModalOpen(true)}
+                disabled={tournamentLootboxes.length === 0}
+              >
+                Invite Fans
+              </Button>
             </$Horizontal>
           </$Horizontal>
           {renderHelpText()}
