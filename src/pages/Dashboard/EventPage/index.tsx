@@ -28,7 +28,7 @@ import {
 } from '@wormgraph/helpers';
 import { AffiliateType } from '@wormgraph/helpers';
 import Spin from 'antd/lib/spin';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   EDIT_TOURNAMENT_AS_ORGANIZER,
   REMOVE_ADSET_FROM_TOURNAMENT,
@@ -102,6 +102,7 @@ const EventPage: React.FC = () => {
   const { affiliateUser } = useAffiliateUser();
   const { id: affiliateID } = affiliateUser;
   const { eventID } = useParams();
+  const targetIntersectionAutoCloseTOC = useRef();
   const [rateCard, setRateCard] = useState<RateCardModalInput | null>(null);
   const [offerToAddPromoter, setOfferToAddPromoter] = useState<DealConfigTournament | null>(null);
   const [tournament, setTournament] = useState<Tournament>();
@@ -126,6 +127,28 @@ const EventPage: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    // Set up the IntersectionObserver
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Check if the target element is intersecting the viewport
+        if (entries[0].isIntersecting) {
+          // The element is intersecting the viewport, do something here
+          setShowTableOfContents(true);
+        }
+      },
+      { threshold: [0.5] },
+    );
+
+    if (targetIntersectionAutoCloseTOC.current) {
+      // Start observing the target element
+      observer.observe(targetIntersectionAutoCloseTOC.current as unknown as Element);
+
+      // Clean up the observer when the component unmounts
+      return () => observer.unobserve(targetIntersectionAutoCloseTOC.current as unknown as Element);
+    }
+  }, [tournament]);
 
   const { data: tournamentLootboxesResponse, loading: loadingTournamentLootboxes } = useQuery<
     { tournament: TournamentLootboxesResponseFE },
@@ -307,7 +330,12 @@ const EventPage: React.FC = () => {
         <div id="breadcrumbs" style={{ maxWidth }}>
           <BreadCrumbDynamic breadLine={breadLine} />
           <$Horizontal justifyContent="space-between">
-            <h1>{tournament.title}</h1>
+            <h1
+              // @ts-ignore
+              ref={targetIntersectionAutoCloseTOC}
+            >
+              {tournament.title}
+            </h1>
             <$Horizontal justifyContent="flex-start">
               <a href={tournament.playbookUrl || ''} target="_blank" rel="noreferrer">
                 <Button type="ghost">Open Playbook</Button>
@@ -346,10 +374,30 @@ const EventPage: React.FC = () => {
             <Affix offsetTop={60} style={{ pointerEvents: 'none', marginRight: 'auto' }}>
               <Card style={{ width: '300px', pointerEvents: 'all' }}>
                 <$Horizontal justifyContent="space-between">
-                  <h4>Table of Contents</h4>
-                  <Button size="small" onClick={() => setShowTableOfContents(!showTableOfContents)}>
-                    {showTableOfContents ? 'Hide' : 'Expand'}
-                  </Button>
+                  <$Vertical>
+                    {showTableOfContents ? (
+                      <h4>Table of Contents</h4>
+                    ) : (
+                      <a onClick={() => setShowTableOfContents(true)}>Table of Contents</a>
+                    )}
+                  </$Vertical>
+                  {showTableOfContents ? (
+                    <Button
+                      size="small"
+                      onClick={() => setShowTableOfContents(!showTableOfContents)}
+                    >
+                      {showTableOfContents ? 'Hide' : 'Expand'}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="primary"
+                      size="middle"
+                      onClick={() => setIsReferralModalOpen(true)}
+                      disabled={tournamentLootboxes.length === 0}
+                    >
+                      Invite Fans
+                    </Button>
+                  )}
                 </$Horizontal>
                 {showTableOfContents && (
                   <Anchor offsetTop={70}>
@@ -374,7 +422,6 @@ const EventPage: React.FC = () => {
           </$Horizontal>
           <br />
           <br />
-
           <$Horizontal justifyContent="space-between">
             <h2 id="ticket-analytics">Ticket Analytics</h2>
             <Button
