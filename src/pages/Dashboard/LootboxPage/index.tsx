@@ -22,7 +22,7 @@ import {
 import styles from './index.less';
 import { useParams } from 'react-router-dom';
 import BreadCrumbDynamic from '@/components/BreadCrumbDynamic';
-import { $Horizontal, $InfoDescription } from '@/components/generics';
+import { $Horizontal, $InfoDescription, $ColumnGap } from '@/components/generics';
 import CreateLootboxForm, { EditLootboxRequest } from '@/components/CreateLootboxForm';
 import { Address, ChainIDHex, LootboxID, TournamentID } from '@wormgraph/helpers';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
@@ -31,7 +31,7 @@ import DepositRewardForm, {
   CheckAllowancePayload,
   RewardSponsorsPayload,
 } from '@/components/DepositRewardForm';
-import { Deposit, useLootbox } from '@/hooks/useLootbox';
+import { Deposit, DepositWeb3, useLootbox } from '@/hooks/useLootbox';
 import { ContractTransaction, ethers } from 'ethers';
 import useERC20 from '@/hooks/useERC20';
 import useWeb3 from '@/hooks/useWeb3';
@@ -67,7 +67,7 @@ const LootboxPage: React.FC = () => {
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const { currentAccount, library, network } = useWeb3();
   const { lootboxFactory } = useLootboxFactory();
-  const [deposits, setDeposits] = useState<Deposit[]>([]);
+  const [deposits, setDeposits] = useState<DepositWeb3[]>([]);
   const isPolling = useRef<boolean>(false);
   const polledLootboxID = useRef<LootboxID | null>(null);
 
@@ -503,13 +503,19 @@ const LootboxPage: React.FC = () => {
       <BreadCrumbDynamic breadLine={breadLine} />
       <$Horizontal justifyContent="space-between">
         <h1>{lootbox.name}</h1>
-        <a
-          href={`${manifest.microfrontends.webflow.cosmicLootboxPage}?lid=${lootboxID}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Button type="primary">View Public Page</Button>
-        </a>
+        <$Horizontal>
+          <a
+            href={`${manifest.microfrontends.webflow.cosmicLootboxPage}?lid=${lootboxID}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Button type="ghost">View Prize Page</Button>
+          </a>
+          <$ColumnGap />
+          <Button type="primary" onClick={() => setIsReferralModalOpen(true)}>
+            Invite Fans
+          </Button>
+        </$Horizontal>
       </$Horizontal>
       {renderHelpText()}
       <div id="create-lootbox-form" style={{ minWidth: '1000px', maxWidth: '1000px' }}>
