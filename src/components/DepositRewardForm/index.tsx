@@ -439,7 +439,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           okCancel: false,
           onOk: () => {
             resetForm();
-            setActiveTabKey('notifyFans');
+            setActiveTabKey('deposit-history');
           },
         });
       }
