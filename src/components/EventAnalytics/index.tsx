@@ -13,6 +13,7 @@ export interface EventAnalyticsProps {
   onInviteFanModalToggle: () => void;
   eventCreatedAt?: number;
   eventScheduledAt?: number;
+  openDownloadFansListModal: () => void;
 }
 
 const EventAnalytics: React.FC<EventAnalyticsProps> = ({

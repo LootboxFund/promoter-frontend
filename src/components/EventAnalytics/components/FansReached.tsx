@@ -9,6 +9,7 @@ import { convertClaimTypeForLegend } from '@/lib/graph';
 import { useMemo } from 'react';
 import { manifest } from '@/manifest';
 import { $InfoDescription } from '@/components/generics';
+import EventCSVDownloader from '@/components/EventCSVDownloader';
 
 interface FansReachedProps {
   eventID: TournamentID;
@@ -118,7 +119,10 @@ const FansReached: React.FC<FansReachedProps> = ({ eventID, onInviteFanModalTogg
 
   return (
     <div>
-      <h2>Tickets Owned by Fans</h2>
+      <Row justify="space-between">
+        <h2>Tickets Owned by Fans</h2>
+        <EventCSVDownloader type="ghost" text="Download CSV" eventID={eventID} />
+      </Row>
       <$InfoDescription>
         Track ticket distribution and see which fans have claimed the most tickets for your event.
       </$InfoDescription>

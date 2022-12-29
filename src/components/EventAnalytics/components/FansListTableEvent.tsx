@@ -1,29 +1,20 @@
 import {
   FanListRowForTournament,
   FansListForTournamentResponse,
-  QueryClaimerStatsForTournamentArgs,
   QueryFansListForTournamentArgs,
 } from '@/api/graphql/generated/types';
 import enUS from 'antd/es/locale/en_US';
-import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
-import { TournamentID, UserID } from '@wormgraph/helpers';
-import { Avatar, Button, Checkbox, Input, Result, Spin, Tag, Tooltip } from 'antd';
-import {
-  ClaimerStatsRowFE,
-  ClaimerStatsForTournamentFE,
-  CLAIMER_STATS,
-  FANS_LIST_FOR_TOURNAMENT,
-} from '../api.gql';
-import { truncateUID } from '@/lib/string';
-import { convertClaimTypeForLegend } from '@/lib/graph';
+import { TournamentID } from '@wormgraph/helpers';
+import { Avatar, Button, Input, Result, Row, Spin, Tag, Tooltip } from 'antd';
+import { FANS_LIST_FOR_TOURNAMENT } from '../api.gql';
 import { useMemo, useState } from 'react';
 import Table, { ColumnsType } from 'antd/lib/table';
 import { $ColumnGap, $Horizontal, $InfoDescription } from '@/components/generics';
-import { InfoCircleOutlined } from '@ant-design/icons';
 import { Link } from '@umijs/max';
 import moment from 'moment';
 import { manifest } from '@/manifest';
+import EventCSVDownloader from '@/components/EventCSVDownloader';
 
 interface FansListTableEventProps {
   eventID: TournamentID;
@@ -208,19 +199,6 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
     );
   };
   const matchingFans = fans.filter(filterBySearchString);
-  if (loading) {
-    return (
-      <div style={{ width: '100%', padding: '5px', height: '200px' }}>
-        <$Horizontal
-          justifyContent="center"
-          verticalCenter
-          style={{ width: '100%', height: '100%' }}
-        >
-          <Spin />
-        </$Horizontal>
-      </div>
-    );
-  }
 
   if (error || data?.fansListForTournament.__typename === 'ResponseError') {
     return (
@@ -234,7 +212,10 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
 
   return (
     <div>
-      <h2>{`List of ${fans.length} Fans`}</h2>
+      <Row justify="space-between">
+        <h2>{`List of ${fans.length} Fans`}</h2>
+        <EventCSVDownloader type="ghost" text="Download CSV" eventID={eventID} />
+      </Row>
       <$InfoDescription>
         This is a list of all the fans that have claimed a ticket for your tournament. Try sorting
         by the various columns.
@@ -254,11 +235,13 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
       </$Horizontal>
       <br />
       <Table
+        loading={loading}
         // @ts-ignore
         columns={columns}
         dataSource={matchingFans}
         // @ts-ignore
         locale={enUS}
+        scroll={{ x: true }}
       />
     </div>
   );

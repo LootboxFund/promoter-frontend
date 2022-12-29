@@ -6,6 +6,7 @@ import { Button, Col, Result, Row, Statistic, Tooltip } from 'antd';
 import { useMemo } from 'react';
 import { OfferActivationsForEventFE, OFFER_ACTIVATIONS_FOR_EVENT } from '../api.gql';
 import { $InfoDescription } from '../../generics';
+import DummyFunnel from './DummyFunnel';
 
 interface EventActivationFunnelProps {
   eventID: TournamentID;
@@ -85,16 +86,20 @@ const EventActivationFunnel: React.FC<EventActivationFunnelProps> = (props) => {
         <Col sm={24} md={18}>
           <br />
           {isEmptyData ? (
-            <Result
-              status="info"
-              title="Invite Fans"
-              subTitle="View detailed analytics for your offer by inviting fans to your event."
-              extra={[
-                <Button onClick={props.onInviteFanModalToggle} type="primary">
-                  Invite Fans
-                </Button>,
-              ]}
-            />
+            <div>
+              <DummyFunnel />
+              <Result
+                icon={<></>}
+                title="Invite Fans"
+                subTitle="View detailed analytics for your offer by inviting fans to your event."
+                extra={[
+                  <Button onClick={props.onInviteFanModalToggle} type="primary">
+                    Invite Fans
+                  </Button>,
+                ]}
+                style={{ paddingTop: '0px' }}
+              />
+            </div>
           ) : (
             <Funnel {...config} />
           )}
