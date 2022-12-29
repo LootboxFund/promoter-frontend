@@ -347,7 +347,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     statistic: {
       title: false,
       content: {
-        content: '🎁',
+        content: '🎟',
         style: {
           fontSize: '26px',
           lineHeight: '40px',

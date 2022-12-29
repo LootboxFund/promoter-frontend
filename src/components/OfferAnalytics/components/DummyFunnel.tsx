@@ -22,7 +22,7 @@ const DummyFunnel: FunctionComponent = () => {
     yField: 'number',
     shape: 'pyramid',
     theme: {
-      colors10: ['#C0C0C0', '#A9A9A9', '#778899', '#696969', '#708090'],
+      colors10: ['#BFBFBF', '#9B9B9B', '#757575', '#535353'],
     },
     legend: false,
   };
