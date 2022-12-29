@@ -129,27 +129,27 @@ const EventPage: React.FC = () => {
     },
   });
 
-  useEffect(() => {
-    // Set up the IntersectionObserver
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Check if the target element is intersecting the viewport
-        if (entries[0].isIntersecting) {
-          // The element is intersecting the viewport, do something here
-          setShowTableOfContents(true);
-        }
-      },
-      { threshold: [0.5] },
-    );
+  // useEffect(() => {
+  //   // Set up the IntersectionObserver
+  //   const observer = new IntersectionObserver(
+  //     (entries) => {
+  //       // Check if the target element is intersecting the viewport
+  //       if (entries[0].isIntersecting) {
+  //         // The element is intersecting the viewport, do something here
+  //         setShowTableOfContents(true);
+  //       }
+  //     },
+  //     { threshold: [0.5] },
+  //   );
 
-    if (targetIntersectionAutoCloseTOC.current) {
-      // Start observing the target element
-      observer.observe(targetIntersectionAutoCloseTOC.current as unknown as Element);
+  //   if (targetIntersectionAutoCloseTOC.current) {
+  //     // Start observing the target element
+  //     observer.observe(targetIntersectionAutoCloseTOC.current as unknown as Element);
 
-      // Clean up the observer when the component unmounts
-      return () => observer.unobserve(targetIntersectionAutoCloseTOC.current as unknown as Element);
-    }
-  }, [tournament]);
+  //     // Clean up the observer when the component unmounts
+  //     return () => observer.unobserve(targetIntersectionAutoCloseTOC.current as unknown as Element);
+  //   }
+  // }, [tournament]);
 
   const { data: tournamentLootboxesResponse, loading: loadingTournamentLootboxes } = useQuery<
     { tournament: TournamentLootboxesResponseFE },
