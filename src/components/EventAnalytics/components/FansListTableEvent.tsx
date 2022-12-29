@@ -6,7 +6,7 @@ import {
 import enUS from 'antd/es/locale/en_US';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Avatar, Button, Input, Result, Spin, Tag, Tooltip } from 'antd';
+import { Avatar, Button, Input, Result, Row, Spin, Tag, Tooltip } from 'antd';
 import { FANS_LIST_FOR_TOURNAMENT } from '../api.gql';
 import { useMemo, useState } from 'react';
 import Table, { ColumnsType } from 'antd/lib/table';
@@ -17,9 +17,13 @@ import { manifest } from '@/manifest';
 
 interface FansListTableEventProps {
   eventID: TournamentID;
+  onOpenDownloadCSVModal: () => void;
 }
 
-const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
+const FansListTableEvent: React.FC<FansListTableEventProps> = ({
+  eventID,
+  onOpenDownloadCSVModal,
+}) => {
   const { data, loading, error } = useQuery<
     { fansListForTournament: FansListForTournamentResponse },
     QueryFansListForTournamentArgs
@@ -198,19 +202,6 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
     );
   };
   const matchingFans = fans.filter(filterBySearchString);
-  if (loading) {
-    return (
-      <div style={{ width: '100%', padding: '5px', height: '200px' }}>
-        <$Horizontal
-          justifyContent="center"
-          verticalCenter
-          style={{ width: '100%', height: '100%' }}
-        >
-          <Spin />
-        </$Horizontal>
-      </div>
-    );
-  }
 
   if (error || data?.fansListForTournament.__typename === 'ResponseError') {
     return (
@@ -224,7 +215,12 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
 
   return (
     <div>
-      <h2>{`List of ${fans.length} Fans`}</h2>
+      <Row justify="space-between">
+        <h2>{`List of ${fans.length} Fans`}</h2>
+        <Button type="ghost" onClick={onOpenDownloadCSVModal}>
+          Download CSV
+        </Button>
+      </Row>
       <$InfoDescription>
         This is a list of all the fans that have claimed a ticket for your tournament. Try sorting
         by the various columns.
@@ -244,6 +240,7 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
       </$Horizontal>
       <br />
       <Table
+        loading={loading}
         // @ts-ignore
         columns={columns}
         dataSource={matchingFans}

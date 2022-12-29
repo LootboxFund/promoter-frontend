@@ -455,6 +455,7 @@ const EventPage: React.FC = () => {
               onInviteFanModalToggle={() => setIsReferralModalOpen(!isReferralModalOpen)}
               eventCreatedAt={tournament?.timestamps?.createdAt}
               eventScheduledAt={tournament?.tournamentDate}
+              openDownloadFansListModal={() => setIsCSVDownloaderOpen(true)}
             />
           </Card>
           <br />

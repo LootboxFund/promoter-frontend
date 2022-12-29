@@ -1,7 +1,7 @@
 import { QueryBaseClaimStatsForTournamentArgs } from '@/api/graphql/generated/types';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
-import { Col, Divider, Result, Row, Statistic, Tooltip, Typography } from 'antd';
+import { Button, Col, Divider, Result, Row, Statistic, Tooltip, Typography } from 'antd';
 import {
   BaseEventClaimStatsResponseFE,
   BASE_EVENT_CLAIM_STATS,
@@ -11,11 +11,12 @@ import { Pie, PieConfig, measureTextWidth, Liquid, LiquidConfig } from '@ant-des
 import { green, grey, gold, magenta, cyan, geekblue } from '@ant-design/colors';
 import { useMemo } from 'react';
 import '../index.css';
-import { $InfoDescription } from '@/components/generics';
+import { $Horizontal, $InfoDescription } from '@/components/generics';
 
 interface EventSummaryStatisticsProps {
   eventID: TournamentID;
   onInviteFanModalToggle: () => void;
+  onOpenDownloadCSVModal: () => void;
 }
 
 interface DataRowUserFE {
@@ -337,17 +338,21 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
   // };
 
   const liquidConfig: LiquidConfig = {
-    // percent: Math.round(10000 * distributionProgress) / 100,
     percent: distributionProgress,
-    width: 160,
-    height: 160,
+    height: 100,
     loading: loading,
-    // outline: {
-    //   border: 4,
-    //   distance: 8,
-    // },
     wave: {
       length: 128,
+    },
+    statistic: {
+      title: false,
+      content: {
+        content: '🎁',
+        style: {
+          fontSize: '26px',
+          lineHeight: '40px',
+        },
+      },
     },
   };
 
@@ -365,20 +370,39 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
 
   return (
     <div className="mainbody">
-      <h2>Analytics Overview</h2>
+      <Row justify="space-between">
+        <h2>Analytics Overview</h2>
+        <Button type="ghost" onClick={props.onOpenDownloadCSVModal}>
+          Download CSV
+        </Button>
+      </Row>
       <$InfoDescription>
         Grow your community through ticket sharing. View how many people your event has reached &
         how many tickets have been claimed.
       </$InfoDescription>
       <Row gutter={8} wrap>
-        <Col sm={24} md={7}>
-          <Liquid {...liquidConfig} />
-        </Col>
+        <Tooltip
+          placement="top"
+          title={`${
+            Math.round(10000 * distributionProgress) / 100
+          }% Percentage of how many tickets have been distributed for your event. Calculated as ${
+            stats?.completedClaimCount || 0
+          } completed claims divided by ${stats?.totalMaxTickets || 0} total max tickets.`}
+        >
+          <Col sm={24} md={4}>
+            <Liquid {...liquidConfig} />
+          </Col>
+        </Tooltip>
 
         <Col
           md={4}
           sm={24}
-          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            width: '100%',
+          }}
         >
           <Tooltip
             placement="top"
@@ -398,7 +422,12 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
         <Col
           md={4}
           sm={24}
-          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            width: '100%',
+          }}
         >
           <Tooltip
             placement="top"
@@ -416,7 +445,12 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
         <Col
           md={4}
           sm={24}
-          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            width: '100%',
+          }}
         >
           <Tooltip
             placement="top"
@@ -433,7 +467,12 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
         <Col
           md={4}
           sm={24}
-          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            width: '100%',
+          }}
         >
           <Tooltip placement="top" title="The number of unclaimed tickets left for your event.">
             <Statistic
@@ -444,15 +483,18 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
           </Tooltip>
         </Col>
       </Row>
-      <Divider />
+      <br />
+      <br />
       <Row className="scrollrow" wrap={false}>
         <Col sm={24} md={12} style={{ width: '100%' }}>
           <Row gutter={8} wrap={true}>
             <Col sm={24} md={14}>
-              <Typography.Title
-                level={4}
-                style={{ textAlign: 'center' }}
-              >{`Fans Reached`}</Typography.Title>
+              <$Horizontal>
+                <Typography.Title level={4}>{`Fans Reached`}</Typography.Title>
+                <Button type="link" onClick={props.onOpenDownloadCSVModal}>
+                  Download
+                </Button>
+              </$Horizontal>
               <Pie {...userPieConfig} />
             </Col>
 
@@ -504,10 +546,12 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
         <Col sm={24} md={12} style={{ width: '100%' }}>
           <Row gutter={8} wrap>
             <Col sm={24} md={14}>
-              <Typography.Title
-                level={4}
-                style={{ textAlign: 'center' }}
-              >{`Ticket Claims`}</Typography.Title>
+              <$Horizontal>
+                <Typography.Title level={4}>{`Ticket Claims`}</Typography.Title>
+                <Button type="link" onClick={props.onOpenDownloadCSVModal}>
+                  Download
+                </Button>
+              </$Horizontal>
               <Pie {...claimPieConfig} />
             </Col>
 

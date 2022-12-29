@@ -13,6 +13,7 @@ export interface EventAnalyticsProps {
   onInviteFanModalToggle: () => void;
   eventCreatedAt?: number;
   eventScheduledAt?: number;
+  openDownloadFansListModal: () => void;
 }
 
 const EventAnalytics: React.FC<EventAnalyticsProps> = ({
@@ -20,6 +21,7 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({
   onInviteFanModalToggle,
   eventCreatedAt,
   eventScheduledAt,
+  openDownloadFansListModal,
 }) => {
   const chartItems = [
     {
@@ -31,13 +33,19 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({
         </Tooltip>
       ),
       children: (
-        <SummaryStatistics eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />
+        <SummaryStatistics
+          eventID={eventID}
+          onInviteFanModalToggle={onInviteFanModalToggle}
+          onOpenDownloadCSVModal={openDownloadFansListModal}
+        />
       ),
     },
     {
       label: 'List of Fans',
       key: 'fans-list',
-      children: <FansListTableEvent eventID={eventID} />,
+      children: (
+        <FansListTableEvent eventID={eventID} onOpenDownloadCSVModal={openDownloadFansListModal} />
+      ),
     },
     {
       label: 'By Lootbox',
