@@ -109,7 +109,6 @@ const EventPage: React.FC = () => {
   const [showTableOfContents, setShowTableOfContents] = useState(true);
   const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
-  const [isCSVDownloaderOpen, setIsCSVDownloaderOpen] = useState(false);
 
   // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
@@ -429,9 +428,7 @@ const EventPage: React.FC = () => {
               Ticket Analytics
             </h2>
             <$Horizontal justifyContent="flex-start">
-              <Button type="ghost" onClick={() => setIsCSVDownloaderOpen(true)}>
-                Download CSV
-              </Button>
+              <EventCSVDownloader eventID={eventID as TournamentID} text="Download CSV" />
               <$ColumnGap />
               <Button
                 type="primary"
@@ -455,7 +452,6 @@ const EventPage: React.FC = () => {
               onInviteFanModalToggle={() => setIsReferralModalOpen(!isReferralModalOpen)}
               eventCreatedAt={tournament?.timestamps?.createdAt}
               eventScheduledAt={tournament?.tournamentDate}
-              openDownloadFansListModal={() => setIsCSVDownloaderOpen(true)}
             />
           </Card>
           <br />
@@ -896,18 +892,6 @@ const EventPage: React.FC = () => {
           // lootboxID={(lootboxTournamentSnapshots[0].lootboxID || '') as LootboxID}
           tournamentID={(eventID || '') as TournamentID}
         />
-      )}
-      {!!eventID && (
-        <Modal
-          open={isCSVDownloaderOpen}
-          onCancel={() => setIsCSVDownloaderOpen(false)}
-          footer={null}
-        >
-          <EventCSVDownloader
-            eventID={eventID as TournamentID}
-            onCancel={() => setIsCSVDownloaderOpen(false)}
-          />
-        </Modal>
       )}
     </div>
   );

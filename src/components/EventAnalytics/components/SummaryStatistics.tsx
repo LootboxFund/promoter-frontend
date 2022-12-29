@@ -12,11 +12,11 @@ import { green, grey, gold, magenta, cyan, geekblue } from '@ant-design/colors';
 import { useMemo } from 'react';
 import '../index.css';
 import { $Horizontal, $InfoDescription } from '@/components/generics';
+import EventCSVDownloader from '@/components/EventCSVDownloader';
 
 interface EventSummaryStatisticsProps {
   eventID: TournamentID;
   onInviteFanModalToggle: () => void;
-  onOpenDownloadCSVModal: () => void;
 }
 
 interface DataRowUserFE {
@@ -203,7 +203,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
         customHtml: (container, view, datum, data) => {
           const { width } = container.getBoundingClientRect();
           //   const text = datum ? `👤 ${datum.value}` : `👤 ${data?.reduce((r, d) => r + d.value, 0)}`;
-          const text = datum ? `🎁 ${datum.value}` : `🎁 ${data?.reduce((r, d) => r + d.value, 0)}`;
+          const text = datum ? `🎟 ${datum.value}` : `🎟 ${data?.reduce((r, d) => r + d.value, 0)}`;
           return renderStatistic(width, text, {
             fontSize: 32,
           });
@@ -372,9 +372,6 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     <div className="mainbody">
       <Row justify="space-between">
         <h2>Analytics Overview</h2>
-        <Button type="ghost" onClick={props.onOpenDownloadCSVModal}>
-          Download CSV
-        </Button>
       </Row>
       <$InfoDescription>
         Grow your community through ticket sharing. View how many people your event has reached &
@@ -491,9 +488,7 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
             <Col sm={24} md={14}>
               <$Horizontal>
                 <Typography.Title level={4}>{`Fans Reached`}</Typography.Title>
-                <Button type="link" onClick={props.onOpenDownloadCSVModal}>
-                  Download
-                </Button>
+                <EventCSVDownloader type="link" text="Download" eventID={props.eventID} />
               </$Horizontal>
               <Pie {...userPieConfig} />
             </Col>
@@ -548,9 +543,9 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
             <Col sm={24} md={14}>
               <$Horizontal>
                 <Typography.Title level={4}>{`Ticket Claims`}</Typography.Title>
-                <Button type="link" onClick={props.onOpenDownloadCSVModal}>
+                {/* <Button type="link">
                   Download
-                </Button>
+                </Button> */}
               </$Horizontal>
               <Pie {...claimPieConfig} />
             </Col>

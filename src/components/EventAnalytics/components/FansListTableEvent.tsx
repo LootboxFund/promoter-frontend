@@ -14,16 +14,13 @@ import { $ColumnGap, $Horizontal, $InfoDescription } from '@/components/generics
 import { Link } from '@umijs/max';
 import moment from 'moment';
 import { manifest } from '@/manifest';
+import EventCSVDownloader from '@/components/EventCSVDownloader';
 
 interface FansListTableEventProps {
   eventID: TournamentID;
-  onOpenDownloadCSVModal: () => void;
 }
 
-const FansListTableEvent: React.FC<FansListTableEventProps> = ({
-  eventID,
-  onOpenDownloadCSVModal,
-}) => {
+const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
   const { data, loading, error } = useQuery<
     { fansListForTournament: FansListForTournamentResponse },
     QueryFansListForTournamentArgs
@@ -217,9 +214,7 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({
     <div>
       <Row justify="space-between">
         <h2>{`List of ${fans.length} Fans`}</h2>
-        <Button type="ghost" onClick={onOpenDownloadCSVModal}>
-          Download CSV
-        </Button>
+        <EventCSVDownloader type="ghost" text="Download CSV" eventID={eventID} />
       </Row>
       <$InfoDescription>
         This is a list of all the fans that have claimed a ticket for your tournament. Try sorting

@@ -21,7 +21,6 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({
   onInviteFanModalToggle,
   eventCreatedAt,
   eventScheduledAt,
-  openDownloadFansListModal,
 }) => {
   const chartItems = [
     {
@@ -33,19 +32,13 @@ const EventAnalytics: React.FC<EventAnalyticsProps> = ({
         </Tooltip>
       ),
       children: (
-        <SummaryStatistics
-          eventID={eventID}
-          onInviteFanModalToggle={onInviteFanModalToggle}
-          onOpenDownloadCSVModal={openDownloadFansListModal}
-        />
+        <SummaryStatistics eventID={eventID} onInviteFanModalToggle={onInviteFanModalToggle} />
       ),
     },
     {
       label: 'List of Fans',
       key: 'fans-list',
-      children: (
-        <FansListTableEvent eventID={eventID} onOpenDownloadCSVModal={openDownloadFansListModal} />
-      ),
+      children: <FansListTableEvent eventID={eventID} />,
     },
     {
       label: 'By Lootbox',
