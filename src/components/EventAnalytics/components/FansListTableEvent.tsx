@@ -1,26 +1,16 @@
 import {
   FanListRowForTournament,
   FansListForTournamentResponse,
-  QueryClaimerStatsForTournamentArgs,
   QueryFansListForTournamentArgs,
 } from '@/api/graphql/generated/types';
 import enUS from 'antd/es/locale/en_US';
-import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
-import { TournamentID, UserID } from '@wormgraph/helpers';
-import { Avatar, Button, Checkbox, Input, Result, Spin, Tag, Tooltip } from 'antd';
-import {
-  ClaimerStatsRowFE,
-  ClaimerStatsForTournamentFE,
-  CLAIMER_STATS,
-  FANS_LIST_FOR_TOURNAMENT,
-} from '../api.gql';
-import { truncateUID } from '@/lib/string';
-import { convertClaimTypeForLegend } from '@/lib/graph';
+import { TournamentID } from '@wormgraph/helpers';
+import { Avatar, Button, Input, Result, Spin, Tag, Tooltip } from 'antd';
+import { FANS_LIST_FOR_TOURNAMENT } from '../api.gql';
 import { useMemo, useState } from 'react';
 import Table, { ColumnsType } from 'antd/lib/table';
 import { $ColumnGap, $Horizontal, $InfoDescription } from '@/components/generics';
-import { InfoCircleOutlined } from '@ant-design/icons';
 import { Link } from '@umijs/max';
 import moment from 'moment';
 import { manifest } from '@/manifest';
@@ -259,6 +249,7 @@ const FansListTableEvent: React.FC<FansListTableEventProps> = ({ eventID }) => {
         dataSource={matchingFans}
         // @ts-ignore
         locale={enUS}
+        scroll={{ x: true }}
       />
     </div>
   );
