@@ -73,12 +73,12 @@ import DeviceSimulator, { DeviceSimulatorProps } from '@/components/DeviceSimula
 import CreateEventForm from '@/components/CreateEventForm';
 import { VIEW_TOURNAMENTS_AS_ORGANIZER } from '../EventsPage/api.gql';
 import GenerateReferralModal from '@/components/GenerateReferralModal';
-import { manifest } from '@/manifest';
 import LootboxGallery from '@/components/LootboxGallery';
 import EventAnalytics from '@/components/EventAnalytics';
 import AirdropControlPanel from '@/components/AirdropControlPanel';
 import { OfferStrategyType } from '../../../api/graphql/generated/types';
 import EventActivationFunnel from '@/components/OfferAnalytics/components/EventActivationFunnel';
+import EventCSVDownloader from '@/components/EventCSVDownloader';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -109,6 +109,7 @@ const EventPage: React.FC = () => {
   const [showTableOfContents, setShowTableOfContents] = useState(true);
   const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+  const [isCSVDownloaderOpen, setIsCSVDownloaderOpen] = useState(false);
 
   // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
@@ -422,16 +423,26 @@ const EventPage: React.FC = () => {
           </$Horizontal>
           <br />
           <br />
+
           <$Horizontal justifyContent="space-between">
-            <h2 id="ticket-analytics">Ticket Analytics</h2>
-            <Button
-              type="primary"
-              onClick={() => setIsReferralModalOpen(true)}
-              disabled={tournamentLootboxes.length === 0}
-            >
-              Invite Fans
-            </Button>
+            <h2 id="ticket-analytics" style={{ marginRight: 'auto' }}>
+              Ticket Analytics
+            </h2>
+            <$Horizontal justifyContent="flex-start">
+              <Button type="ghost" onClick={() => setIsCSVDownloaderOpen(true)}>
+                Download CSV
+              </Button>
+              <$ColumnGap />
+              <Button
+                type="primary"
+                onClick={() => setIsReferralModalOpen(true)}
+                disabled={tournamentLootboxes.length === 0}
+              >
+                Invite Fans
+              </Button>
+            </$Horizontal>
           </$Horizontal>
+
           <$InfoDescription maxWidth={maxWidth}>
             {`Lootbox tickets are distributed to fans & audience members. `}
             <a href="https://lootbox.fyi/3tWupE0" target="_blank" rel="noreferrer">
@@ -884,6 +895,18 @@ const EventPage: React.FC = () => {
           // lootboxID={(lootboxTournamentSnapshots[0].lootboxID || '') as LootboxID}
           tournamentID={(eventID || '') as TournamentID}
         />
+      )}
+      {!!eventID && (
+        <Modal
+          open={isCSVDownloaderOpen}
+          onCancel={() => setIsCSVDownloaderOpen(false)}
+          footer={null}
+        >
+          <EventCSVDownloader
+            eventID={eventID as TournamentID}
+            onCancel={() => setIsCSVDownloaderOpen(false)}
+          />
+        </Modal>
       )}
     </div>
   );
