@@ -1,6 +1,6 @@
 {
   "name": "promoter-frontend",
-  "version": "0.7.4d-prod-airdrop-1.1",
+  "version": "0.7.5-prod",
   "private": true,
   "description": "Lootbox Promoter Frontend",
   "scripts": {
