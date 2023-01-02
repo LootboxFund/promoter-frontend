@@ -79,6 +79,7 @@ import AirdropControlPanel from '@/components/AirdropControlPanel';
 import { OfferStrategyType } from '../../../api/graphql/generated/types';
 import EventActivationFunnel from '@/components/OfferAnalytics/components/EventActivationFunnel';
 import EventCSVDownloader from '@/components/EventCSVDownloader';
+import OfferEventClaimsCSVDownloader from '@/components/EventOfferClaimsCSVDownloader';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -552,9 +553,17 @@ const EventPage: React.FC = () => {
                     <h3>{dealConfig.offerName}</h3>
                     <span style={{ color: 'gray' }}>{`From ${dealConfig.advertiserName}`}</span>
                   </$Vertical>
-                  <Link to={`/dashboard/offers/id/${dealConfig.offerID}`}>
-                    <Button>View Offer</Button>
-                  </Link>
+                  <$Horizontal>
+                    <OfferEventClaimsCSVDownloader
+                      eventID={tournament.id as TournamentID}
+                      offerID={dealConfig.offerID as OfferID}
+                      text="Download CSV"
+                    />
+                    <$ColumnGap />
+                    <Link to={`/dashboard/offers/id/${dealConfig.offerID}`}>
+                      <Button>View Offer</Button>
+                    </Link>
+                  </$Horizontal>
                 </$Horizontal>
                 <Tabs defaultActiveKey="1" type="card" style={{ width: '100%' }}>
                   <Tabs.TabPane tab="Activation Funnel" key="1">
