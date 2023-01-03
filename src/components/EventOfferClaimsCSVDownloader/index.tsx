@@ -49,7 +49,8 @@ const OfferEventClaimsCSVDownloader: React.FC<EventCSVDownloaderProps> = (props)
             download
             style={{ fontStyle: 'italic' }}
           >
-            <Button type="link">Download CSV</Button>
+            <br />
+            <Button type="primary">Download CSV</Button>
           </a>
         ),
       });
