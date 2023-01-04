@@ -62,6 +62,8 @@ interface LootboxBody {
   chainIDHex?: ChainIDHex | null;
   runningCompletedClaims: number;
   id?: LootboxID;
+  // Web3 data
+  flushed?: boolean;
 }
 
 export interface CreateLootboxRequest {
@@ -204,6 +206,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         chainIDHex: lootbox.chainIDHex,
         tournamentID: lootbox.tournamentID,
         runningCompletedClaims: lootbox.runningCompletedClaims,
+        flushed: lootbox.flushed,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -1026,6 +1029,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   </Tooltip>
                 </Typography.Link>
               ),
+            },
+            {
+              key: 'flushed',
+              label: 'Flushed',
+              type: 'bool',
             },
           ]
         : [

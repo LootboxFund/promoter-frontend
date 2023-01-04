@@ -57,7 +57,9 @@ export const extractURLState_LootboxPage = (): MagicLinkParams => {
 
   return params;
 };
-
+interface LootboxWeb3Metadata {
+  flushed: boolean;
+}
 const LootboxPage: React.FC = () => {
   const { user } = useAuth();
   const { lootboxID } = useParams();
@@ -70,6 +72,9 @@ const LootboxPage: React.FC = () => {
   const [deposits, setDeposits] = useState<DepositWeb3[]>([]);
   const isPolling = useRef<boolean>(false);
   const polledLootboxID = useRef<LootboxID | null>(null);
+  const [lootboxWeb3Metadata, setLootboxWeb3Metadata] = useState<LootboxWeb3Metadata>({
+    flushed: false,
+  });
 
   // VIEW Lootbox
   const {
@@ -117,11 +122,17 @@ const LootboxPage: React.FC = () => {
     return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
   }, [data]);
 
-  const { depositERC20, depositNative, changeMaxTickets, getLootboxDeposits, flushTokens } =
-    useLootbox({
-      address: lootbox?.address || undefined,
-      chainIDHex: lootbox?.chainIdHex || undefined,
-    });
+  const {
+    depositERC20,
+    depositNative,
+    changeMaxTickets,
+    getLootboxDeposits,
+    flushTokens,
+    getFlushStatus,
+  } = useLootbox({
+    address: lootbox?.address || undefined,
+    chainIDHex: lootbox?.chainIdHex || undefined,
+  });
 
   const handleDepositLoad = async () => {
     return getLootboxDeposits()
@@ -133,9 +144,15 @@ const LootboxPage: React.FC = () => {
       });
   };
 
+  const loadLootboxWeb3Data = async () => {
+    const flushed = await getFlushStatus();
+    setLootboxWeb3Metadata({ flushed });
+  };
+
   useEffect(() => {
     if (lootbox?.address && lootbox?.chainIdHex) {
       handleDepositLoad();
+      loadLootboxWeb3Data();
     }
   }, [lootbox?.address, lootbox?.chainIdHex]);
 
@@ -560,6 +577,7 @@ const LootboxPage: React.FC = () => {
             chainIDHex: lootbox.chainIdHex,
             runningCompletedClaims: lootbox.runningCompletedClaims,
             id: lootboxID ? (lootboxID as LootboxID) : undefined,
+            flushed: lootboxWeb3Metadata.flushed,
           }}
           stampImage={lootbox.stampImage}
           airdropMetadata={lootbox.airdropMetadata}
@@ -672,6 +690,7 @@ const LootboxPage: React.FC = () => {
         refetchDeposits={handleDepositLoad}
         sendEmails={sendTournamentEmails}
         lootboxID={(lootboxID || '') as LootboxID}
+        isLootboxFlushed={lootboxWeb3Metadata.flushed}
       />
 
       <GenerateReferralModal

@@ -46,6 +46,7 @@ interface UseLootboxResult {
   changeMaxTickets: (maxTickets: number) => Promise<ethers.ContractTransaction>;
   getLootboxDeposits: () => Promise<DepositWeb3[]>;
   flushTokens: (targetFlushAddress?: Address) => Promise<ethers.ContractTransaction>;
+  getFlushStatus: () => Promise<boolean>;
 }
 
 export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootboxResult => {
@@ -198,6 +199,15 @@ export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootbox
       .flushTokens(targetFlushAddress) as Promise<ethers.ContractTransaction>;
   };
 
+  const getFlushStatus = async (): Promise<boolean> => {
+    if (!lootbox) {
+      throw new Error('Connect MetaMask');
+    }
+
+    const res = await lootbox.flushed();
+    return res;
+  };
+
   return {
     lootbox,
     depositNative,
@@ -205,5 +215,6 @@ export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootbox
     changeMaxTickets,
     getLootboxDeposits,
     flushTokens,
+    getFlushStatus,
   };
 };

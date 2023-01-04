@@ -71,6 +71,7 @@ export type DepositRewardForm = {
   onCheckAllowance: (payload: CheckAllowancePayload) => Promise<boolean>;
   refetchDeposits: () => Promise<void>;
   sendEmails: () => Promise<void>;
+  isLootboxFlushed?: boolean;
 };
 
 const CreateLootboxForm: React.FC<DepositRewardForm> = ({
@@ -83,6 +84,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   onCheckAllowance,
   refetchDeposits,
   sendEmails,
+  isLootboxFlushed,
 }) => {
   const { user } = useAuth();
   const { currentAccount, library, network, switchNetwork } = useWeb3();
@@ -450,7 +452,6 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   const getMeta = () => {
     const infoMeta = {
       columns: 1,
-      disabled: loading,
       initialValues: {
         rewardType: RewardType.Voucher,
         amount: '0',
@@ -698,21 +699,26 @@ url3, code3
         key: 'tokenAddress',
         label: 'Token Contract Address',
         required: true,
+        // @ts-ignore
+        disabled: isLootboxFlushed,
         tooltip:
           'You can find the contract address for the token on CoinMarketCap or a Blockchain Explorer. Make sure you find the contract address for the right blockchain.',
+        widget: 'input',
         // @ts-ignore
-        widget: () => {
-          return (
-            <$Horizontal verticalCenter>
-              <Input
-                value={tokenAddress}
-                onChange={(e) => setTokenAddress(e.target.value as Address)}
-                style={{ maxWidth: '300px' }}
-              />{' '}
-              <$ColumnGap /> <span style={{ color: 'gray' }}>{tokenName}</span>
-            </$Horizontal>
-          );
-        },
+        onChange: (e: any) => setTokenAddress(e.target.value as Address),
+        // @ts-ignore
+        // widget: () => {
+        //   return (
+        //     <$Horizontal verticalCenter>
+        //       <Input
+        //         value={tokenAddress}
+        //         onChange={(e) => setTokenAddress(e.target.value as Address)}
+        //         style={{ maxWidth: '300px' }}
+        //       />{' '}
+        //       <$ColumnGap /> <span style={{ color: 'gray' }}>{tokenName}</span>
+        //     </$Horizontal>
+        //   );
+        // },
         preserving: true,
         widgetProps: { style: { width: '100%', maxWidth: '300px' } } as any,
         // @ts-ignore
@@ -741,6 +747,8 @@ url3, code3
         widget: 'number',
         required: true,
         preserving: true,
+        // @ts-ignore
+        disabled: isLootboxFlushed,
         tooltip: 'Enter the amount that you want to deposit, being mindful of the tokens decimals.',
         widgetProps: { style: { width: '180px' } },
         // @ts-ignore
@@ -788,7 +796,7 @@ url3, code3
                 <ConnectWalletButton />
               ) : (
                 <$Horizontal justifyContent="flex-start">
-                  <Button htmlType="submit" type="primary" disabled={loading}>
+                  <Button htmlType="submit" type="primary" disabled={loading || isLootboxFlushed}>
                     {loading ? 'Loading...' : 'Deposit'}
                   </Button>
                   <Button type="text" onClick={resetForm}>
@@ -823,6 +831,18 @@ url3, code3
         >
           <fieldset>
             <br />
+            {isLootboxFlushed &&
+              (form.getFieldValue('rewardType') === RewardType.Token ||
+                form.getFieldValue('rewardType') === RewardType.Native) && [
+                <Alert
+                  key="alert1"
+                  message="This Lootbox has been FLUSHED. You can no longer deposit on-chain rewards."
+                  type="error"
+                  showIcon
+                  style={{ maxWidth: '560px', margin: 'auto' }}
+                />,
+                <br key="br2" />,
+              ]}
             {/* <legend style={{ textAlign: 'center' }}>Deposit Rewards to Fans</legend> */}
             <FormBuilder form={form} meta={meta} />
           </fieldset>
