@@ -28,6 +28,7 @@ export interface Deposit {
   quantity: string;
   type: DepositTypeFE;
   date: string;
+  tokenAddress?: Address;
 }
 export enum DepositTypeFE {
   Voucher = 'Voucher',

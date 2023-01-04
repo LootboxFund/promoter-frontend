@@ -146,6 +146,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
   const setTokenAddress = (addr: Address) => {
     _setTokenAddress(addr);
     updateTokenSymbol(addr);
+    form.setFieldsValue({ tokenAddress: addr });
   };
 
   const handleNotifyVictors = async () => {
@@ -204,6 +205,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
             ? DepositTypeFE.Native
             : DepositTypeFE.Token,
         date: '',
+        tokenAddress: deposit?.tokenAddress,
       };
     });
     const convertedVoucherDeposits = existingVoucherDeposits.map((deposit): Deposit => {
@@ -322,14 +324,11 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
                   });
 
                   await tx.wait();
-                  controlledModal = Modal.success({
+                  controlledModal = Modal.warning({
                     maskClosable: false,
-                    title: 'Deposit Approved',
+                    title: 'Almost done...',
                     content: (
-                      <span>
-                        Almost done...&nbsp;
-                        <b>Please open your MetaMask wallet and complete the transaction.</b>
-                      </span>
+                      <span>Please open your MetaMask wallet and complete the transaction.</span>
                     ),
                     okButtonProps: { style: { display: 'none' } },
                     okCancel: true,
@@ -346,6 +345,7 @@ const CreateLootboxForm: React.FC<DepositRewardForm> = ({
           // Native
           const tx = await onSubmitReward(payload);
           const modalConfig = {
+            type: 'info' as 'info',
             title: 'Depositing Rewards',
             content: (
               <$Vertical spacing={4}>
@@ -718,10 +718,10 @@ url3, code3
         // @ts-ignore
         rules: [
           {
-            validator: (_rule: any, value: any, _callback: any) => {
+            validator: (_rule: any, _value: any, _callback: any) => {
               return new Promise((resolve, reject) => {
                 setTimeout(() => {
-                  if (!ethers.utils.isAddress(value)) {
+                  if (!tokenAddress || !ethers.utils.isAddress(tokenAddress)) {
                     reject(new Error(`Invalid Address.`));
                   } else {
                     resolve(null);
@@ -843,6 +843,20 @@ url3, code3
                   title: 'Title',
                   dataIndex: 'title',
                   key: 'title',
+                  render: (_, record: Deposit) => {
+                    return (
+                      <Typography.Text
+                        copyable={record.tokenAddress ? { text: record.tokenAddress } : undefined}
+                      >
+                        {record.title}
+                        {record.tokenAddress ? (
+                          <Typography.Text>
+                            &nbsp;{shortenAddress(record.tokenAddress, 3)}
+                          </Typography.Text>
+                        ) : null}
+                      </Typography.Text>
+                    );
+                  },
                 },
                 {
                   title: 'Quantity',

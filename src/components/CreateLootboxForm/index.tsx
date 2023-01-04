@@ -621,6 +621,27 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       // initialValues: lootboxInfo,
       fields: [
         {
+          key: 'lootboxAddr',
+          label: 'Lootbox Address',
+          viewMode: true,
+          // @ts-ignore
+          viewWidget: () => (
+            <Typography.Link
+              href={`${explorerURL}/address/${lootboxInfo.address}`}
+              target="_blank"
+              rel="noreferrer"
+              copyable={{
+                text: lootboxInfo.address || undefined,
+              }}
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              <Tooltip title={lootboxInfo.address}>
+                {shortenAddress(lootboxInfo.address || '')}
+              </Tooltip>
+            </Typography.Link>
+          ),
+        },
+        {
           key: 'lootboxOwnerFlush',
           label: 'Owner Address',
           viewMode: true,
