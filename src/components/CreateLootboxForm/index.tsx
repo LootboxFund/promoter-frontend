@@ -630,7 +630,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
               target="_blank"
               rel="noreferrer"
-              copyable
+              copyable={{
+                text: lootboxInfo.creatorAddress || undefined,
+              }}
               style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
               <Tooltip title={lootboxInfo.creatorAddress}>
@@ -646,32 +648,39 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           // @ts-ignore
           viewWidget: () => (
             <div>
-              <Typography.Link
-                href={`${explorerURL}/address/${currentAccount}`}
-                target="_blank"
-                rel="noreferrer"
-                copyable
-                style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-              >
-                <Tooltip title={currentAccount}>{shortenAddress(currentAccount || '')}</Tooltip>
-              </Typography.Link>
-              {currentAccount?.toLowerCase() !== lootboxInfo.creatorAddress?.toLowerCase() && (
-                <div>
-                  <br />
-                  <Alert
-                    showIcon
-                    type="error"
-                    message={
-                      <span>
-                        Only the owner can flush. Switch to&nbsp;
-                        <Tooltip title={lootboxInfo.creatorAddress}>
-                          {shortenAddress(lootboxInfo.creatorAddress || '')}.
-                        </Tooltip>
-                      </span>
-                    }
-                  />
-                </div>
+              {currentAccount ? (
+                <Typography.Link
+                  href={`${explorerURL}/address/${currentAccount}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  copyable={{
+                    text: currentAccount || undefined,
+                  }}
+                  style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                >
+                  <Tooltip title={currentAccount}>{shortenAddress(currentAccount || '')}</Tooltip>
+                </Typography.Link>
+              ) : (
+                <Typography.Text italic>Not connected</Typography.Text>
               )}
+              {currentAccount &&
+                currentAccount.toLowerCase() !== lootboxInfo.creatorAddress?.toLowerCase() && (
+                  <div>
+                    <br />
+                    <Alert
+                      showIcon
+                      type="error"
+                      message={
+                        <span>
+                          Only the owner can flush. Switch to&nbsp;
+                          <Tooltip title={lootboxInfo.creatorAddress}>
+                            {shortenAddress(lootboxInfo.creatorAddress || '')}.
+                          </Tooltip>
+                        </span>
+                      }
+                    />
+                  </div>
+                )}
             </div>
           ),
         },
@@ -966,7 +975,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   href={`${explorerURL}/address/${lootboxInfo.address}`}
                   target="_blank"
                   rel="noreferrer"
-                  copyable
+                  copyable={{
+                    text: lootboxInfo.address || undefined,
+                  }}
                   style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                   <Tooltip title={lootboxInfo.address}>
@@ -984,7 +995,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
                   target="_blank"
                   rel="noreferrer"
-                  copyable
+                  copyable={{
+                    text: lootboxInfo.creatorAddress || undefined,
+                  }}
                   style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                   <Tooltip title={lootboxInfo.creatorAddress}>
@@ -1080,7 +1093,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   {
                     type: 'warning',
                     message:
-                      'This action cannot be undone. It may confuse existing ticket holders because they will not be able to withdraw their earnings. Use this feature with at your own risk. We do not recommend using this Lootbox after flushing it.',
+                      'This action cannot be undone. It may confuse existing ticket holders because they will not be able to withdraw their earnings. Use this feature at your own risk. We do not recommend using this Lootbox after flushing it.',
                   },
                 ],
               },
