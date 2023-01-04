@@ -117,10 +117,11 @@ const LootboxPage: React.FC = () => {
     return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
   }, [data]);
 
-  const { depositERC20, depositNative, changeMaxTickets, getLootboxDeposits } = useLootbox({
-    address: lootbox?.address || undefined,
-    chainIDHex: lootbox?.chainIdHex || undefined,
-  });
+  const { depositERC20, depositNative, changeMaxTickets, getLootboxDeposits, flushTokens } =
+    useLootbox({
+      address: lootbox?.address || undefined,
+      chainIDHex: lootbox?.chainIdHex || undefined,
+    });
 
   const handleDepositLoad = async () => {
     return getLootboxDeposits()
@@ -248,6 +249,29 @@ const LootboxPage: React.FC = () => {
       );
     }
     return true;
+  };
+
+  const flushLootbox = async (
+    targetFlushAddress?: Address,
+  ): Promise<{ tx: ContractTransaction }> => {
+    if (!currentAccount) {
+      throw new Error('No wallet connected');
+    }
+
+    if (!lootbox?.creatorAddress) {
+      throw new Error('Unknown Lootbox creator');
+    }
+
+    if (currentAccount.toLowerCase() !== lootbox.creatorAddress.toLocaleLowerCase()) {
+      throw new Error(
+        `Only the wallet of the LOOTBOX creator can flush the LOOTBOX. Try switching to address ${shortenAddress(
+          lootbox?.creatorAddress || '',
+        )}.`,
+      );
+    }
+
+    const tx = await flushTokens(targetFlushAddress);
+    return { tx };
   };
 
   const createLootboxWeb3 = async (payload: {
@@ -497,7 +521,6 @@ const LootboxPage: React.FC = () => {
 
   const maxWidth = '1000px';
   const doesUserHaveEditPermission = user?.id && lootbox.creatorID === user.id;
-  console.log(`lootbox = `, lootbox);
   return (
     <div style={{ maxWidth }}>
       <BreadCrumbDynamic breadLine={breadLine} />
@@ -543,6 +566,7 @@ const LootboxPage: React.FC = () => {
           mode={doesUserHaveEditPermission ? 'view-edit' : 'view-only'}
           onSubmitEdit={editLootbox}
           onCreateWeb3={createLootboxWeb3}
+          onFlushLootbox={flushLootbox}
         />
       </div>
       <br />

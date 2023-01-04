@@ -44,6 +44,7 @@ interface UseLootboxResult {
   ) => Promise<ethers.ContractTransaction>;
   changeMaxTickets: (maxTickets: number) => Promise<ethers.ContractTransaction>;
   getLootboxDeposits: () => Promise<DepositWeb3[]>;
+  flushTokens: (targetFlushAddress?: Address) => Promise<ethers.ContractTransaction>;
 }
 
 export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootboxResult => {
@@ -170,5 +171,38 @@ export const useLootbox = ({ address, chainIDHex }: UseLootboxProps): UseLootbox
     }
   };
 
-  return { lootbox, depositNative, depositERC20, changeMaxTickets, getLootboxDeposits };
+  const flushTokens = async (targetFlushAddress?: Address): Promise<ContractTransaction> => {
+    const signer = library?.getSigner(currentAccount);
+    if (!lootbox || !signer || !network?.chainId) {
+      throw new Error('Connect MetaMask');
+    }
+
+    const connectedChainIDHex = chainIdToHex(network.chainId);
+    if (chainIDHex && connectedChainIDHex && connectedChainIDHex !== chainIDHex) {
+      throw new Error(`Wrong network, please connect ${chainIDHex}`);
+    }
+
+    if (!targetFlushAddress) {
+      targetFlushAddress = currentAccount;
+    }
+
+    if (!ethers.utils.isAddress(targetFlushAddress || '')) {
+      throw new Error('Invalid flush address');
+    }
+
+    console.log('calling contract flush tokens', targetFlushAddress);
+
+    return lootbox
+      .connect(signer)
+      .flushTokens(targetFlushAddress) as Promise<ethers.ContractTransaction>;
+  };
+
+  return {
+    lootbox,
+    depositNative,
+    depositERC20,
+    changeMaxTickets,
+    getLootboxDeposits,
+    flushTokens,
+  };
 };
