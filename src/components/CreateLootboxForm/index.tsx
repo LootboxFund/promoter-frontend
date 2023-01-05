@@ -1030,11 +1030,22 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 </Typography.Link>
               ),
             },
-            {
-              key: 'flushed',
-              label: 'Flushed',
-              type: 'bool',
-            },
+            ...(lootbox?.flushed
+              ? [
+                  {
+                    key: 'flushed',
+                    label: 'Flushed',
+                    type: 'bool',
+                    viewWidget: () => {
+                      return (
+                        <Tag color="red" style={{ fontSize: '12px' }}>
+                          True
+                        </Tag>
+                      );
+                    },
+                  },
+                ]
+              : []),
           ]
         : [
             {
@@ -1326,6 +1337,30 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 })}
                 <br />
 
+                {!!lootboxInfo?.address && viewMode && !lockedToView && (
+                  <div
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <Tooltip title="Advanced action to release funds stored in a Lootbox. USE WITH CAUTION.">
+                      <Button
+                        type="text"
+                        onClick={toggleFlushMode}
+                        style={{
+                          paddingLeft: '0px',
+                          marginBottom: '-24px',
+                          color: 'rgba(0, 0, 0, 0.45)',
+                        }}
+                      >
+                        Flush
+                      </Button>
+                    </Tooltip>
+                  </div>
+                )}
                 {viewMode && (
                   <fieldset>
                     <legend>{`Blockchain Details`}</legend>
@@ -1344,17 +1379,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                     {!!lootboxInfo?.address ? (
                       <div>
                         <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
-                        {viewMode && !lockedToView && (
-                          <Tooltip title="Advanced action to release funds stored in a Lootbox. USE WITH CAUTION.">
-                            <Button
-                              type="text"
-                              onClick={toggleFlushMode}
-                              style={{ paddingLeft: '0px', fontStyle: 'italic' }}
-                            >
-                              Flush
-                            </Button>
-                          </Tooltip>
-                        )}
                       </div>
                     ) : (
                       <Empty
