@@ -23,6 +23,7 @@ import {
   Typography,
   Switch,
   Input,
+  Popconfirm,
 } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
@@ -61,6 +62,8 @@ interface LootboxBody {
   chainIDHex?: ChainIDHex | null;
   runningCompletedClaims: number;
   id?: LootboxID;
+  // Web3 data
+  flushed?: boolean;
 }
 
 export interface CreateLootboxRequest {
@@ -93,6 +96,10 @@ interface OnCreateLootboxWeb3Response {
   lootboxID: LootboxID;
 }
 
+interface OnFlushLootboxResponse {
+  tx: ContractTransaction;
+}
+
 export type CreateLootboxFormProps = {
   lootbox?: LootboxBody;
   stampImage?: string;
@@ -101,6 +108,7 @@ export type CreateLootboxFormProps = {
   onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
   onSubmitEdit?: (payload: EditLootboxRequest) => Promise<void>;
   onCreateWeb3?: (payload: CreateLootboxWeb3Request) => Promise<OnCreateLootboxWeb3Response>;
+  onFlushLootbox?: (targetFlushAddress?: Address) => Promise<OnFlushLootboxResponse>;
   mode: 'create' | 'create-web3' | 'edit-only' | 'view-edit' | 'view-only';
 };
 
@@ -124,6 +132,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   onSubmitCreate,
   onSubmitEdit,
   onCreateWeb3,
+  onFlushLootbox,
   airdropMetadata,
   mode,
 }) => {
@@ -151,6 +160,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const lockedToView = mode === 'view-only';
   const isLootboxDeployed = !!lootboxInfo.address;
   const isOnBlockChain = currentStep === 1;
+  const [isFlushMode, setIsFlushMode] = useState(false);
 
   useEffect(() => {
     if (lockedToEdit) {
@@ -196,6 +206,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         chainIDHex: lootbox.chainIDHex,
         tournamentID: lootbox.tournamentID,
         runningCompletedClaims: lootbox.runningCompletedClaims,
+        flushed: lootbox.flushed,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -210,6 +221,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     newMediaDestinationLogo.current = lootboxInfo.logoImage;
     newMediaDestinationBackground.current = lootboxInfo.backgroundImage;
     setCurrentStep(0);
+    setIsFlushMode(false);
     if (mode === 'create') {
       history.back();
     }
@@ -322,6 +334,100 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       }
     },
     [onSubmitCreate],
+  );
+
+  const handleFlush = useCallback(
+    async (values) => {
+      if (!onFlushLootbox) return;
+      if (!network) return;
+
+      const chainIDHex = chainIdToHex(network.chainId);
+      const explorerURL = getBlockExplorerUrl(chainIDHex);
+
+      setPending(true);
+      try {
+        // if (true) {
+        //   throw new Error('Throw DEV ERROR');
+        // }
+        console.log('flushing...');
+
+        notification.info({
+          key: 'metamask-flush',
+          message: 'Confirm the transaction in Metamask',
+          description: 'Please confirm the transaction in your Metamask wallet',
+          placement: 'top',
+          duration: null,
+        });
+
+        const { tx } = await onFlushLootbox();
+
+        notification.close('metamask-flush');
+
+        notification.info({
+          key: 'loading-flush-lootbox',
+          icon: <Spin />,
+          message: 'Flushing Lootbox',
+          description: (
+            <$Vertical>
+              <Typography.Text>
+                <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank" rel="noreferrer">
+                  View transaction on Block Explorer.
+                </a>
+                &nbsp; Please wait while we flush your Lootbox. This happens on the blockchain and
+                it might take a minute.
+              </Typography.Text>
+            </$Vertical>
+          ),
+          duration: 0,
+          placement: 'top',
+        });
+
+        await tx.wait();
+
+        if (!lockedToEdit) {
+          setViewMode(true);
+        }
+        setIsFlushMode(false);
+        resetForm();
+
+        Modal.success({
+          title: 'Success',
+          content: (
+            <$Vertical>
+              <Typography.Text>Lootbox Successfully Flushed</Typography.Text>
+              <br />
+              <Typography.Text>
+                <a href={`${explorerURL}/tx/${tx.hash}`} target="_blank" rel="noreferrer">
+                  View transaction on Block Explorer
+                </a>
+              </Typography.Text>
+              <br />
+              <Typography.Text>Transaction Hash:</Typography.Text>
+              <Typography.Text copyable>{tx.hash}</Typography.Text>
+              <br />
+              <Alert
+                type="info"
+                message="This Lootbox has been flushed. Claimers will no longer be able to extract funds from it. This is irreversible."
+              />
+            </$Vertical>
+          ),
+          okText: 'Finish',
+        });
+      } catch (e: any) {
+        if (e?.code === 4001 || e?.code === 'ACTION_REJECTED') {
+          return;
+        }
+        Modal.error({
+          title: 'Failure',
+          content: `${e?.reason || e?.message}`,
+        });
+      } finally {
+        notification.close('metamask-flush');
+        notification.close('loading-flush-lootbox');
+        setPending(false);
+      }
+    },
+    [onFlushLootbox],
   );
 
   const handleCreateWeb3 = useCallback(
@@ -509,6 +615,105 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     return meta;
   };
 
+  const metaFlush = () => {
+    const explorerURL = lootboxInfo.chainIDHex ? getBlockExplorerUrl(lootboxInfo.chainIDHex) : null;
+    const meta = {
+      columns: 1,
+      initialValues: lootboxInfo,
+      // disabled: pending,
+      // initialValues: lootboxInfo,
+      fields: [
+        {
+          key: 'lootboxAddr',
+          label: 'Lootbox Address',
+          viewMode: true,
+          // @ts-ignore
+          viewWidget: () => (
+            <Typography.Link
+              href={`${explorerURL}/address/${lootboxInfo.address}`}
+              target="_blank"
+              rel="noreferrer"
+              copyable={{
+                text: lootboxInfo.address || undefined,
+              }}
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              <Tooltip title={lootboxInfo.address}>
+                {shortenAddress(lootboxInfo.address || '')}
+              </Tooltip>
+            </Typography.Link>
+          ),
+        },
+        {
+          key: 'lootboxOwnerFlush',
+          label: 'Owner Address',
+          viewMode: true,
+          // @ts-ignore
+          viewWidget: () => (
+            <Typography.Link
+              href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
+              target="_blank"
+              rel="noreferrer"
+              copyable={{
+                text: lootboxInfo.creatorAddress || undefined,
+              }}
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              <Tooltip title={lootboxInfo.creatorAddress}>
+                {shortenAddress(lootboxInfo.creatorAddress || '')}
+              </Tooltip>
+            </Typography.Link>
+          ),
+        },
+        {
+          key: 'currentAccountFlush',
+          label: 'Your Address',
+          viewMode: true,
+          // @ts-ignore
+          viewWidget: () => (
+            <div>
+              {currentAccount ? (
+                <Typography.Link
+                  href={`${explorerURL}/address/${currentAccount}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  copyable={{
+                    text: currentAccount || undefined,
+                  }}
+                  style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                >
+                  <Tooltip title={currentAccount}>{shortenAddress(currentAccount || '')}</Tooltip>
+                </Typography.Link>
+              ) : (
+                <Typography.Text italic>Not connected</Typography.Text>
+              )}
+              {currentAccount &&
+                currentAccount.toLowerCase() !== lootboxInfo.creatorAddress?.toLowerCase() && (
+                  <div>
+                    <br />
+                    <Alert
+                      showIcon
+                      type="error"
+                      message={
+                        <span>
+                          Only the owner can flush. Switch to&nbsp;
+                          <Tooltip title={lootboxInfo.creatorAddress}>
+                            {shortenAddress(lootboxInfo.creatorAddress || '')}.
+                          </Tooltip>
+                        </span>
+                      }
+                    />
+                  </div>
+                )}
+            </div>
+          ),
+        },
+      ],
+    };
+
+    return meta;
+  };
+
   const metaPublic = () => {
     const meta = {
       columns: 1,
@@ -589,34 +794,33 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 tooltip:
                   "The Lootbox's current status. Sold out Lootboxes still appear on the Viral Onboarding loop, but cannot be claimed. Disbaled Lootboxes will not be visible.",
                 viewWidget: () => {
-                  if (lootboxInfo?.status === LootboxStatus.SoldOut) {
-                    return (
-                      <$Horizontal>
-                        <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
-                          <Tag color="warning">Sold Out</Tag>
-                        </Tooltip>
-                        {airdropMetadata && <Tag color="processing">Airdrop</Tag>}
-                      </$Horizontal>
-                    );
-                  }
-
-                  if (lootboxInfo?.status === LootboxStatus.Disabled) {
-                    return (
-                      <$Horizontal>
-                        <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
-                          <Tag color="error">Disabled</Tag>
-                        </Tooltip>
-                        {airdropMetadata && <Tag color="processing">Airdrop</Tag>}
-                      </$Horizontal>
-                    );
-                  }
-
                   return (
                     <$Horizontal>
-                      <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
-                        <Tag color="success">Active</Tag>
-                      </Tooltip>
+                      {lootboxInfo?.status === LootboxStatus.SoldOut ? (
+                        <$Horizontal>
+                          <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
+                            <Tag color="warning">Sold Out</Tag>
+                          </Tooltip>
+                        </$Horizontal>
+                      ) : lootboxInfo?.status === LootboxStatus.Disabled ? (
+                        <$Horizontal>
+                          <Tooltip title="Disabled Lootboxes are not visible or redeemable for any Tournament">
+                            <Tag color="error">Disabled</Tag>
+                          </Tooltip>
+                        </$Horizontal>
+                      ) : (
+                        <$Horizontal>
+                          <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
+                            <Tag color="success">Active</Tag>
+                          </Tooltip>
+                        </$Horizontal>
+                      )}
                       {airdropMetadata && <Tag color="processing">Airdrop</Tag>}
+                      {lootboxInfo.address && (
+                        <Tooltip title="This Lootbox is deployed on the Blockchain">
+                          <Tag color="geekblue">Deployed</Tag>
+                        </Tooltip>
+                      )}
                     </$Horizontal>
                   );
                 },
@@ -795,7 +999,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   href={`${explorerURL}/address/${lootboxInfo.address}`}
                   target="_blank"
                   rel="noreferrer"
-                  copyable
+                  copyable={{
+                    text: lootboxInfo.address || undefined,
+                  }}
                   style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                   <Tooltip title={lootboxInfo.address}>
@@ -813,7 +1019,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
                   target="_blank"
                   rel="noreferrer"
-                  copyable
+                  copyable={{
+                    text: lootboxInfo.creatorAddress || undefined,
+                  }}
                   style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                   <Tooltip title={lootboxInfo.creatorAddress}>
@@ -821,6 +1029,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   </Tooltip>
                 </Typography.Link>
               ),
+            },
+            {
+              key: 'flushed',
+              label: 'Flushed',
+              type: 'bool',
             },
           ]
         : [
@@ -865,7 +1078,59 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     return meta;
   };
 
-  const getWizardMeta = () => {
+  const toggleFlushMode = () => {
+    if (isFlushMode) {
+      setViewMode(true);
+      setIsFlushMode(false);
+    } else {
+      setViewMode(false);
+      setIsFlushMode(true);
+    }
+  };
+
+  interface WizardMeta {
+    steps: {
+      title: string;
+      subSteps: {
+        title: string;
+        meta: any;
+        key?: string;
+        notifications?: {
+          type: 'info' | 'success' | 'warning' | 'error';
+          message: string;
+        }[];
+      }[];
+    }[];
+  }
+  const getWizardMeta = (): WizardMeta => {
+    if (isFlushMode) {
+      return {
+        steps: [
+          {
+            title: 'Flush Lootbox?',
+            subSteps: [
+              {
+                title: `Flush ${lootboxInfo.name}`,
+                meta: metaFlush() as any,
+                key: 'flush-lootbox',
+                notifications: [
+                  {
+                    type: 'info',
+                    message:
+                      'Flushing a Lootbox will flush all existing funds from the Lootbox to your wallet address.',
+                  },
+                  {
+                    type: 'warning',
+                    message:
+                      'This action cannot be undone. It may confuse existing ticket holders because they will not be able to withdraw their earnings. Use this feature at your own risk. We do not recommend using this Lootbox after flushing it.',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+    }
     const result = {
       steps: [
         {
@@ -874,6 +1139,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             {
               title: 'Public Details',
               meta: metaPublic() as any,
+              key: 'public-details',
+              notifications: [],
             },
           ],
         },
@@ -884,6 +1151,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       result.steps[0].subSteps.push({
         title: 'Lootbox Design',
         meta: metaCreative() as any,
+        key: 'creative-details',
+        notifications: [],
       });
     }
 
@@ -893,6 +1162,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {
           title: 'Blockchain Details',
           meta: metaBlockchain() as any,
+          key: 'blockchain-details',
+          notifications: [],
         },
       ],
     });
@@ -927,7 +1198,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             <Button
               type="link"
               onClick={() => setViewMode(false)}
-              style={{ alignSelf: 'flex-end' }}
+              style={{ alignSelf: 'flex-end', marginBottom: '-24px' }}
             >
               Edit
             </Button>
@@ -938,6 +1209,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             onFinish={
               mode === 'create'
                 ? handleCreateFinish
+                : isFlushMode
+                ? handleFlush
                 : isOnBlockChain
                 ? handleCreateWeb3
                 : handleEditFinish
@@ -994,10 +1267,41 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       </Empty>
                     );
                   }
-
                   return (
                     <fieldset key={`step-${currentStep}-${idx}`}>
                       <legend>{s.title}</legend>
+                      {s?.notifications &&
+                        s.notifications.map((n, idx) => (
+                          <Alert
+                            key={'notif' + idx}
+                            type={n.type}
+                            message={n.message}
+                            style={{ marginBottom: '10px' }}
+                          />
+                        ))}
+                      {s?.notifications && s.notifications.length > 0 && <br />}
+                      {!currentAccount && s.key === 'flush-lootbox' && (
+                        <Empty
+                          key="connect-wallet-empty-flush"
+                          image={Empty.PRESENTED_IMAGE_SIMPLE}
+                          imageStyle={{
+                            height: 60,
+                          }}
+                          description={
+                            <span style={{ maxWidth: '200px' }}>
+                              {`You must connect your Metamask wallet before you can flush`}
+                            </span>
+                          }
+                          style={{
+                            padding: '50px',
+                            flex: 1,
+                            minWidth: '500px',
+                            borderRadius: '10px',
+                          }}
+                        >
+                          <ConnectWalletButton ghost />
+                        </Empty>
+                      )}
                       {isOnBlockChain && !isLootboxDeployed && (
                         <>
                           <Alert
@@ -1020,6 +1324,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                     </fieldset>
                   );
                 })}
+                <br />
 
                 {viewMode && (
                   <fieldset>
@@ -1037,7 +1342,20 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       </>
                     )}
                     {!!lootboxInfo?.address ? (
-                      <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
+                      <div>
+                        <FormBuilder form={form} meta={metaBlockchain()} viewMode={viewMode} />
+                        {viewMode && !lockedToView && (
+                          <Tooltip title="Advanced action to release funds stored in a Lootbox. USE WITH CAUTION.">
+                            <Button
+                              type="text"
+                              onClick={toggleFlushMode}
+                              style={{ paddingLeft: '0px', fontStyle: 'italic' }}
+                            >
+                              Flush
+                            </Button>
+                          </Tooltip>
+                        )}
+                      </div>
                     ) : (
                       <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -1106,6 +1424,21 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                           >
                             {pending ? 'Deploying' : 'Deploy'}
                           </Button>
+                        ) : isFlushMode ? (
+                          <Popconfirm
+                            title="Are you sure? This is irreversible."
+                            okText="Yes, flush this Lootbox"
+                            onConfirm={handleFlush}
+                            okButtonProps={{
+                              htmlType: 'submit',
+                              type: 'primary',
+                              disabled: pending || !currentAccount,
+                            }}
+                          >
+                            <Button type="primary" disabled={pending || !currentAccount}>
+                              {pending ? 'Flushing...' : 'Flush Lootbox'}
+                            </Button>
+                          </Popconfirm>
                         ) : !isOnBlockChain ? (
                           <Button htmlType="submit" type="primary" disabled={pending}>
                             {pending ? 'Updating...' : 'Update'}

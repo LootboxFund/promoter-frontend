@@ -64,6 +64,7 @@ enum ShowLootboxType {
   All = 'All',
   Teams = 'Teams',
   Airdrops = 'Airdrops',
+  Web3 = 'Web3',
 }
 
 const LootboxGallery = (props: LootboxGalleryProps) => {
@@ -100,6 +101,7 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
         return !s.type || s.type === LootboxType.Compete;
       if (showLootboxType === ShowLootboxType.Airdrops)
         return s.type && s.type === LootboxType.Airdrop;
+      if (showLootboxType === ShowLootboxType.Web3) return !!s.address;
       return true;
     });
     if (searchString === '') {
@@ -324,6 +326,10 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                   value: ShowLootboxType.Airdrops,
                   label: 'Airdrops Only',
                 },
+                {
+                  value: ShowLootboxType.Web3,
+                  label: 'Blockchain Only',
+                },
               ]}
             />
             <Input.Search
@@ -529,15 +535,13 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                   />
                 }
                 extra={
-                  <Space size="middle">
-                    <Dropdown
-                      key={`ellipsis-${snapshot.lootboxID}`}
-                      overlay={editLootboxSnapshotMenu}
-                      trigger={['click', 'hover']}
-                    >
-                      <MenuOutlined />
-                    </Dropdown>
-                  </Space>
+                  <Dropdown
+                    key={`ellipsis-${snapshot.lootboxID}`}
+                    overlay={editLootboxSnapshotMenu}
+                    trigger={['click', 'hover']}
+                  >
+                    <MenuOutlined size={100} style={{ padding: '8px 0px 8px 20px' }} />
+                  </Dropdown>
                 }
                 cover={
                   <img alt="example" src={snapshot.stampImage || ''} className={styles.cardImage} />
@@ -561,6 +565,11 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                       {snapshot.type && snapshot.type === LootboxType.Airdrop && (
                         <Tooltip title="Airdrop Lootboxes do NOT represent a team and are NOT publically visible. Use Airdrops to send rewards directly to a group of fans.">
                           <Tag color="processing">Airdrop</Tag>
+                        </Tooltip>
+                      )}
+                      {snapshot.address && (
+                        <Tooltip title="Lootbox has been deployed to the blockchain">
+                          <Tag color="geekblue">Deployed</Tag>
                         </Tooltip>
                       )}
                     </$Horizontal>

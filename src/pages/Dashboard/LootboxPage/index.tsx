@@ -57,7 +57,9 @@ export const extractURLState_LootboxPage = (): MagicLinkParams => {
 
   return params;
 };
-
+interface LootboxWeb3Metadata {
+  flushed: boolean;
+}
 const LootboxPage: React.FC = () => {
   const { user } = useAuth();
   const { lootboxID } = useParams();
@@ -70,6 +72,9 @@ const LootboxPage: React.FC = () => {
   const [deposits, setDeposits] = useState<DepositWeb3[]>([]);
   const isPolling = useRef<boolean>(false);
   const polledLootboxID = useRef<LootboxID | null>(null);
+  const [lootboxWeb3Metadata, setLootboxWeb3Metadata] = useState<LootboxWeb3Metadata>({
+    flushed: false,
+  });
 
   // VIEW Lootbox
   const {
@@ -117,7 +122,14 @@ const LootboxPage: React.FC = () => {
     return (data?.getLootboxByID as GetLootboxFE)?.lootbox;
   }, [data]);
 
-  const { depositERC20, depositNative, changeMaxTickets, getLootboxDeposits } = useLootbox({
+  const {
+    depositERC20,
+    depositNative,
+    changeMaxTickets,
+    getLootboxDeposits,
+    flushTokens,
+    getFlushStatus,
+  } = useLootbox({
     address: lootbox?.address || undefined,
     chainIDHex: lootbox?.chainIdHex || undefined,
   });
@@ -132,9 +144,15 @@ const LootboxPage: React.FC = () => {
       });
   };
 
+  const loadLootboxWeb3Data = async () => {
+    const flushed = await getFlushStatus();
+    setLootboxWeb3Metadata({ flushed });
+  };
+
   useEffect(() => {
     if (lootbox?.address && lootbox?.chainIdHex) {
       handleDepositLoad();
+      loadLootboxWeb3Data();
     }
   }, [lootbox?.address, lootbox?.chainIdHex]);
 
@@ -248,6 +266,29 @@ const LootboxPage: React.FC = () => {
       );
     }
     return true;
+  };
+
+  const flushLootbox = async (
+    targetFlushAddress?: Address,
+  ): Promise<{ tx: ContractTransaction }> => {
+    if (!currentAccount) {
+      throw new Error('No wallet connected');
+    }
+
+    if (!lootbox?.creatorAddress) {
+      throw new Error('Unknown Lootbox creator');
+    }
+
+    if (currentAccount.toLowerCase() !== lootbox.creatorAddress.toLocaleLowerCase()) {
+      throw new Error(
+        `Only the wallet of the LOOTBOX creator can flush the LOOTBOX. Try switching to address ${shortenAddress(
+          lootbox?.creatorAddress || '',
+        )}.`,
+      );
+    }
+
+    const tx = await flushTokens(targetFlushAddress);
+    return { tx };
   };
 
   const createLootboxWeb3 = async (payload: {
@@ -497,7 +538,6 @@ const LootboxPage: React.FC = () => {
 
   const maxWidth = '1000px';
   const doesUserHaveEditPermission = user?.id && lootbox.creatorID === user.id;
-  console.log(`lootbox = `, lootbox);
   return (
     <div style={{ maxWidth }}>
       <BreadCrumbDynamic breadLine={breadLine} />
@@ -537,12 +577,14 @@ const LootboxPage: React.FC = () => {
             chainIDHex: lootbox.chainIdHex,
             runningCompletedClaims: lootbox.runningCompletedClaims,
             id: lootboxID ? (lootboxID as LootboxID) : undefined,
+            flushed: lootboxWeb3Metadata.flushed,
           }}
           stampImage={lootbox.stampImage}
           airdropMetadata={lootbox.airdropMetadata}
           mode={doesUserHaveEditPermission ? 'view-edit' : 'view-only'}
           onSubmitEdit={editLootbox}
           onCreateWeb3={createLootboxWeb3}
+          onFlushLootbox={flushLootbox}
         />
       </div>
       <br />
@@ -648,6 +690,7 @@ const LootboxPage: React.FC = () => {
         refetchDeposits={handleDepositLoad}
         sendEmails={sendTournamentEmails}
         lootboxID={(lootboxID || '') as LootboxID}
+        isLootboxFlushed={lootboxWeb3Metadata.flushed}
       />
 
       <GenerateReferralModal
