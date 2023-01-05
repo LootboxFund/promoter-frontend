@@ -181,7 +181,7 @@ const RootProvider = ({ children, routes }: any) => {
         <Web3Provider>
           <CookiesProvider>
             <ConfigProvider locale={enUS}>
-              <AuthGuard>{newChildren}</AuthGuard>
+              <AuthGuard pageLayout>{newChildren}</AuthGuard>
             </ConfigProvider>
           </CookiesProvider>
         </Web3Provider>
