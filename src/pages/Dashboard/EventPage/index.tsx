@@ -283,6 +283,9 @@ const EventPage: React.FC = () => {
           magicLink: payload.magicLink || '',
           privacyScope: payload.privacyScope || [],
           playbookUrl: payload.playbookUrl || '',
+          seedMaxLootboxTicketsPerUser:
+            payload.seedMaxLootboxTicketsPerUser == null ? 5 : payload.seedMaxLootboxTicketsPerUser,
+          maxTicketsPerUser: payload.maxTicketsPerUser == null ? 100 : payload.maxTicketsPerUser,
         },
       },
     });
@@ -367,6 +370,7 @@ const EventPage: React.FC = () => {
                 communityURL: tournament.communityURL || '',
                 privacyScope: tournament.privacyScope || [],
                 playbookUrl: tournament.playbookUrl || '',
+                safetyFeatures: tournament.safetyFeatures || undefined,
               }}
               mode="view-edit"
               affiliateID={affiliateID as AffiliateID}

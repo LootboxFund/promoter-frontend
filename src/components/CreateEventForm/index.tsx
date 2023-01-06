@@ -1,47 +1,45 @@
 import {
-  AdvertiserID,
   AffiliateID,
-  ConquestStatus,
-  MeasurementPartnerType,
-  OfferStatus,
   TournamentPrivacyScope,
+  TournamentSafetyFeatures_Firestore,
 } from '@wormgraph/helpers';
-import moment from 'moment';
-import type { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Form, Modal } from 'antd';
+import { Button, Card, Form, Modal, Tag } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
-  CreateOfferPayload,
   CreateTournamentPayload,
-  EditOfferPayload,
   EditTournamentPayload,
+  TournamentSafetyFeatures,
 } from '@/api/graphql/generated/types';
-import { AntUploadFile, DateView, PriceInput, PriceView } from '../AntFormBuilder';
+import { AntUploadFile, DateView } from '../AntFormBuilder';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { $Horizontal } from '@/components/generics';
 import { Rule } from 'antd/lib/form';
 
 export type CreateEventFormProps = {
-  tournament?: {
-    title: string;
-    description?: string;
-    tournamentDate?: number;
-    tournamentLink?: string;
-    coverPhoto?: string;
-    magicLink?: string;
-    prize?: string;
-    communityURL?: string;
-    privacyScope?: TournamentPrivacyScope[];
-    playbookUrl?: string;
-  };
+  tournament?: TournamentFE;
   affiliateID: AffiliateID;
   onSubmitCreate?: (payload: CreateTournamentPayload) => void;
   onSubmitEdit?: (payload: EditTournamentPayload) => void;
   mode: 'create' | 'edit-only' | 'view-edit' | 'view-only';
 };
 
-const TOURNAMENT_INFO = {
+interface TournamentFE {
+  title?: string;
+  description?: string;
+  tournamentDate?: Moment;
+  tournamentLink?: string;
+  coverPhoto?: string;
+  magicLink?: string;
+  prize?: string;
+  communityURL?: string;
+  playbookUrl?: string;
+  privacyScope?: TournamentPrivacyScope[];
+  safetyFeatures?: TournamentSafetyFeatures;
+}
+
+const TOURNAMENT_INFO: TournamentFE = {
   title: '',
   description: '',
   tournamentDate: moment(new Date()),
@@ -52,6 +50,7 @@ const TOURNAMENT_INFO = {
   communityURL: '',
   playbookUrl: '',
   privacyScope: [] as TournamentPrivacyScope[],
+  safetyFeatures: undefined,
 };
 const CreateEventForm: React.FC<CreateEventFormProps> = ({
   tournament,
@@ -85,6 +84,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         communityURL: tournament.communityURL || '',
         privacyScope: tournament.privacyScope || [],
         playbookUrl: tournament.playbookUrl || '',
+        safetyFeatures: tournament.safetyFeatures || undefined,
       });
     }
   }, [tournament]);
@@ -170,10 +170,19 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     if (values.privacyScope) {
       payload.privacyScope = values.privacyScope;
     }
+
+    if (values.safetyFeatures) {
+      if (values?.safetyFeatures?.maxTicketsPerUser != null) {
+        payload.maxTicketsPerUser = values.safetyFeatures.maxTicketsPerUser;
+      }
+      if (values?.safetyFeatures?.seedMaxLootboxTicketsPerUser != null) {
+        payload.seedMaxLootboxTicketsPerUser = values.safetyFeatures.seedMaxLootboxTicketsPerUser;
+      }
+    }
+
     setPending(true);
     try {
       await onSubmitEdit(payload);
-      setPending(false);
       if (!lockedToEdit) {
         setViewMode(true);
       }
@@ -186,6 +195,8 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         title: 'Failure',
         content: `${e.message}`,
       });
+    } finally {
+      setPending(false);
     }
   }, []);
   const getMeta = () => {
@@ -206,7 +217,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         {
           key: 'title',
           label: 'Title',
-          required: true,
           tooltip: 'The title of the tournament shown publically on tickets',
         },
         {
@@ -283,7 +293,38 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           TournamentPrivacyScope.DataSharing,
           TournamentPrivacyScope.MarketingEmails,
         ] as TournamentPrivacyScope[],
+        viewWidget: () => {
+          return (
+            <div>
+              {(tournamentInfo?.privacyScope || []).map((v: any, idx: number) => (
+                <Tag key={`priv${idx}`}>{v}</Tag>
+              ))}
+            </div>
+          );
+        },
       });
+      meta.fields.push({
+        key: 'safetyFeatures.maxTicketsPerUser',
+        label: 'Max Tickets Per User',
+        tooltip: 'The maximum number of tickets a user can claim for this event.',
+        rules: [],
+        // @ts-ignore
+        initialValue: tournamentInfo?.safetyFeatures?.maxTicketsPerUser || 100,
+        // @ts-ignore
+        widget: 'number',
+      });
+
+      meta.fields.push({
+        key: 'safetyFeatures.seedMaxLootboxTicketsPerUser',
+        label: 'Max Tickets Per Lootbox',
+        tooltip: 'The maximum number of tickets a user can claim for each Lootbox in this event.',
+        rules: [],
+        // @ts-ignore
+        initialValue: tournamentInfo?.safetyFeatures?.seedMaxLootboxTicketsPerUser || 5,
+        // @ts-ignore
+        widget: 'number',
+      });
+
       if (!viewMode) {
         meta.fields.push({
           key: 'coverPhoto',

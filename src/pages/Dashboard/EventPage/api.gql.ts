@@ -21,6 +21,10 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
           promoters
           privacyScope
           playbookUrl
+          safetyFeatures {
+            maxTicketsPerUser
+            seedMaxLootboxTicketsPerUser
+          }
           timestamps {
             createdAt
           }
