@@ -6,7 +6,7 @@ import {
   LootboxID,
   TournamentID,
 } from '@wormgraph/helpers';
-import FormBuilder from 'antd-form-builder';
+import FormBuilder, { Meta } from 'antd-form-builder';
 import {
   Affix,
   Alert,
@@ -22,7 +22,6 @@ import {
   Tooltip,
   Typography,
   Switch,
-  Input,
   Popconfirm,
 } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -62,19 +61,43 @@ interface LootboxBody {
   chainIDHex?: ChainIDHex | null;
   runningCompletedClaims: number;
   id?: LootboxID;
+  safetyFeatures: {
+    maxTicketsPerUser?: number | null;
+    isSharingDisabled?: boolean | null;
+  } | null;
   // Web3 data
   flushed?: boolean;
 }
 
 export interface CreateLootboxRequest {
-  payload: Omit<
-    LootboxBody,
-    'address' | 'status' | 'chainIDHex' | 'creatorAddress' | 'runningCompletedClaims'
-  >;
+  payload: {
+    name: string;
+    description: string;
+    backgroundImage: string;
+    logoImage: string;
+    themeColor: string;
+    nftBountyValue: string;
+    joinCommunityUrl: string;
+    maxTickets: number;
+    tag: string;
+    tournamentID?: TournamentID;
+  };
 }
 
 export interface EditLootboxRequest {
-  payload: Partial<Omit<LootboxBody, 'address' | 'tag' | 'chainIDHex' | 'creatorAddress'>>;
+  payload: {
+    name?: string | null;
+    description?: string | null;
+    backgroundImage?: string | null;
+    logoImage?: string | null;
+    themeColor?: string | null;
+    nftBountyValue?: string | null;
+    joinCommunityUrl?: string | null;
+    maxTickets?: number | null;
+    status?: LootboxStatus | null;
+    isSharingDisabled?: boolean | null;
+    maxTicketsPerUser?: number | null;
+  };
 }
 
 export interface CreateLootboxWeb3Request {
@@ -124,6 +147,7 @@ const LOOTBOX_INFO: LootboxBody = {
   tag: '',
   status: LootboxStatus.Active,
   runningCompletedClaims: 0,
+  safetyFeatures: null,
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
@@ -207,6 +231,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         tournamentID: lootbox.tournamentID,
         runningCompletedClaims: lootbox.runningCompletedClaims,
         flushed: lootbox.flushed,
+        safetyFeatures: lootbox.safetyFeatures,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -510,7 +535,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const handleEditFinish = useCallback(
     async (values) => {
       if (!onSubmitEdit) return;
-      const request = { payload: {} } as EditLootboxRequest;
+      const request: EditLootboxRequest = { payload: {} };
 
       if (values.name && values.name !== lootboxInfo.name) {
         request.payload.name = values.name;
@@ -547,6 +572,18 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       }
       if (values.maxTickets && values.maxTickets !== lootboxInfo.maxTickets) {
         request.payload.maxTickets = values.maxTickets;
+      }
+      if (
+        values.safetyFeatures?.isSharingDisabled != undefined &&
+        values.safetyFeatures.isSharingDisabled !== lootboxInfo.safetyFeatures?.isSharingDisabled
+      ) {
+        request.payload.isSharingDisabled = values.safetyFeatures.isSharingDisabled;
+      }
+      if (
+        values.safetyFeatures?.maxTicketsPerUser != undefined &&
+        values.safetyFeatures.maxTicketsPerUser !== lootboxInfo.safetyFeatures?.maxTicketsPerUser
+      ) {
+        request.payload.maxTicketsPerUser = values.safetyFeatures.maxTicketsPerUser;
       }
 
       setPending(true);
@@ -617,7 +654,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
   const metaFlush = () => {
     const explorerURL = lootboxInfo.chainIDHex ? getBlockExplorerUrl(lootboxInfo.chainIDHex) : null;
-    const meta = {
+    const meta: Meta = {
       columns: 1,
       initialValues: lootboxInfo,
       // disabled: pending,
@@ -627,7 +664,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           key: 'lootboxAddr',
           label: 'Lootbox Address',
           viewMode: true,
-          // @ts-ignore
           viewWidget: () => (
             <Typography.Link
               href={`${explorerURL}/address/${lootboxInfo.address}`}
@@ -648,7 +684,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           key: 'lootboxOwnerFlush',
           label: 'Owner Address',
           viewMode: true,
-          // @ts-ignore
           viewWidget: () => (
             <Typography.Link
               href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
@@ -669,7 +704,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           key: 'currentAccountFlush',
           label: 'Your Address',
           viewMode: true,
-          // @ts-ignore
           viewWidget: () => (
             <div>
               {currentAccount ? (
@@ -886,8 +920,30 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
     return meta;
   };
+  const metaSafety = () => {
+    const meta: Meta = {
+      columns: 1,
+      disabled: pending,
+      initialValues: lootboxInfo,
+      fields: [
+        {
+          key: 'safetyFeatures.isSharingDisabled',
+          label: 'Sharing Disabled',
+          widget: 'checkbox',
+          tooltip: 'Disable the ability for users to share their tickets',
+        },
+        {
+          key: 'safetyFeatures.maxTicketsPerUser',
+          label: 'Max Tickets Per User',
+          widget: 'number',
+          tooltip: 'The maximum number of tickets a user can claim for this Lootbox',
+        },
+      ],
+    };
+    return meta;
+  };
   const metaCreative = () => {
-    const meta = {
+    const meta: Meta = {
       columns: 1,
       disabled: pending,
       initialValues: lootboxInfo,
@@ -975,7 +1031,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   };
   const metaBlockchain = () => {
     const explorerURL = lootboxInfo.chainIDHex ? getBlockExplorerUrl(lootboxInfo.chainIDHex) : null;
-    const meta = {
+    const meta: Meta = {
       columns: 1,
       disabled: pending,
       initialValues: lootboxInfo,
@@ -993,7 +1049,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             {
               key: 'blockchainExplorer',
               label: 'Lootbox Address',
-              // @ts-ignore
               viewWidget: () => (
                 <Typography.Link
                   href={`${explorerURL}/address/${lootboxInfo.address}`}
@@ -1013,7 +1068,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             {
               key: 'lootboxOwner',
               label: 'Owner Address',
-              // @ts-ignore
               viewWidget: () => (
                 <Typography.Link
                   href={`${explorerURL}/address/${lootboxInfo.creatorAddress}`}
@@ -1035,7 +1089,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   {
                     key: 'flushed',
                     label: 'Flushed',
-                    type: 'bool',
                     viewWidget: () => {
                       return (
                         <Tag color="red" style={{ fontSize: '12px' }}>
@@ -1073,6 +1126,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               key: '_max_tickets_widget',
               label: 'Max Tickets',
               required: true,
+              // @ts-ignore
               forwardeRef: true,
               initialValue: {
                 targetMaxTickets: lootboxInfo.runningCompletedClaims,
@@ -1158,7 +1212,14 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       ],
     };
 
-    if (!viewMode) {
+    result.steps[0].subSteps.push({
+      title: 'Safety Settings',
+      meta: metaSafety() as any,
+      key: 'safety-details',
+      notifications: [],
+    });
+
+    if (!viewMode && mode !== 'create') {
       result.steps[0].subSteps.push({
         title: 'Lootbox Design',
         meta: metaCreative() as any,

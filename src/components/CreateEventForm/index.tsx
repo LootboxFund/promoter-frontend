@@ -229,7 +229,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       ],
     };
     if (mode !== 'create') {
-      // @ts-ignore
       meta.fields.push({
         key: 'description',
         label: 'Description',
@@ -237,7 +236,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         widget: 'textarea',
         tooltip: 'Additional information shown publically on your Lootbox event page',
       });
-      // @ts-ignore
+
       meta.fields.push({
         key: 'tournamentDate',
         label: 'Estimated Date',
@@ -246,7 +245,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         viewWidget: DateView,
         tooltip: 'Shown publically as the last date that tickets can be claimed',
       });
-      // @ts-ignore
+
       meta.fields.push({
         key: 'communityURL',
         label: 'Link to Community',
@@ -274,14 +273,36 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           </a>
         ),
       });
-      // @ts-ignore
+
       meta.fields.push({
         key: 'prize',
         label: 'Prize',
         tooltip:
           'The total prize pool for fan ticket holders, shown publically on marketing materials',
       });
-      // @ts-ignore
+
+      meta.fields.push({
+        key: 'safetyFeatures.seedMaxLootboxTicketsPerUser',
+        label: 'Allowed Tickets Per Team',
+        tooltip: 'The maximum number of tickets a user can claim for each Lootbox in this event.',
+        rules: [],
+        // @ts-ignore
+        initialValue: tournamentInfo?.safetyFeatures?.seedMaxLootboxTicketsPerUser || 5,
+        // @ts-ignore
+        widget: 'number',
+      });
+
+      meta.fields.push({
+        key: 'safetyFeatures.maxTicketsPerUser',
+        label: 'Max Tickets Per User',
+        tooltip: 'The maximum number of tickets a user can claim for this event.',
+        rules: [],
+        // @ts-ignore
+        initialValue: tournamentInfo?.safetyFeatures?.maxTicketsPerUser || 100,
+        // @ts-ignore
+        widget: 'number',
+      });
+
       meta.fields.push({
         key: 'privacyScope',
         label: 'Privacy Scope',
@@ -302,27 +323,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
             </div>
           );
         },
-      });
-      meta.fields.push({
-        key: 'safetyFeatures.maxTicketsPerUser',
-        label: 'Max Tickets Per User',
-        tooltip: 'The maximum number of tickets a user can claim for this event.',
-        rules: [],
-        // @ts-ignore
-        initialValue: tournamentInfo?.safetyFeatures?.maxTicketsPerUser || 100,
-        // @ts-ignore
-        widget: 'number',
-      });
-
-      meta.fields.push({
-        key: 'safetyFeatures.seedMaxLootboxTicketsPerUser',
-        label: 'Max Tickets Per Lootbox',
-        tooltip: 'The maximum number of tickets a user can claim for each Lootbox in this event.',
-        rules: [],
-        // @ts-ignore
-        initialValue: tournamentInfo?.safetyFeatures?.seedMaxLootboxTicketsPerUser || 5,
-        // @ts-ignore
-        widget: 'number',
       });
 
       if (!viewMode) {

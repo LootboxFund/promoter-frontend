@@ -24,6 +24,10 @@ export interface LootboxFE {
   creatorID: UserID;
   runningCompletedClaims: number;
   airdropMetadata: LootboxAirdropMetadata;
+  safetyFeatures: {
+    maxTicketsPerUser?: number | null;
+    isSharingDisabled?: boolean | null;
+  } | null;
   tournamentSnapshot: {
     creatorID: UserID;
     timestamps: {
@@ -77,6 +81,10 @@ export const GET_LOOTBOX = gql`
             organizerID
             advertiserID
             questions
+          }
+          safetyFeatures {
+            maxTicketsPerUser
+            isSharingDisabled
           }
         }
       }
