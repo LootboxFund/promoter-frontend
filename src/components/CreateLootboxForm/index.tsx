@@ -63,7 +63,7 @@ interface LootboxBody {
   id?: LootboxID;
   safetyFeatures: {
     maxTicketsPerUser?: number | null;
-    isSharingDisabled?: boolean | null;
+    isExclusiveLootbox?: boolean | null;
   } | null;
   // Web3 data
   flushed?: boolean;
@@ -95,7 +95,7 @@ export interface EditLootboxRequest {
     joinCommunityUrl?: string | null;
     maxTickets?: number | null;
     status?: LootboxStatus | null;
-    isSharingDisabled?: boolean | null;
+    isExclusiveLootbox?: boolean | null;
     maxTicketsPerUser?: number | null;
   };
 }
@@ -574,10 +574,10 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         request.payload.maxTickets = values.maxTickets;
       }
       if (
-        values.safetyFeatures?.isSharingDisabled != undefined &&
-        values.safetyFeatures.isSharingDisabled !== lootboxInfo.safetyFeatures?.isSharingDisabled
+        values.safetyFeatures?.isExclusiveLootbox != undefined &&
+        values.safetyFeatures.isExclusiveLootbox !== lootboxInfo.safetyFeatures?.isExclusiveLootbox
       ) {
-        request.payload.isSharingDisabled = values.safetyFeatures.isSharingDisabled;
+        request.payload.isExclusiveLootbox = values.safetyFeatures.isExclusiveLootbox;
       }
       if (
         values.safetyFeatures?.maxTicketsPerUser != undefined &&
@@ -927,16 +927,25 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       initialValues: lootboxInfo,
       fields: [
         {
-          key: 'safetyFeatures.isSharingDisabled',
-          label: 'Sharing Disabled',
+          key: 'safetyFeatures.isExclusiveLootbox',
+          label: 'Exclusive Lootbox',
           widget: 'checkbox',
-          tooltip: 'Disable the ability for users to share their tickets',
+          tooltip:
+            'When checked this Lootbox will not appear in fan referral links, and cannot be claimed by any referral link other than your own. Bonus rewards are also disabled by default.',
+          viewWidget: () => {
+            if (lootboxInfo?.safetyFeatures?.isExclusiveLootbox) {
+              return <Tag color="green">True</Tag>;
+            } else {
+              return <Tag color="red">False</Tag>;
+            }
+          },
         },
         {
           key: 'safetyFeatures.maxTicketsPerUser',
           label: 'Max Tickets Per User',
           widget: 'number',
-          tooltip: 'The maximum number of tickets a user can claim for this Lootbox',
+          tooltip:
+            'The maximum number of tickets a user can claim for this Lootbox (includes bonus rewards & airdrops)',
         },
       ],
     };
@@ -1090,11 +1099,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                     key: 'flushed',
                     label: 'Flushed',
                     viewWidget: () => {
-                      return (
-                        <Tag color="red" style={{ fontSize: '12px' }}>
-                          True
-                        </Tag>
-                      );
+                      return <Tag color="red">True</Tag>;
                     },
                   },
                 ]
@@ -1212,12 +1217,14 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       ],
     };
 
-    result.steps[0].subSteps.push({
-      title: 'Safety Settings',
-      meta: metaSafety() as any,
-      key: 'safety-details',
-      notifications: [],
-    });
+    if (mode !== 'create') {
+      result.steps[0].subSteps.push({
+        title: 'Safety Settings',
+        meta: metaSafety() as any,
+        key: 'safety-details',
+        notifications: [],
+      });
+    }
 
     if (!viewMode && mode !== 'create') {
       result.steps[0].subSteps.push({

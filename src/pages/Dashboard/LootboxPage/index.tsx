@@ -230,7 +230,7 @@ const LootboxPage: React.FC = () => {
           nftBountyValue: payload.nftBountyValue,
           status: payload.status,
           themeColor: payload.themeColor,
-          isSharingDisabled: payload.isSharingDisabled,
+          isExclusiveLootbox: payload.isExclusiveLootbox,
           maxTicketsPerUser: payload.maxTicketsPerUser,
         },
       },

@@ -26,7 +26,7 @@ export interface LootboxFE {
   airdropMetadata: LootboxAirdropMetadata;
   safetyFeatures: {
     maxTicketsPerUser?: number | null;
-    isSharingDisabled?: boolean | null;
+    isExclusiveLootbox?: boolean | null;
   } | null;
   tournamentSnapshot: {
     creatorID: UserID;
@@ -84,7 +84,7 @@ export const GET_LOOTBOX = gql`
           }
           safetyFeatures {
             maxTicketsPerUser
-            isSharingDisabled
+            isExclusiveLootbox
           }
         }
       }
