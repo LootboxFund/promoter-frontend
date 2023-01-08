@@ -290,12 +290,16 @@ const EventPage: React.FC = () => {
           seedMaxLootboxTicketsPerUser:
             payload.seedMaxLootboxTicketsPerUser == null ? 5 : payload.seedMaxLootboxTicketsPerUser,
           maxTicketsPerUser: payload.maxTicketsPerUser == null ? 100 : payload.maxTicketsPerUser,
+          visibility: payload.visibility,
         },
       },
     });
     if (!res?.data || res?.data?.editTournament?.__typename === 'ResponseError') {
-      // @ts-ignore
-      throw new Error(res?.data?.editTournament?.error?.message || words.anErrorOccured);
+      throw new Error(
+        res?.data?.editTournament?.__typename === 'ResponseError'
+          ? res?.data?.editTournament?.error?.message
+          : 'An error occured',
+      );
     }
   };
 
@@ -377,6 +381,7 @@ const EventPage: React.FC = () => {
                 privacyScope: tournament.privacyScope || [],
                 playbookUrl: tournament.playbookUrl || '',
                 safetyFeatures: tournament.safetyFeatures || undefined,
+                visibility: tournament.visibility,
               }}
               mode="view-edit"
               affiliateID={affiliateID as AffiliateID}

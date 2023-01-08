@@ -7,10 +7,11 @@ import moment, { Moment } from 'moment';
 import FormBuilder from 'antd-form-builder';
 import { Button, Card, Form, Modal, Tag } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type {
+import {
   CreateTournamentPayload,
   EditTournamentPayload,
   TournamentSafetyFeatures,
+  TournamentVisibility,
 } from '@/api/graphql/generated/types';
 import { AntUploadFile, DateView } from '../AntFormBuilder';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
@@ -18,14 +19,14 @@ import { $Horizontal } from '@/components/generics';
 import { Rule } from 'antd/lib/form';
 
 export type CreateEventFormProps = {
-  tournament?: TournamentFE;
+  tournament?: TournamentInfo;
   affiliateID: AffiliateID;
   onSubmitCreate?: (payload: CreateTournamentPayload) => void;
   onSubmitEdit?: (payload: EditTournamentPayload) => void;
   mode: 'create' | 'edit-only' | 'view-edit' | 'view-only';
 };
 
-interface TournamentFE {
+interface TournamentInfo {
   title?: string;
   description?: string;
   tournamentDate?: Moment;
@@ -37,9 +38,10 @@ interface TournamentFE {
   playbookUrl?: string;
   privacyScope?: TournamentPrivacyScope[];
   safetyFeatures?: TournamentSafetyFeatures;
+  visibility?: TournamentVisibility;
 }
 
-const TOURNAMENT_INFO: TournamentFE = {
+const TOURNAMENT_INFO: TournamentInfo = {
   title: '',
   description: '',
   tournamentDate: moment(new Date()),
@@ -85,11 +87,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         privacyScope: tournament.privacyScope || [],
         playbookUrl: tournament.playbookUrl || '',
         safetyFeatures: tournament.safetyFeatures || undefined,
+        visibility: tournament.visibility,
       });
     }
   }, [tournament]);
   const handleFinish = useCallback(async (values) => {
-    console.log('Submit: ', values);
     if (!onSubmitCreate) return;
 
     const payload = {} as CreateTournamentPayload;
@@ -135,8 +137,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     }
   }, []);
   const handleEdit = useCallback(async (values) => {
-    console.log('Submit: ', values);
-    console.log(newMediaDestination.current);
     if (!onSubmitEdit) return;
 
     const payload = {} as EditTournamentPayload;
@@ -178,6 +178,10 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       if (values?.safetyFeatures?.seedMaxLootboxTicketsPerUser != null) {
         payload.seedMaxLootboxTicketsPerUser = values.safetyFeatures.seedMaxLootboxTicketsPerUser;
       }
+    }
+
+    if (values.visibility) {
+      payload.visibility = values.visibility;
     }
 
     setPending(true);
@@ -229,6 +233,28 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       ],
     };
     if (mode !== 'create') {
+      meta.fields.push({
+        key: 'visibility',
+        label: 'Visibility',
+        tooltip: 'Determines if your event is shown in the marketplace.',
+        // @ts-ignore
+        widget: 'radio-group',
+        options: [
+          TournamentVisibility.Public,
+          TournamentVisibility.Private,
+        ] as TournamentVisibility[],
+        viewWidget: () => {
+          if (!tournamentInfo?.visibility) return null;
+          const color =
+            tournamentInfo.visibility === TournamentVisibility.Public ? 'green' : 'orange';
+          return (
+            <div>
+              <Tag color={color}>{tournamentInfo.visibility}</Tag>
+            </div>
+          );
+        },
+      });
+
       meta.fields.push({
         key: 'description',
         label: 'Description',
