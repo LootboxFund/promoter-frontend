@@ -1,30 +1,34 @@
 import { AffiliateID } from '@wormgraph/helpers';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Form, Modal } from 'antd';
+import { Button, Card, Form, Modal, Tag } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { UpdateAffiliateDetailsPayload } from '@/api/graphql/generated/types';
+import { AffiliateVisibility, UpdateAffiliateDetailsPayload } from '@/api/graphql/generated/types';
 import { AntUploadFile } from '../AntFormBuilder';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { $Horizontal } from '@/components/generics';
 import { useAuth } from '@/api/firebase/useAuth';
 import ClickToCopy from '../ClickToCopy';
 
+export interface AffiliateInfo {
+  id: AffiliateID;
+  name: string;
+  description?: string;
+  avatar?: string;
+  publicContactEmail?: string;
+  website?: string;
+  audienceSize?: number;
+  visibility?: AffiliateVisibility;
+  privateLoginEmail?: string;
+}
+
 export type EditAffiliateFormProps = {
-  affiliate: {
-    id: AffiliateID;
-    name: string;
-    description?: string;
-    avatar?: string;
-    publicContactEmail?: string;
-    website?: string;
-    audienceSize?: number;
-  };
+  affiliate: AffiliateInfo;
   onSubmit: (payload: UpdateAffiliateDetailsPayload) => void;
   mode: 'view-edit' | 'view-only';
 };
 
-const AFFILIATE_INFO = {
-  id: '',
+const AFFILIATE_INFO: AffiliateInfo = {
+  id: '' as AffiliateID,
   name: '',
   description: '',
   avatar: '',
@@ -51,6 +55,7 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
       publicContactEmail: affiliate.publicContactEmail || '',
       website: affiliate.website || '',
       audienceSize: affiliate.audienceSize || 0,
+      visibility: affiliate.visibility || AffiliateVisibility.Private,
     });
   }, [affiliate]);
 
@@ -81,6 +86,9 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
     if (values.audienceSize) {
       payload.audienceSize = values.audienceSize;
     }
+    if (values.visibility) {
+      payload.visibility = values.visibility;
+    }
     setPending(true);
     try {
       await onSubmit(payload);
@@ -98,7 +106,7 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
     }
   }, []);
   const getMeta = () => {
-    const meta = {
+    const meta: any = {
       columns: 1,
       disabled: pending,
       initialValues: affiliateInfo,
@@ -109,6 +117,25 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
           required: true,
           tooltip:
             'Your name that will appear in the marketplace for advertisers and fellow promoters.',
+        },
+        {
+          key: 'visibility',
+          label: 'Visibility',
+          tooltip: 'Determines if your account is shown in the marketplace for promoters.',
+          widget: 'radio-group',
+          options: [AffiliateVisibility.Public, AffiliateVisibility.Private],
+          viewWidget: () => {
+            if (!affiliateInfo?.visibility) {
+              return <Tag> N/A</Tag>;
+            }
+            const color =
+              affiliateInfo.visibility === AffiliateVisibility.Public ? 'green' : 'orange';
+            return (
+              <div>
+                <Tag color={color}>{affiliateInfo.visibility}</Tag>
+              </div>
+            );
+          },
         },
         {
           key: 'privateLoginEmail',
@@ -151,7 +178,6 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
       meta.fields.push({
         key: 'image',
         label: 'Logo',
-        // @ts-ignore
         widget: () => (
           <AntUploadFile
             affiliateID={affiliate.id}
@@ -168,7 +194,6 @@ const EditAffiliateForm: React.FC<EditAffiliateFormProps> = ({ affiliate, onSubm
         key: 'id',
         label: 'Affiliate ID (Promoter ID)',
         tooltip: 'Your Affiliate ID (aka Promoter ID). In case anyone asks you for it.',
-        // @ts-ignore
         viewWidget: () => <ClickToCopy text={affiliateInfo.id} showTip />,
       });
     }
