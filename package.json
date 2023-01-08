@@ -1,6 +1,6 @@
 {
   "name": "promoter-frontend",
-  "version": "0.7.6-prod",
+  "version": "0.7.7-demo",
   "private": true,
   "description": "Lootbox Promoter Frontend",
   "scripts": {
