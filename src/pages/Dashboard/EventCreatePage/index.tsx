@@ -34,14 +34,13 @@ const EventCreatePage: React.FC = () => {
     const res = await createTournamentMutation({
       variables: {
         payload: {
-          title: payload.title || 'Untitled Tournament',
+          title: payload.title,
           description: payload.description,
           tournamentLink: payload.tournamentLink || '',
           coverPhoto: payload.coverPhoto || '',
           prize: payload.prize || '',
           tournamentDate: payload.tournamentDate,
           communityURL: payload.communityURL || '',
-          organizer: affiliateID,
         },
       },
     });

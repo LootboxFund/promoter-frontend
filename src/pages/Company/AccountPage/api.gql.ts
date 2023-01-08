@@ -14,6 +14,7 @@ export const UPDATE_AFFILIATE = gql`
           publicContactEmail
           audienceSize
           website
+          visibility
         }
       }
       ... on ResponseError {

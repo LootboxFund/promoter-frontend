@@ -1,7 +1,7 @@
 import { message } from 'antd';
 
 export type ClickToCopyProps = {
-  style: Record<string, unknown>;
+  style?: Record<string, unknown>;
   text: string;
   showTip?: boolean;
 };

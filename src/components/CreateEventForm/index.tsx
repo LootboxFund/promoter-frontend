@@ -1,47 +1,47 @@
 import {
-  AdvertiserID,
   AffiliateID,
-  ConquestStatus,
-  MeasurementPartnerType,
-  OfferStatus,
   TournamentPrivacyScope,
+  TournamentSafetyFeatures_Firestore,
 } from '@wormgraph/helpers';
-import moment from 'moment';
-import type { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Form, Modal } from 'antd';
+import { Button, Card, Form, Modal, Tag } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type {
-  CreateOfferPayload,
+import {
   CreateTournamentPayload,
-  EditOfferPayload,
   EditTournamentPayload,
+  TournamentSafetyFeatures,
+  TournamentVisibility,
 } from '@/api/graphql/generated/types';
-import { AntUploadFile, DateView, PriceInput, PriceView } from '../AntFormBuilder';
+import { AntUploadFile, DateView } from '../AntFormBuilder';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { $Horizontal } from '@/components/generics';
 import { Rule } from 'antd/lib/form';
 
 export type CreateEventFormProps = {
-  tournament?: {
-    title: string;
-    description?: string;
-    tournamentDate?: number;
-    tournamentLink?: string;
-    coverPhoto?: string;
-    magicLink?: string;
-    prize?: string;
-    communityURL?: string;
-    privacyScope?: TournamentPrivacyScope[];
-    playbookUrl?: string;
-  };
+  tournament?: TournamentInfo;
   affiliateID: AffiliateID;
   onSubmitCreate?: (payload: CreateTournamentPayload) => void;
   onSubmitEdit?: (payload: EditTournamentPayload) => void;
   mode: 'create' | 'edit-only' | 'view-edit' | 'view-only';
 };
 
-const TOURNAMENT_INFO = {
+interface TournamentInfo {
+  title?: string;
+  description?: string;
+  tournamentDate?: Moment;
+  tournamentLink?: string;
+  coverPhoto?: string;
+  magicLink?: string;
+  prize?: string;
+  communityURL?: string;
+  playbookUrl?: string;
+  privacyScope?: TournamentPrivacyScope[];
+  safetyFeatures?: TournamentSafetyFeatures;
+  visibility?: TournamentVisibility;
+}
+
+const TOURNAMENT_INFO: TournamentInfo = {
   title: '',
   description: '',
   tournamentDate: moment(new Date()),
@@ -52,6 +52,7 @@ const TOURNAMENT_INFO = {
   communityURL: '',
   playbookUrl: '',
   privacyScope: [] as TournamentPrivacyScope[],
+  safetyFeatures: undefined,
 };
 const CreateEventForm: React.FC<CreateEventFormProps> = ({
   tournament,
@@ -85,11 +86,12 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         communityURL: tournament.communityURL || '',
         privacyScope: tournament.privacyScope || [],
         playbookUrl: tournament.playbookUrl || '',
+        safetyFeatures: tournament.safetyFeatures || undefined,
+        visibility: tournament.visibility,
       });
     }
   }, [tournament]);
   const handleFinish = useCallback(async (values) => {
-    console.log('Submit: ', values);
     if (!onSubmitCreate) return;
 
     const payload = {} as CreateTournamentPayload;
@@ -135,8 +137,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     }
   }, []);
   const handleEdit = useCallback(async (values) => {
-    console.log('Submit: ', values);
-    console.log(newMediaDestination.current);
     if (!onSubmitEdit) return;
 
     const payload = {} as EditTournamentPayload;
@@ -170,10 +170,23 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     if (values.privacyScope) {
       payload.privacyScope = values.privacyScope;
     }
+
+    if (values.safetyFeatures) {
+      if (values?.safetyFeatures?.maxTicketsPerUser != null) {
+        payload.maxTicketsPerUser = values.safetyFeatures.maxTicketsPerUser;
+      }
+      if (values?.safetyFeatures?.seedMaxLootboxTicketsPerUser != null) {
+        payload.seedMaxLootboxTicketsPerUser = values.safetyFeatures.seedMaxLootboxTicketsPerUser;
+      }
+    }
+
+    if (values.visibility) {
+      payload.visibility = values.visibility;
+    }
+
     setPending(true);
     try {
       await onSubmitEdit(payload);
-      setPending(false);
       if (!lockedToEdit) {
         setViewMode(true);
       }
@@ -186,6 +199,8 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         title: 'Failure',
         content: `${e.message}`,
       });
+    } finally {
+      setPending(false);
     }
   }, []);
   const getMeta = () => {
@@ -206,7 +221,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         {
           key: 'title',
           label: 'Title',
-          required: true,
           tooltip: 'The title of the tournament shown publically on tickets',
         },
         {
@@ -219,7 +233,28 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       ],
     };
     if (mode !== 'create') {
-      // @ts-ignore
+      meta.fields.push({
+        key: 'visibility',
+        label: 'Visibility',
+        tooltip: 'Determines if your event is shown in the marketplace.',
+        // @ts-ignore
+        widget: 'radio-group',
+        options: [
+          TournamentVisibility.Public,
+          TournamentVisibility.Private,
+        ] as TournamentVisibility[],
+        viewWidget: () => {
+          if (!tournamentInfo?.visibility) return null;
+          const color =
+            tournamentInfo.visibility === TournamentVisibility.Public ? 'green' : 'orange';
+          return (
+            <div>
+              <Tag color={color}>{tournamentInfo.visibility}</Tag>
+            </div>
+          );
+        },
+      });
+
       meta.fields.push({
         key: 'description',
         label: 'Description',
@@ -227,7 +262,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         widget: 'textarea',
         tooltip: 'Additional information shown publically on your Lootbox event page',
       });
-      // @ts-ignore
+
       meta.fields.push({
         key: 'tournamentDate',
         label: 'Estimated Date',
@@ -236,7 +271,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         viewWidget: DateView,
         tooltip: 'Shown publically as the last date that tickets can be claimed',
       });
-      // @ts-ignore
+
       meta.fields.push({
         key: 'communityURL',
         label: 'Link to Community',
@@ -264,14 +299,36 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           </a>
         ),
       });
-      // @ts-ignore
+
       meta.fields.push({
         key: 'prize',
         label: 'Prize',
         tooltip:
           'The total prize pool for fan ticket holders, shown publically on marketing materials',
       });
-      // @ts-ignore
+
+      meta.fields.push({
+        key: 'safetyFeatures.seedMaxLootboxTicketsPerUser',
+        label: 'Allowed Tickets Per Team',
+        tooltip: 'The maximum number of tickets a user can claim for each Lootbox in this event.',
+        rules: [],
+        // @ts-ignore
+        initialValue: tournamentInfo?.safetyFeatures?.seedMaxLootboxTicketsPerUser || 5,
+        // @ts-ignore
+        widget: 'number',
+      });
+
+      meta.fields.push({
+        key: 'safetyFeatures.maxTicketsPerUser',
+        label: 'Max Tickets Per User',
+        tooltip: 'The maximum number of tickets a user can claim for this event.',
+        rules: [],
+        // @ts-ignore
+        initialValue: tournamentInfo?.safetyFeatures?.maxTicketsPerUser || 100,
+        // @ts-ignore
+        widget: 'number',
+      });
+
       meta.fields.push({
         key: 'privacyScope',
         label: 'Privacy Scope',
@@ -283,7 +340,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           TournamentPrivacyScope.DataSharing,
           TournamentPrivacyScope.MarketingEmails,
         ] as TournamentPrivacyScope[],
+        viewWidget: () => {
+          return (
+            <div>
+              {(tournamentInfo?.privacyScope || []).map((v: any, idx: number) => (
+                <Tag key={`priv${idx}`}>{v}</Tag>
+              ))}
+            </div>
+          );
+        },
       });
+
       if (!viewMode) {
         meta.fields.push({
           key: 'coverPhoto',

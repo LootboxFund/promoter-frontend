@@ -1,7 +1,7 @@
 import { PageContainer } from '@ant-design/pro-components';
 import { Link } from '@umijs/max';
 import { Button, Spin } from 'antd';
-import { history, useModel } from '@umijs/max';
+import { history } from '@umijs/max';
 import styles from './index.less';
 import React, { useState } from 'react';
 import { useAuth } from '@/api/firebase/useAuth';
@@ -10,9 +10,7 @@ import { useAffiliateUser } from '@/components/AuthGuard/affiliateUserInfo';
 import { useMutation, useQuery } from '@apollo/client';
 import {
   AffiliateAdminViewResponse,
-  AffiliateAdminViewResponseSuccess,
   MutationUpdateAffiliateDetailsArgs,
-  ReportTotalEarningsForAffiliateResponse,
   ResponseError,
   UpdateAffiliateDetailsPayload,
 } from '@/api/graphql/generated/types';
@@ -21,7 +19,7 @@ import {
   UpdateAffiliateDetailsResponseSuccess,
   Affiliate,
 } from '../../../api/graphql/generated/types';
-import { $Horizontal, $InfoDescription, $Vertical, $ColumnGap } from '@/components/generics';
+import { $Horizontal, $InfoDescription, $Vertical } from '@/components/generics';
 import EditAffiliateForm from '@/components/EditAffiliateForm';
 import { AffiliateID } from '@wormgraph/helpers';
 import { Image } from 'antd';
@@ -77,13 +75,17 @@ const AccountPage: React.FC = () => {
           publicContactEmail: payload.publicContactEmail,
           website: payload.website,
           audienceSize: payload.audienceSize,
+          visibility: payload.visibility,
         },
         affiliateID: affiliateID,
       },
     });
     if (!res?.data || res?.data?.updateAffiliateDetails?.__typename === 'ResponseError') {
-      // @ts-ignore
-      throw new Error(res?.data?.updateAffiliateDetails?.error?.message || words.anErrorOccured);
+      throw new Error(
+        res?.data?.updateAffiliateDetails?.__typename === 'ResponseError'
+          ? res?.data?.updateAffiliateDetails?.error?.message
+          : 'An error occured',
+      );
     }
   };
   const loginOut = async () => {
@@ -136,6 +138,7 @@ const AccountPage: React.FC = () => {
                 publicContactEmail: affiliate.publicContactEmail || '',
                 website: affiliate.website || '',
                 audienceSize: affiliate.audienceSize || 0,
+                visibility: affiliate.visibility,
               }}
               onSubmit={updateAffiliate}
               mode="view-edit"
@@ -143,7 +146,7 @@ const AccountPage: React.FC = () => {
             <Image width={200} src={affiliate.avatar || ''} />
           </$Horizontal>
           <br />
-          <ConnectWalletButton />
+          <ConnectWalletButton type="secondary" />
           <br />
           <$Horizontal spacing={2}>
             <SwitchToAdvertiserButton />

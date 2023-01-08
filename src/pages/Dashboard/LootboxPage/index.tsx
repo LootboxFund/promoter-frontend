@@ -230,6 +230,8 @@ const LootboxPage: React.FC = () => {
           nftBountyValue: payload.nftBountyValue,
           status: payload.status,
           themeColor: payload.themeColor,
+          isExclusiveLootbox: payload.isExclusiveLootbox,
+          maxTicketsPerUser: payload.maxTicketsPerUser,
         },
       },
     });
@@ -578,6 +580,7 @@ const LootboxPage: React.FC = () => {
             runningCompletedClaims: lootbox.runningCompletedClaims,
             id: lootboxID ? (lootboxID as LootboxID) : undefined,
             flushed: lootboxWeb3Metadata.flushed,
+            safetyFeatures: lootbox.safetyFeatures,
           }}
           stampImage={lootbox.stampImage}
           airdropMetadata={lootbox.airdropMetadata}
