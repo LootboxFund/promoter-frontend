@@ -37,6 +37,9 @@ import {
   BULK_EDIT_LOOTBOX_TOURNAMENT_SNAPSHOTS,
   GET_TOURNAMENT_LOOTBOXES,
   TournamentLootboxesResponseFE,
+  TournamentAsOrganizerResponseFE,
+  TournamentFE,
+  DealConfigsFE,
 } from './api.gql';
 import styles from './index.less';
 import { $Horizontal, $Vertical, $ColumnGap, $InfoDescription } from '@/components/generics';
@@ -80,6 +83,7 @@ import { OfferStrategyType } from '../../../api/graphql/generated/types';
 import EventActivationFunnel from '@/components/OfferAnalytics/components/EventActivationFunnel';
 import EventCSVDownloader from '@/components/EventCSVDownloader';
 import OfferEventClaimsCSVDownloader from '@/components/EventOfferClaimsCSVDownloader';
+import moment from 'moment';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -105,15 +109,15 @@ const EventPage: React.FC = () => {
   const { eventID } = useParams();
   const targetIntersectionAutoCloseTOC = useRef();
   const [rateCard, setRateCard] = useState<RateCardModalInput | null>(null);
-  const [offerToAddPromoter, setOfferToAddPromoter] = useState<DealConfigTournament | null>(null);
-  const [tournament, setTournament] = useState<Tournament>();
+  const [offerToAddPromoter, setOfferToAddPromoter] = useState<DealConfigsFE | null>(null);
+  const [tournament, setTournament] = useState<TournamentFE>();
   const [showTableOfContents, setShowTableOfContents] = useState(true);
   const [simulatedAd, setSimulatedAd] = useState<PreviewAdSimulator | null>();
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
   // VIEW TOURNAMENT AS ORGANIZER
   const { data, loading, error } = useQuery<
-    { viewTournamentAsOrganizer: ViewTournamentAsOrganizerResponse },
+    TournamentAsOrganizerResponseFE,
     QueryViewTournamentAsOrganizerArgs
   >(VIEW_TOURNAMENT_AS_ORGANIZER, {
     variables: {
@@ -362,7 +366,9 @@ const EventPage: React.FC = () => {
               tournament={{
                 title: tournament.title,
                 description: tournament.description,
-                tournamentDate: tournament.tournamentDate,
+                tournamentDate: tournament.tournamentDate
+                  ? moment(tournament.tournamentDate)
+                  : undefined,
                 tournamentLink: tournament.tournamentLink || '',
                 coverPhoto: tournament.coverPhoto || '',
                 magicLink: tournament.magicLink || '',

@@ -1,6 +1,112 @@
-import { LootboxTournamentStatus, LootboxType, ResponseError } from '@/api/graphql/generated/types';
+import {
+  CreativeType,
+  LootboxTournamentStatus,
+  LootboxType,
+  ResponseError,
+  TournamentPrivacyScope,
+  TournamentVisibility,
+} from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
-import { Address, LootboxID, LootboxTournamentSnapshotID } from '@wormgraph/helpers';
+import {
+  ActivationID,
+  Address,
+  AdID,
+  AdSetID,
+  AdSetInTournamentStatus,
+  AffiliateID,
+  AspectRatio,
+  LootboxID,
+  LootboxTournamentSnapshotID,
+  OfferID,
+  RateQuoteID,
+  TournamentID,
+  UserID,
+} from '@wormgraph/helpers';
+
+export interface AdFE {
+  adID: AdID;
+  creativeType: CreativeType;
+  creativeLinks: string[];
+  callToAction: string;
+  aspectRatio: AspectRatio;
+  themeColor: string;
+}
+
+export interface AdSetPreviewInDealConfigFE {
+  id: AdSetID;
+  name?: string | null;
+  status: AdSetInTournamentStatus;
+  placement?: string | null;
+  thumbnail?: string | null;
+  ad?: AdFE | null;
+}
+
+export interface RateQuoteConfigFE {
+  rateQuoteID: RateQuoteID;
+  activationID: ActivationID;
+  activationName: string;
+  activationOrder: number;
+  description?: string;
+  pricing: number;
+  affiliateID: AffiliateID;
+  affiliateName: string;
+  affiliateAvatar?: string;
+}
+
+export interface DealConfigsFE {
+  tournamentID: TournamentID;
+  offerID: OfferID;
+  offerName: string;
+  advertiserID: AffiliateID;
+  advertiserName: string;
+  advertiserAvatar?: string;
+  strategy: string;
+  adSets: AdSetPreviewInDealConfigFE[];
+  rateQuoteConfigs: RateQuoteConfigFE[];
+}
+
+export interface OrganizerProfileFE {
+  id: AffiliateID;
+  name?: string;
+  avatar?: string;
+}
+
+export interface TournamentFE {
+  id: TournamentID;
+  title: string;
+  description?: string;
+  tournamentLink?: string;
+  creatorId: UserID;
+  magicLink?: string;
+  tournamentDate?: number;
+  prize?: string;
+  coverPhoto?: string;
+  communityURL?: string;
+  organizer?: AffiliateID;
+  promoters: AffiliateID[];
+  privacyScope: TournamentPrivacyScope[];
+  visibility: TournamentVisibility;
+  playbookUrl?: string;
+  safetyFeatures?: {
+    maxTicketsPerUser?: number;
+    seedMaxLootboxTicketsPerUser?: number;
+  };
+  timestamps: {
+    createdAt: number;
+  };
+  dealConfigs: DealConfigsFE[];
+  isPostCosmic: boolean;
+  organizerProfile: OrganizerProfileFE;
+}
+
+export interface TournamentAsOrganizerResponseFE {
+  viewTournamentAsOrganizer:
+    | {
+        __typename: 'ViewTournamentAsOrganizerResponseSuccess';
+        tournament: TournamentFE;
+      }
+    | ResponseError;
+}
 
 export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
   query ViewTournamentAsOrganizer($tournamentID: ID!) {
@@ -20,6 +126,7 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
           organizer
           promoters
           privacyScope
+          visibility
           playbookUrl
           safetyFeatures {
             maxTicketsPerUser
