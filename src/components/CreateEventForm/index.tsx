@@ -213,7 +213,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     // title: Scalars['String'];
     // tournamentDate: Scalars['Timestamp'];
     // tournamentLink?: InputMaybe<Scalars['String']>;
-    const meta = {
+    const meta: any = {
       columns: 1,
       disabled: pending,
       initialValues: tournamentInfo,
@@ -237,7 +237,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         key: 'visibility',
         label: 'Visibility',
         tooltip: 'Determines if your event is shown in the marketplace.',
-        // @ts-ignore
         widget: 'radio-group',
         options: [
           TournamentVisibility.Public,
@@ -258,7 +257,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       meta.fields.push({
         key: 'description',
         label: 'Description',
-        // @ts-ignore
         widget: 'textarea',
         tooltip: 'Additional information shown publically on your Lootbox event page',
       });
@@ -266,7 +264,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       meta.fields.push({
         key: 'tournamentDate',
         label: 'Estimated Date',
-        // @ts-ignore
         widget: 'date-picker',
         viewWidget: DateView,
         tooltip: 'Shown publically as the last date that tickets can be claimed',
@@ -278,21 +275,18 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         rules: [{ type: 'url' } as Rule],
         tooltip:
           'Link to where you want to funnel audience members. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
-        // @ts-ignore
         viewWidget: () => (
           <a href={tournamentInfo.communityURL} target="_blank" rel="noreferrer">
             {tournamentInfo.communityURL && `${tournamentInfo.communityURL.slice(0, 25)}...`}
           </a>
         ),
       });
-      // @ts-ignore
       meta.fields.push({
         key: 'playbookUrl',
         label: 'Event Playbook',
         rules: [{ type: 'url' } as Rule],
         tooltip:
           'Your checklist for running a successful event. This could be a Google Doc, Notion, or other document.',
-        // @ts-ignore
         viewWidget: () => (
           <a href={tournamentInfo.playbookUrl} target="_blank" rel="noreferrer">
             {tournamentInfo.playbookUrl && `${tournamentInfo.playbookUrl.slice(0, 25)}...`}
@@ -307,25 +301,23 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           'The total prize pool for fan ticket holders, shown publically on marketing materials',
       });
 
-      meta.fields.push({
-        key: 'safetyFeatures.seedMaxLootboxTicketsPerUser',
-        label: 'Allowed Tickets Per Team',
-        tooltip: 'The maximum number of tickets a user can claim for each Lootbox in this event.',
-        rules: [],
-        // @ts-ignore
-        initialValue: tournamentInfo?.safetyFeatures?.seedMaxLootboxTicketsPerUser || 5,
-        // @ts-ignore
-        widget: 'number',
-      });
+      // meta.fields.push({
+      //   key: 'safetyFeatures.seedMaxLootboxTicketsPerUser',
+      //   label: 'Allowed Tickets Per Team',
+      //   tooltip: 'The maximum number of tickets a user can claim for each Lootbox in this event.',
+      //   rules: [],
+      //   // @ts-ignore
+      //   initialValue: tournamentInfo?.safetyFeatures?.seedMaxLootboxTicketsPerUser || 5,
+      //   // @ts-ignore
+      //   widget: 'number',
+      // });
 
       meta.fields.push({
         key: 'safetyFeatures.maxTicketsPerUser',
         label: 'Max Tickets Per User',
         tooltip: 'The maximum number of tickets a user can claim for this event.',
         rules: [],
-        // @ts-ignore
         initialValue: tournamentInfo?.safetyFeatures?.maxTicketsPerUser || 100,
-        // @ts-ignore
         widget: 'number',
       });
 
@@ -334,7 +326,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         label: 'Privacy Scope',
         tooltip:
           'Privacy scope sets the appropriate Terms and Conditions & Privacy Policy that fans must consent to.\n\n DataSharing means you intend to download user emails and possibly even share them with a 3rd party such as an advertiser.\n\n MarketingEmails means you intend to send marketing emails to users who claim tickets to this event.',
-        // @ts-ignore
         widget: 'checkbox-group',
         options: [
           TournamentPrivacyScope.DataSharing,
@@ -370,7 +361,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           //     },
           //   },
           // ],
-          // @ts-ignore
           widget: () => (
             <AntUploadFile
               affiliateID={affiliateID}
