@@ -851,7 +851,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       ) : (
                         <$Horizontal>
                           <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
-                            <Tag color="success">Active</Tag>
+                            <Tag color="green">Active</Tag>
                           </Tooltip>
                         </$Horizontal>
                       )}
@@ -1435,7 +1435,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                     </Tooltip>
                   </div>
                 )}
-                {viewMode && (
+                {viewMode && !!lootboxInfo?.address && (
                   <fieldset>
                     <legend>{`Blockchain Details`}</legend>
                     {showDeploySuccess && (
