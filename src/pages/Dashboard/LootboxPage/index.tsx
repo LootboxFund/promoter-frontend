@@ -237,8 +237,11 @@ const LootboxPage: React.FC = () => {
     });
 
     if (!res?.data || res?.data?.editLootbox?.__typename === 'ResponseError') {
-      // @ts-ignore
-      throw new Error(res?.data?.editLootbox?.error?.message || 'An error occured');
+      throw new Error(
+        res?.data?.editLootbox?.__typename === 'ResponseError'
+          ? res?.data?.editLootbox?.error?.message
+          : 'An error occured',
+      );
     }
   };
 
