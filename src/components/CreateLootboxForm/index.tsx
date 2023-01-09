@@ -537,40 +537,46 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       if (!onSubmitEdit) return;
       const request: EditLootboxRequest = { payload: {} };
 
-      if (values.name && values.name !== lootboxInfo.name) {
+      if (values.name != undefined && values.name !== lootboxInfo.name) {
         request.payload.name = values.name;
       }
-      if (values.description && values.description !== lootboxInfo.description) {
+      if (values.description != undefined && values.description !== lootboxInfo.description) {
         request.payload.description = values.description;
       }
       if (
-        newMediaDestinationBackground.current &&
+        newMediaDestinationBackground.current != undefined &&
         newMediaDestinationBackground.current !== lootboxInfo.backgroundImage
       ) {
         request.payload.backgroundImage = newMediaDestinationBackground.current;
       }
       if (
-        newMediaDestinationLogo.current &&
+        newMediaDestinationLogo.current != undefined &&
         newMediaDestinationLogo.current !== lootboxInfo.logoImage
       ) {
         request.payload.logoImage = newMediaDestinationLogo.current;
       }
-      if (values.logoImage && values.logoImage !== lootboxInfo.logoImage) {
-        request.payload.logoImage = newMediaDestinationLogo.current;
-      }
-      if (newThemeColor.current && newThemeColor.current !== lootboxInfo.themeColor) {
+      // if (values.logoImage != undefined && values.logoImage !== lootboxInfo.logoImage) {
+      //   request.payload.logoImage = newMediaDestinationLogo.current;
+      // }
+      if (newThemeColor.current != undefined && newThemeColor.current !== lootboxInfo.themeColor) {
         request.payload.themeColor = newThemeColor.current;
       }
-      if (values.nftBountyValue && values.nftBountyValue !== lootboxInfo.nftBountyValue) {
+      if (
+        values.nftBountyValue != undefined &&
+        values.nftBountyValue !== lootboxInfo.nftBountyValue
+      ) {
         request.payload.nftBountyValue = values.nftBountyValue;
       }
-      if (values.joinCommunityUrl && values.joinCommunityUrl !== lootboxInfo.joinCommunityUrl) {
+      if (
+        values.joinCommunityUrl != undefined &&
+        values.joinCommunityUrl !== lootboxInfo.joinCommunityUrl
+      ) {
         request.payload.joinCommunityUrl = values.joinCommunityUrl;
       }
-      if (values.status && values.status !== lootboxInfo.status) {
+      if (values.status != undefined && values.status !== lootboxInfo.status) {
         request.payload.status = values.status;
       }
-      if (values.maxTickets && values.maxTickets !== lootboxInfo.maxTickets) {
+      if (values.maxTickets != undefined && values.maxTickets !== lootboxInfo.maxTickets) {
         request.payload.maxTickets = values.maxTickets;
       }
       if (
@@ -845,7 +851,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       ) : (
                         <$Horizontal>
                           <Tooltip title="Active Lootboxes are visible and redeemable by your audience">
-                            <Tag color="success">Active</Tag>
+                            <Tag color="green">Active</Tag>
                           </Tooltip>
                         </$Horizontal>
                       )}
@@ -934,9 +940,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             'When checked this Lootbox will not appear in fan referral links, and cannot be claimed by any referral link other than your own. Bonus rewards are also disabled by default.',
           viewWidget: () => {
             if (lootboxInfo?.safetyFeatures?.isExclusiveLootbox) {
-              return <Tag color="green">True</Tag>;
+              return <Tag color="purple">Exclusive</Tag>;
             } else {
-              return <Tag color="red">False</Tag>;
+              return <Tag color="green">Public</Tag>;
             }
           },
         },
@@ -1429,7 +1435,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                     </Tooltip>
                   </div>
                 )}
-                {viewMode && (
+                {viewMode && !!lootboxInfo?.address && (
                   <fieldset>
                     <legend>{`Blockchain Details`}</legend>
                     {showDeploySuccess && (
