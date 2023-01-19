@@ -45,6 +45,8 @@ import SimpleTicket from '../TicketDesigns/SimpleTicket';
 
 const PLACEHOLDER_HEADSHOT =
   'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2F2x3_Placeholder_Headshot.png?alt=media';
+const PLACEHOLDER_LOGO =
+  'https://storage.googleapis.com/lootbox-constants-prod/assets/placeholder-logo.png';
 
 const DEFAULT_THEME_COLOR = '#000001';
 
@@ -1667,14 +1669,10 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               coverPhoto={newMediaDestinationBackground.current || placeholderBackground}
               themeColor={newThemeColor.current || lootboxInfo.themeColor}
               sponsorLogos={[
-                newMediaDestinationLogo_1.current ||
-                  'https://storage.googleapis.com/lootbox-constants-prod/assets/placeholder-logo.png',
-                newMediaDestinationLogo_2.current ||
-                  'https://storage.googleapis.com/lootbox-constants-prod/assets/placeholder-logo.png',
-                newMediaDestinationLogo_3.current ||
-                  'https://storage.googleapis.com/lootbox-constants-prod/assets/placeholder-logo.png',
-                newMediaDestinationLogo_4.current ||
-                  'https://storage.googleapis.com/lootbox-constants-prod/assets/placeholder-logo.png',
+                newMediaDestinationLogo_1.current || PLACEHOLDER_LOGO,
+                newMediaDestinationLogo_2.current || PLACEHOLDER_LOGO,
+                newMediaDestinationLogo_3.current || PLACEHOLDER_LOGO,
+                newMediaDestinationLogo_4.current || PLACEHOLDER_LOGO,
               ]}
               playerHeadshot={newMediaDestinationPlayerHeadshot.current || PLACEHOLDER_HEADSHOT}
               eventName="Your epic event"
