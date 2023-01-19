@@ -9,6 +9,7 @@ export enum AffiliateStorageFolder {
   AVATAR = 'avatar',
   TOURNAMENT = 'tournament',
   LOOTBOX = 'lootbox',
+  HEADSHOT = 'headshot',
 }
 
 /**

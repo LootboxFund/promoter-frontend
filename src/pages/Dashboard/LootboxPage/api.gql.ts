@@ -34,6 +34,10 @@ export interface LootboxFE {
       depositEmailSentAt?: number | null;
     };
   } | null;
+  stampMetadata: {
+    logoURLs?: string[] | null;
+    playerHeadshot?: string | null;
+  } | null;
 }
 
 export interface GetLootboxFE {
@@ -85,6 +89,10 @@ export const GET_LOOTBOX = gql`
           safetyFeatures {
             maxTicketsPerUser
             isExclusiveLootbox
+          }
+          stampMetadata {
+            logoURLs
+            playerHeadshot
           }
         }
       }
