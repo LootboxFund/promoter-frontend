@@ -74,7 +74,7 @@ export type DepositRewardForm = {
   isLootboxFlushed?: boolean;
 };
 
-const CreateLootboxForm: React.FC<DepositRewardForm> = ({
+const DepositRewardForm: React.FC<DepositRewardForm> = ({
   lootboxID,
   chainIDHex,
   lootboxDeposits,
@@ -980,4 +980,4 @@ url3, code3
   );
 };
 
-export default CreateLootboxForm;
+export default DepositRewardForm;

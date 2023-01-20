@@ -584,6 +584,12 @@ const LootboxPage: React.FC = () => {
             id: lootboxID ? (lootboxID as LootboxID) : undefined,
             flushed: lootboxWeb3Metadata.flushed,
             safetyFeatures: lootbox.safetyFeatures,
+            stampMetadata: lootbox.stampMetadata
+              ? {
+                  logoURLs: lootbox.stampMetadata.logoURLs || [],
+                  playerHeadshot: lootbox.stampMetadata.playerHeadshot || undefined,
+                }
+              : undefined,
           }}
           stampImage={lootbox.stampImage}
           airdropMetadata={lootbox.airdropMetadata}

@@ -207,6 +207,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const isOnBlockChain = currentStep === 1;
   const [isFlushMode, setIsFlushMode] = useState(false);
 
+  const isStampV2 = !!lootboxInfo?.stampMetadata;
+
   useEffect(() => {
     if (lockedToEdit) {
       setViewMode(false);
@@ -253,9 +255,26 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         runningCompletedClaims: lootbox.runningCompletedClaims,
         flushed: lootbox.flushed,
         safetyFeatures: lootbox.safetyFeatures,
+        stampMetadata: lootbox.stampMetadata,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
+      if (lootbox?.stampMetadata?.playerHeadshot) {
+        newMediaDestinationPlayerHeadshot.current = lootbox.stampMetadata.playerHeadshot;
+      }
+      if (lootbox?.stampMetadata?.logoURLs?.[0]) {
+        newMediaDestinationLogo_1.current = lootbox.stampMetadata.logoURLs[0];
+      }
+
+      if (lootbox?.stampMetadata?.logoURLs?.[1]) {
+        newMediaDestinationLogo_1.current = lootbox.stampMetadata.logoURLs[1];
+      }
+      if (lootbox?.stampMetadata?.logoURLs?.[2]) {
+        newMediaDestinationLogo_1.current = lootbox.stampMetadata.logoURLs[2];
+      }
+      if (lootbox?.stampMetadata?.logoURLs?.[3]) {
+        newMediaDestinationLogo_1.current = lootbox.stampMetadata.logoURLs[3];
+      }
     }
   }, [lootbox]);
 
@@ -310,7 +329,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           isStampV2: true,
           stampMetatada: {
             playerHeadshot: newMediaDestinationPlayerHeadshot.current ?? undefined,
-            // @TODO
             logoURLs: [
               newMediaDestinationLogo_1.current,
               newMediaDestinationLogo_2.current,
@@ -996,6 +1014,38 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
+        ...(!isStampV2
+          ? [
+              {
+                key: 'logoImage',
+                label: 'Team Logo',
+                // rules: [
+                //   {
+                //     validator: (rule: any, value: any, callback: any) => {
+                //       return new Promise((resolve, reject) => {
+                //         if (mode === 'create' && !newMediaDestinationLogo.current) {
+                //           reject(new Error(`Upload a Logo`));
+                //         } else {
+                //           resolve(newMediaDestinationLogo.current);
+                //         }
+                //       });
+                //     },
+                //   },
+                // ],
+                widget: () => (
+                  <AntUploadFile
+                    affiliateID={affiliateUserID as AffiliateID}
+                    folderName={AffiliateStorageFolder.LOOTBOX}
+                    newMediaDestination={newMediaDestinationLogo}
+                    forceRefresh={() => setPreviewMediasLogo([newMediaDestinationLogo.current])}
+                    acceptedFileTypes={'image/*'}
+                  />
+                ),
+                tooltip:
+                  'A square image that will be cropped to a circle. Used as your Lootbox centerpiece. Avoid transparent backgrounds.',
+              },
+            ]
+          : []),
         // {
         //   key: 'logoImage',
         //   label: 'Team Logo',
@@ -1640,19 +1690,55 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         <$ColumnGap width="50px" />
         {viewMode ? (
           <div>
-            <LootboxPreview
-              name={form.getFieldValue('name') || lootboxInfo.name}
-              logoImage={
-                newMediaDestinationLogo.current || lootboxInfo.logoImage || placeholderImage
-              }
-              backgroundImage={
-                newMediaDestinationBackground.current ||
-                lootboxInfo.backgroundImage ||
-                placeholderBackground
-              }
-              themeColor={newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor}
-              lootboxID={lootbox?.id}
-            />
+            {isStampV2 ? (
+              <SimpleTicket
+                teamName={form.getFieldValue('name') || lootboxInfo.name || 'Team Name'}
+                coverPhoto={
+                  newMediaDestinationBackground.current ||
+                  lootboxInfo.backgroundImage ||
+                  placeholderBackground
+                }
+                themeColor={
+                  newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor
+                }
+                sponsorLogos={[
+                  newMediaDestinationLogo_1.current ||
+                    lootboxInfo.stampMetadata?.logoURLs?.[0] ||
+                    PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_2.current ||
+                    lootboxInfo.stampMetadata?.logoURLs?.[1] ||
+                    PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_3.current ||
+                    lootboxInfo.stampMetadata?.logoURLs?.[2] ||
+                    PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_4.current ||
+                    lootboxInfo.stampMetadata?.logoURLs?.[3] ||
+                    PLACEHOLDER_LOGO,
+                ]}
+                playerHeadshot={
+                  newMediaDestinationPlayerHeadshot.current ||
+                  lootboxInfo.stampMetadata?.playerHeadshot ||
+                  PLACEHOLDER_HEADSHOT
+                }
+                eventName="Your epic event"
+              />
+            ) : (
+              <LootboxPreview
+                name={form.getFieldValue('name') || lootboxInfo.name}
+                logoImage={
+                  newMediaDestinationLogo.current || lootboxInfo.logoImage || placeholderImage
+                }
+                backgroundImage={
+                  newMediaDestinationBackground.current ||
+                  lootboxInfo.backgroundImage ||
+                  placeholderBackground
+                }
+                themeColor={
+                  newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor
+                }
+                lootboxID={lootbox?.id}
+              />
+            )}
             <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
               <a href={stampImage} download target="_blank" rel="noreferrer">
                 Download Image
