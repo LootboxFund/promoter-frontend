@@ -1084,35 +1084,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   'A square image that will be cropped to a circle. Used as your Lootbox centerpiece. Avoid transparent backgrounds.',
               },
             ]
-          : []),
-        // {
-        //   key: 'logoImage',
-        //   label: 'Team Logo',
-        //   // rules: [
-        //   //   {
-        //   //     validator: (rule: any, value: any, callback: any) => {
-        //   //       return new Promise((resolve, reject) => {
-        //   //         if (mode === 'create' && !newMediaDestinationLogo.current) {
-        //   //           reject(new Error(`Upload a Logo`));
-        //   //         } else {
-        //   //           resolve(newMediaDestinationLogo.current);
-        //   //         }
-        //   //       });
-        //   //     },
-        //   //   },
-        //   // ],
-        //   widget: () => (
-        //     <AntUploadFile
-        //       affiliateID={affiliateUserID as AffiliateID}
-        //       folderName={AffiliateStorageFolder.LOOTBOX}
-        //       newMediaDestination={newMediaDestinationLogo}
-        //       forceRefresh={() => setPreviewMediasLogo([newMediaDestinationLogo.current])}
-        //       acceptedFileTypes={'image/*'}
-        //     />
-        //   ),
-        //   tooltip:
-        //     'A square image that will be cropped to a circle. Used as your Lootbox centerpiece. Avoid transparent backgrounds.',
-        // },
+          : [])
         {
           key: 'stampMetadata.playerHeadshot',
           label: 'Player Headshot',

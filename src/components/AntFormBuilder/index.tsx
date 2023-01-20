@@ -110,8 +110,7 @@ export const AntUploadMultipleFiles: React.FC<AntUploadMultipleFilesProps> = ({
   const maxFileCnt = newMediaDestination.length;
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  // const customUploadImage = async ({ file, onSuccess }: any) => {
-  const customUploadImage = async ({ file, onSuccess, ...all }: any) => {
+  const customUploadImage = async ({ file, onSuccess }: any) => {
     if (file.type.indexOf('image') > -1) {
       if (file.size > 10000000) {
         message.error('Image must be under 10MB');
