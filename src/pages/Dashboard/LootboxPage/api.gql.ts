@@ -37,6 +37,8 @@ export interface LootboxFE {
   stampMetadata: {
     logoURLs?: string[] | null;
     playerHeadshot?: string | null;
+    hostName?: string | null;
+    eventName?: string | null;
   } | null;
 }
 
@@ -93,6 +95,8 @@ export const GET_LOOTBOX = gql`
           stampMetadata {
             logoURLs
             playerHeadshot
+            hostName
+            eventName
           }
         }
       }

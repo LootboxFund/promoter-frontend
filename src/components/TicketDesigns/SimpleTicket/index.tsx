@@ -203,6 +203,7 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textAlign: 'right',
+              fontSize: '18px',
             }}
           >
             {props.eventName || props.hostName}

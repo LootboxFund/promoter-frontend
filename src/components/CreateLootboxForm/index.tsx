@@ -76,6 +76,8 @@ interface LootboxBody {
   stampMetadata?: {
     logoURLs?: string[];
     playerHeadshot?: string;
+    hostName?: string;
+    eventName?: string;
   };
 }
 
@@ -1724,7 +1726,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   lootboxInfo.stampMetadata?.playerHeadshot ||
                   PLACEHOLDER_HEADSHOT
                 }
-                eventName="Your epic event"
+                eventName={
+                  lootboxInfo?.stampMetadata?.eventName ||
+                  lootboxInfo?.stampMetadata?.hostName ||
+                  'Your epic event'
+                }
               />
             ) : (
               <LootboxPreview
@@ -1763,7 +1769,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   newMediaDestinationLogo_4.current || PLACEHOLDER_LOGO,
                 ]}
                 playerHeadshot={newMediaDestinationPlayerHeadshot.current || PLACEHOLDER_HEADSHOT}
-                eventName="Your epic event"
+                eventName={
+                  lootboxInfo?.stampMetadata?.eventName ||
+                  lootboxInfo?.stampMetadata?.hostName ||
+                  'Your epic event'
+                }
               />
             </div>
           </Affix>

@@ -589,6 +589,8 @@ const LootboxPage: React.FC = () => {
               ? {
                   logoURLs: lootbox.stampMetadata.logoURLs || [],
                   playerHeadshot: lootbox.stampMetadata.playerHeadshot || undefined,
+                  hostName: lootbox.stampMetadata.hostName || undefined,
+                  eventName: lootbox.stampMetadata.eventName || undefined,
                 }
               : undefined,
           }}
