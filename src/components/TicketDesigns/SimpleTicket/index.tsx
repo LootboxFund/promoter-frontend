@@ -32,7 +32,7 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
       <div
         style={{
           alignSelf: 'stretch',
-          borderRadius: '70px 70px 0px 0px',
+          borderRadius: '50px 50px 0px 0px',
           backgroundColor: props.themeColor,
           flexShrink: '0',
           display: 'flex',
