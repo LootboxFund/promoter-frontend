@@ -25,7 +25,7 @@ import {
   Popconfirm,
 } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AntColorPicker, AntUploadFile } from '../AntFormBuilder';
+import { AntColorPicker, AntUploadFile, AntUploadMultipleFiles } from '../AntFormBuilder';
 import { $Horizontal, $ColumnGap, $Vertical } from '@/components/generics';
 import { placeholderBackground, placeholderImage } from '../generics';
 import ConnectWalletButton from '../ConnectWalletButton';
@@ -41,6 +41,12 @@ import { CheckCircleOutlined, InfoCircleTwoTone } from '@ant-design/icons';
 import { ContractTransaction } from 'ethers';
 import InputMaxTickets, { TargetMaxTicketsWidgetProps } from './InputMaxTickets';
 import { Link } from '@umijs/max';
+import SimpleTicket from '../TicketDesigns/SimpleTicket';
+
+const PLACEHOLDER_HEADSHOT =
+  'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2F2x3_Placeholder_Headshot.png?alt=media';
+const PLACEHOLDER_LOGO =
+  'https://storage.googleapis.com/lootbox-constants-prod/assets/placeholder-logo.png';
 
 const DEFAULT_THEME_COLOR = '#000001';
 
@@ -67,6 +73,10 @@ interface LootboxBody {
   } | null;
   // Web3 data
   flushed?: boolean;
+  stampMetadata?: {
+    logoURLs?: string[];
+    playerHeadshot?: string;
+  };
 }
 
 export interface CreateLootboxRequest {
@@ -81,6 +91,11 @@ export interface CreateLootboxRequest {
     maxTickets: number;
     tag: string;
     tournamentID?: TournamentID;
+    isStampV2?: boolean;
+    stampMetatada?: {
+      logoURLs?: string[];
+      playerHeadshot?: string;
+    };
   };
 }
 
@@ -97,6 +112,10 @@ export interface EditLootboxRequest {
     status?: LootboxStatus | null;
     isExclusiveLootbox?: boolean | null;
     maxTicketsPerUser?: number | null;
+    stampMetadata?: {
+      logoURLs?: string[];
+      playerHeadshot?: string | null;
+    };
   };
 }
 
@@ -168,11 +187,17 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const { currentAccount, network } = useWeb3();
   const newMediaDestinationLogo = useRef('');
   const newMediaDestinationBackground = useRef('');
+  const newMediaDestinationPlayerHeadshot = useRef('');
+  const newMediaDestinationLogo_1 = useRef('');
+  const newMediaDestinationLogo_2 = useRef('');
+  const newMediaDestinationLogo_3 = useRef('');
+  const newMediaDestinationLogo_4 = useRef('');
   const newThemeColor = useRef<string>();
   const [currentStep, setCurrentStep] = useState(0);
 
   const [previewMediasLogo, setPreviewMediasLogo] = useState<string[]>([]);
   const [previewMediasBackground, setPreviewMediasBackground] = useState<string[]>([]);
+  const [previewMediasLogos, setPreviewMediasLogos] = useState<string[]>([]);
   const [form] = Form.useForm();
   // @ts-ignore
   const forceUpdate = FormBuilder.useForceUpdate();
@@ -185,6 +210,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   const isLootboxDeployed = !!lootboxInfo.address;
   const isOnBlockChain = currentStep === 1;
   const [isFlushMode, setIsFlushMode] = useState(false);
+
+  const isStampV2 = !!lootboxInfo?.stampMetadata;
 
   useEffect(() => {
     if (lockedToEdit) {
@@ -232,9 +259,26 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         runningCompletedClaims: lootbox.runningCompletedClaims,
         flushed: lootbox.flushed,
         safetyFeatures: lootbox.safetyFeatures,
+        stampMetadata: lootbox.stampMetadata,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
+      if (lootbox?.stampMetadata?.playerHeadshot) {
+        newMediaDestinationPlayerHeadshot.current = lootbox.stampMetadata.playerHeadshot;
+      }
+      if (lootbox?.stampMetadata?.logoURLs?.[0]) {
+        newMediaDestinationLogo_1.current = lootbox.stampMetadata.logoURLs[0];
+      }
+
+      if (lootbox?.stampMetadata?.logoURLs?.[1]) {
+        newMediaDestinationLogo_2.current = lootbox.stampMetadata.logoURLs[1];
+      }
+      if (lootbox?.stampMetadata?.logoURLs?.[2]) {
+        newMediaDestinationLogo_3.current = lootbox.stampMetadata.logoURLs[2];
+      }
+      if (lootbox?.stampMetadata?.logoURLs?.[3]) {
+        newMediaDestinationLogo_4.current = lootbox.stampMetadata.logoURLs[3];
+      }
     }
   }, [lootbox]);
 
@@ -271,6 +315,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
   const handleCreateFinish = useCallback(
     async (values) => {
+      console.log('submit', values);
       if (!onSubmitCreate) return;
 
       const payload: CreateLootboxRequest = {
@@ -285,6 +330,16 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           maxTickets: values.maxTickets,
           tag: values.symbol,
           tournamentID: lootbox?.tournamentID,
+          isStampV2: true,
+          stampMetatada: {
+            playerHeadshot: newMediaDestinationPlayerHeadshot.current ?? undefined,
+            logoURLs: [
+              newMediaDestinationLogo_1.current,
+              newMediaDestinationLogo_2.current,
+              newMediaDestinationLogo_3.current,
+              newMediaDestinationLogo_4.current,
+            ].filter((a) => !!a),
+          },
         },
       };
 
@@ -548,6 +603,41 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         newMediaDestinationBackground.current !== lootboxInfo.backgroundImage
       ) {
         request.payload.backgroundImage = newMediaDestinationBackground.current;
+      }
+      if (
+        newMediaDestinationPlayerHeadshot.current !== undefined &&
+        newMediaDestinationPlayerHeadshot.current !== '' &&
+        newMediaDestinationPlayerHeadshot.current !== lootboxInfo.stampMetadata?.playerHeadshot
+      ) {
+        request.payload.stampMetadata = {
+          ...(request.payload?.stampMetadata || {}),
+          playerHeadshot: newMediaDestinationPlayerHeadshot.current,
+        };
+      }
+      const dupedLogoURLS = [
+        newMediaDestinationLogo_1.current,
+        lootboxInfo.stampMetadata?.logoURLs?.[0],
+        newMediaDestinationLogo_2.current,
+        lootboxInfo.stampMetadata?.logoURLs?.[1],
+        newMediaDestinationLogo_3.current,
+        lootboxInfo.stampMetadata?.logoURLs?.[2],
+        newMediaDestinationLogo_4.current,
+        lootboxInfo.stampMetadata?.logoURLs?.[3],
+      ];
+      // Remove duplicates of logoURLS
+      var logoURLs = dupedLogoURLS.filter((v, i, a) => a.indexOf(v) === i);
+
+      if (
+        logoURLs.some((val, idx) => {
+          return (
+            val !== undefined && val !== '' && val !== lootboxInfo.stampMetadata?.logoURLs?.[idx]
+          );
+        })
+      ) {
+        request.payload.stampMetadata = {
+          ...(request.payload?.stampMetadata || {}),
+          logoURLs: logoURLs.filter((url) => url !== undefined && url !== '') as string[],
+        };
       }
       if (
         newMediaDestinationLogo.current != undefined &&
@@ -963,50 +1053,56 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
+        ...(!isStampV2
+          ? [
+              {
+                key: 'logoImage',
+                label: 'Team Logo',
+                // rules: [
+                //   {
+                //     validator: (rule: any, value: any, callback: any) => {
+                //       return new Promise((resolve, reject) => {
+                //         if (mode === 'create' && !newMediaDestinationLogo.current) {
+                //           reject(new Error(`Upload a Logo`));
+                //         } else {
+                //           resolve(newMediaDestinationLogo.current);
+                //         }
+                //       });
+                //     },
+                //   },
+                // ],
+                widget: () => (
+                  <AntUploadFile
+                    affiliateID={affiliateUserID as AffiliateID}
+                    folderName={AffiliateStorageFolder.LOOTBOX}
+                    newMediaDestination={newMediaDestinationLogo}
+                    forceRefresh={() => setPreviewMediasLogo([])}
+                    acceptedFileTypes={'image/*'}
+                  />
+                ),
+                tooltip:
+                  'A square image that will be cropped to a circle. Used as your Lootbox centerpiece. Avoid transparent backgrounds.',
+              },
+            ]
+          : [])
         {
-          key: 'logoImage',
-          label: 'Team Logo',
-          // rules: [
-          //   {
-          //     validator: (rule: any, value: any, callback: any) => {
-          //       return new Promise((resolve, reject) => {
-          //         if (mode === 'create' && !newMediaDestinationLogo.current) {
-          //           reject(new Error(`Upload a Logo`));
-          //         } else {
-          //           resolve(newMediaDestinationLogo.current);
-          //         }
-          //       });
-          //     },
-          //   },
-          // ],
+          key: 'stampMetadata.playerHeadshot',
+          label: 'Player Headshot',
           widget: () => (
             <AntUploadFile
               affiliateID={affiliateUserID as AffiliateID}
-              folderName={AffiliateStorageFolder.LOOTBOX}
-              newMediaDestination={newMediaDestinationLogo}
-              forceRefresh={() => setPreviewMediasLogo([newMediaDestinationLogo.current])}
+              folderName={AffiliateStorageFolder.HEADSHOT}
+              newMediaDestination={newMediaDestinationPlayerHeadshot}
+              forceRefresh={() => setPreviewMediasLogo([newMediaDestinationPlayerHeadshot.current])}
               acceptedFileTypes={'image/*'}
             />
           ),
           tooltip:
-            'A square image that will be cropped to a circle. Used as your Lootbox centerpiece. Avoid transparent backgrounds.',
+            'This should be a full frontal picture of the team captain / player. Transparent backgrounds HIGHLY recommended. Portrait orientation is perferred.',
         },
         {
           key: 'backgroundImage',
           label: 'Background Image',
-          // rules: [
-          //   {
-          //     validator: (rule: any, value: any, callback: any) => {
-          //       return new Promise((resolve, reject) => {
-          //         if (mode === 'create' && !newMediaDestinationBackground.current) {
-          //           reject(new Error(`Upload a Background Image`));
-          //         } else {
-          //           resolve(newMediaDestinationBackground.current);
-          //         }
-          //       });
-          //     },
-          //   },
-          // ],
           widget: () => (
             <AntUploadFile
               affiliateID={affiliateUserID as AffiliateID}
@@ -1020,6 +1116,33 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           ),
           tooltip:
             "A portrait image that will be used as your Lootbox's background. Avoid transparent backgrounds.",
+        },
+        {
+          key: 'stampMetadata.logoURLs',
+          label: 'Logo Images',
+          widget: () => (
+            <AntUploadMultipleFiles
+              affiliateID={affiliateUserID as AffiliateID}
+              folderName={AffiliateStorageFolder.LOOTBOX}
+              newMediaDestination={[
+                newMediaDestinationLogo_1,
+                newMediaDestinationLogo_2,
+                newMediaDestinationLogo_3,
+                newMediaDestinationLogo_4,
+              ]}
+              forceRefresh={() =>
+                setPreviewMediasLogos([
+                  newMediaDestinationLogo_1.current,
+                  newMediaDestinationLogo_2.current,
+                  newMediaDestinationLogo_3.current,
+                  newMediaDestinationLogo_4.current,
+                ])
+              }
+              acceptedFileTypes={'image/*'}
+            />
+          ),
+          tooltip:
+            '4 Logo images allowed. Ideally landscape orientation. These will be converted to greyscale.',
         },
         {
           key: 'themeColor',
@@ -1232,7 +1355,8 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       });
     }
 
-    if (!viewMode && mode !== 'create') {
+    // if (!viewMode && mode !== 'create') {
+    if (!viewMode) {
       result.steps[0].subSteps.push({
         title: 'Lootbox Design',
         meta: metaCreative() as any,
@@ -1577,19 +1701,47 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         <$ColumnGap width="50px" />
         {viewMode ? (
           <div>
-            <LootboxPreview
-              name={form.getFieldValue('name') || lootboxInfo.name}
-              logoImage={
-                newMediaDestinationLogo.current || lootboxInfo.logoImage || placeholderImage
-              }
-              backgroundImage={
-                newMediaDestinationBackground.current ||
-                lootboxInfo.backgroundImage ||
-                placeholderBackground
-              }
-              themeColor={newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor}
-              lootboxID={lootbox?.id}
-            />
+            {isStampV2 ? (
+              <SimpleTicket
+                teamName={form.getFieldValue('name') || lootboxInfo.name || 'Team Name'}
+                coverPhoto={
+                  newMediaDestinationBackground.current ||
+                  lootboxInfo.backgroundImage ||
+                  placeholderBackground
+                }
+                themeColor={
+                  newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor
+                }
+                sponsorLogos={[
+                  lootboxInfo.stampMetadata?.logoURLs?.[0] || PLACEHOLDER_LOGO,
+                  lootboxInfo.stampMetadata?.logoURLs?.[1] || PLACEHOLDER_LOGO,
+                  lootboxInfo.stampMetadata?.logoURLs?.[2] || PLACEHOLDER_LOGO,
+                  lootboxInfo.stampMetadata?.logoURLs?.[3] || PLACEHOLDER_LOGO,
+                ]}
+                playerHeadshot={
+                  newMediaDestinationPlayerHeadshot.current ||
+                  lootboxInfo.stampMetadata?.playerHeadshot ||
+                  PLACEHOLDER_HEADSHOT
+                }
+                eventName="Your epic event"
+              />
+            ) : (
+              <LootboxPreview
+                name={form.getFieldValue('name') || lootboxInfo.name}
+                logoImage={
+                  newMediaDestinationLogo.current || lootboxInfo.logoImage || placeholderImage
+                }
+                backgroundImage={
+                  newMediaDestinationBackground.current ||
+                  lootboxInfo.backgroundImage ||
+                  placeholderBackground
+                }
+                themeColor={
+                  newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor
+                }
+                lootboxID={lootbox?.id}
+              />
+            )}
             <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
               <a href={stampImage} download target="_blank" rel="noreferrer">
                 Download Image
@@ -1598,12 +1750,21 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           </div>
         ) : (
           <Affix offsetTop={70} style={{ pointerEvents: 'none' }}>
-            <LootboxPreview
-              name={form.getFieldValue('name') || lootboxInfo.name}
-              logoImage={newMediaDestinationLogo.current || placeholderImage}
-              backgroundImage={newMediaDestinationBackground.current || placeholderBackground}
-              themeColor={newThemeColor.current || lootboxInfo.themeColor}
-            />
+            <div>
+              <SimpleTicket
+                teamName={form.getFieldValue('name') || lootboxInfo.name || 'Team Name'}
+                coverPhoto={newMediaDestinationBackground.current || placeholderBackground}
+                themeColor={newThemeColor.current || lootboxInfo.themeColor}
+                sponsorLogos={[
+                  newMediaDestinationLogo_1.current || PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_2.current || PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_3.current || PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_4.current || PLACEHOLDER_LOGO,
+                ]}
+                playerHeadshot={newMediaDestinationPlayerHeadshot.current || PLACEHOLDER_HEADSHOT}
+                eventName="Your epic event"
+              />
+            </div>
           </Affix>
         )}
       </$Horizontal>

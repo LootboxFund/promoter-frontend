@@ -53,6 +53,10 @@ const LootboxCreatePage: React.FC = () => {
           maxTickets: request.payload.maxTickets,
           themeColor: request.payload.themeColor,
           tournamentID: magicLinkParams.tournamentID as TournamentID,
+          isStampV2: request.payload.isStampV2,
+          ...(request.payload.stampMetatada && {
+            stampMetadata: request.payload.stampMetatada,
+          }),
         },
       },
     });
