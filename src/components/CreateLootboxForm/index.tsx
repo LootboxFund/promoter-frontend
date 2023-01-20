@@ -1084,7 +1084,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   'A square image that will be cropped to a circle. Used as your Lootbox centerpiece. Avoid transparent backgrounds.',
               },
             ]
-          : [])
+          : []),
         {
           key: 'stampMetadata.playerHeadshot',
           label: 'Player Headshot',
