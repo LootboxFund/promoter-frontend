@@ -26,7 +26,7 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
         color: '#ffffff',
         fontFamily: 'var(--font-open-sans)',
         minWidth: '310px',
-        maxWidth: '380px',
+        maxWidth: '360px',
       }}
     >
       <div
@@ -63,7 +63,6 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
       <div
         style={{
           alignSelf: 'stretch',
-          height: '100%',
           flexShrink: '0',
           display: 'flex',
           flexDirection: 'column',
@@ -71,7 +70,8 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
           justifyContent: 'flex-end',
           position: 'relative',
           zIndex: '2',
-          minHeight: '360px',
+          // height: '100%',
+          height: '380px',
         }}
       >
         <img
@@ -83,8 +83,8 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
             overflow: 'hidden',
             objectFit: 'cover',
             zIndex: '0',
-            height: '100%',
-            maxHeight: '420px',
+            width: '100%',
+            height: '380px',
           }}
           alt=""
           id="bg1"
@@ -164,7 +164,7 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
               fontStyle: 'italic',
               fontWeight: '800',
               whiteSpace: 'nowrap',
-              opacity: 0.5,
+              opacity: 0.8,
             }}
           >
             LOOTBOX&nbsp;
@@ -177,7 +177,6 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
                 width: '22px',
                 fontSize: '16px',
                 fontWeight: 'normal',
-                filter: 'grayscale(100%)',
               }}
             />
           </strong>
@@ -188,7 +187,7 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
               top: '24px',
               left: '0px',
               display: 'inline-block',
-              opacity: 0.5,
+              opacity: 0.8,
               fontSize: '12px',
             }}
           >
@@ -199,7 +198,7 @@ const SimpleTicket: FunctionComponent<SimpleTicketProps> = (props) => {
         {(props.eventName || props.hostName) && (
           <span
             style={{
-              opacity: 0.5,
+              opacity: 0.8,
               width: '60%',
               whiteSpace: 'nowrap',
               overflow: 'hidden',

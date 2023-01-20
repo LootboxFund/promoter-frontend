@@ -648,7 +648,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       // if (values.logoImage != undefined && values.logoImage !== lootboxInfo.logoImage) {
       //   request.payload.logoImage = newMediaDestinationLogo.current;
       // }
-      if (newThemeColor.current != undefined && newThemeColor.current !== lootboxInfo.themeColor) {
+      if (newThemeColor.current != undefined) {
         request.payload.themeColor = newThemeColor.current;
       }
       if (
@@ -1152,6 +1152,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
               initialColor={lootboxInfo.themeColor}
               updateColor={(hex: string) => {
                 newThemeColor.current = hex;
+
                 setLootboxInfo({
                   ...lootboxInfo,
                   themeColor: hex,
