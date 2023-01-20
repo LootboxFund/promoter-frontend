@@ -112,6 +112,10 @@ export interface EditLootboxRequest {
     status?: LootboxStatus | null;
     isExclusiveLootbox?: boolean | null;
     maxTicketsPerUser?: number | null;
+    stampMetadata?: {
+      logoURLs?: string[];
+      playerHeadshot?: string | null;
+    };
   };
 }
 
@@ -267,13 +271,13 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       }
 
       if (lootbox?.stampMetadata?.logoURLs?.[1]) {
-        newMediaDestinationLogo_1.current = lootbox.stampMetadata.logoURLs[1];
+        newMediaDestinationLogo_2.current = lootbox.stampMetadata.logoURLs[1];
       }
       if (lootbox?.stampMetadata?.logoURLs?.[2]) {
-        newMediaDestinationLogo_1.current = lootbox.stampMetadata.logoURLs[2];
+        newMediaDestinationLogo_3.current = lootbox.stampMetadata.logoURLs[2];
       }
       if (lootbox?.stampMetadata?.logoURLs?.[3]) {
-        newMediaDestinationLogo_1.current = lootbox.stampMetadata.logoURLs[3];
+        newMediaDestinationLogo_4.current = lootbox.stampMetadata.logoURLs[3];
       }
     }
   }, [lootbox]);
@@ -599,6 +603,41 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         newMediaDestinationBackground.current !== lootboxInfo.backgroundImage
       ) {
         request.payload.backgroundImage = newMediaDestinationBackground.current;
+      }
+      if (
+        newMediaDestinationPlayerHeadshot.current !== undefined &&
+        newMediaDestinationPlayerHeadshot.current !== '' &&
+        newMediaDestinationPlayerHeadshot.current !== lootboxInfo.stampMetadata?.playerHeadshot
+      ) {
+        request.payload.stampMetadata = {
+          ...(request.payload?.stampMetadata || {}),
+          playerHeadshot: newMediaDestinationPlayerHeadshot.current,
+        };
+      }
+      const dupedLogoURLS = [
+        newMediaDestinationLogo_1.current,
+        lootboxInfo.stampMetadata?.logoURLs?.[0],
+        newMediaDestinationLogo_2.current,
+        lootboxInfo.stampMetadata?.logoURLs?.[1],
+        newMediaDestinationLogo_3.current,
+        lootboxInfo.stampMetadata?.logoURLs?.[2],
+        newMediaDestinationLogo_4.current,
+        lootboxInfo.stampMetadata?.logoURLs?.[3],
+      ];
+      // Remove duplicates of logoURLS
+      var logoURLs = dupedLogoURLS.filter((v, i, a) => a.indexOf(v) === i);
+
+      if (
+        logoURLs.some((val, idx) => {
+          return (
+            val !== undefined && val !== '' && val !== lootboxInfo.stampMetadata?.logoURLs?.[idx]
+          );
+        })
+      ) {
+        request.payload.stampMetadata = {
+          ...(request.payload?.stampMetadata || {}),
+          logoURLs: logoURLs.filter((url) => url !== undefined && url !== '') as string[],
+        };
       }
       if (
         newMediaDestinationLogo.current != undefined &&
@@ -1037,7 +1076,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                     affiliateID={affiliateUserID as AffiliateID}
                     folderName={AffiliateStorageFolder.LOOTBOX}
                     newMediaDestination={newMediaDestinationLogo}
-                    forceRefresh={() => setPreviewMediasLogo([newMediaDestinationLogo.current])}
+                    forceRefresh={() => setPreviewMediasLogo([])}
                     acceptedFileTypes={'image/*'}
                   />
                 ),
@@ -1702,18 +1741,10 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor
                 }
                 sponsorLogos={[
-                  newMediaDestinationLogo_1.current ||
-                    lootboxInfo.stampMetadata?.logoURLs?.[0] ||
-                    PLACEHOLDER_LOGO,
-                  newMediaDestinationLogo_2.current ||
-                    lootboxInfo.stampMetadata?.logoURLs?.[1] ||
-                    PLACEHOLDER_LOGO,
-                  newMediaDestinationLogo_3.current ||
-                    lootboxInfo.stampMetadata?.logoURLs?.[2] ||
-                    PLACEHOLDER_LOGO,
-                  newMediaDestinationLogo_4.current ||
-                    lootboxInfo.stampMetadata?.logoURLs?.[3] ||
-                    PLACEHOLDER_LOGO,
+                  lootboxInfo.stampMetadata?.logoURLs?.[0] || PLACEHOLDER_LOGO,
+                  lootboxInfo.stampMetadata?.logoURLs?.[1] || PLACEHOLDER_LOGO,
+                  lootboxInfo.stampMetadata?.logoURLs?.[2] || PLACEHOLDER_LOGO,
+                  lootboxInfo.stampMetadata?.logoURLs?.[3] || PLACEHOLDER_LOGO,
                 ]}
                 playerHeadshot={
                   newMediaDestinationPlayerHeadshot.current ||
@@ -1746,24 +1777,23 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             </$Horizontal>
           </div>
         ) : (
-          // <Affix offsetTop={70} style={{ pointerEvents: 'none' }}>
-
-          // </Affix>
-          <div>
-            <SimpleTicket
-              teamName={form.getFieldValue('name') || lootboxInfo.name || 'Team Name'}
-              coverPhoto={newMediaDestinationBackground.current || placeholderBackground}
-              themeColor={newThemeColor.current || lootboxInfo.themeColor}
-              sponsorLogos={[
-                newMediaDestinationLogo_1.current || PLACEHOLDER_LOGO,
-                newMediaDestinationLogo_2.current || PLACEHOLDER_LOGO,
-                newMediaDestinationLogo_3.current || PLACEHOLDER_LOGO,
-                newMediaDestinationLogo_4.current || PLACEHOLDER_LOGO,
-              ]}
-              playerHeadshot={newMediaDestinationPlayerHeadshot.current || PLACEHOLDER_HEADSHOT}
-              eventName="Your epic event"
-            />
-          </div>
+          <Affix offsetTop={70} style={{ pointerEvents: 'none' }}>
+            <div>
+              <SimpleTicket
+                teamName={form.getFieldValue('name') || lootboxInfo.name || 'Team Name'}
+                coverPhoto={newMediaDestinationBackground.current || placeholderBackground}
+                themeColor={newThemeColor.current || lootboxInfo.themeColor}
+                sponsorLogos={[
+                  newMediaDestinationLogo_1.current || PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_2.current || PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_3.current || PLACEHOLDER_LOGO,
+                  newMediaDestinationLogo_4.current || PLACEHOLDER_LOGO,
+                ]}
+                playerHeadshot={newMediaDestinationPlayerHeadshot.current || PLACEHOLDER_HEADSHOT}
+                eventName="Your epic event"
+              />
+            </div>
+          </Affix>
         )}
       </$Horizontal>
     </Card>

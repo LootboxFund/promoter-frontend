@@ -45,8 +45,6 @@ export const AntUploadFile: React.FC<AntUploadFileProps> = ({
     onSuccess('ok');
   };
   const handleChange: UploadProps['onChange'] = async (info: any) => {
-    console.log(info);
-
     if (info.file.status === 'done') {
       message.success(`${info.file.name} file uploaded successfully`);
     } else if (info.file.status === 'error') {
@@ -66,7 +64,6 @@ export const AntUploadFile: React.FC<AntUploadFileProps> = ({
       }
       return file;
     });
-    console.log(newFileList);
     setFileList(newFileList);
   };
   const props = {
@@ -82,18 +79,16 @@ export const AntUploadFile: React.FC<AntUploadFileProps> = ({
     },
   };
   return (
-    <$Vertical>
-      <Upload
-        {...props}
-        fileList={fileList}
-        listType="text"
-        style={{ overflow: 'hidden' }}
-        accept={acceptedFileTypes}
-        customRequest={customUploadImage}
-      >
-        <Button icon={<UploadOutlined />}>Upload</Button>
-      </Upload>
-    </$Vertical>
+    <Upload
+      {...props}
+      // fileList={fileList}
+      listType="text"
+      style={{ overflow: 'hidden' }}
+      accept={acceptedFileTypes}
+      customRequest={customUploadImage}
+    >
+      <Button icon={<UploadOutlined />}>Upload</Button>
+    </Upload>
   );
 };
 
@@ -102,7 +97,7 @@ interface AntUploadMultipleFilesProps {
   newMediaDestination: React.MutableRefObject<string>[];
   folderName: AffiliateStorageFolder;
   acceptedFileTypes: 'image/*';
-  forceRefresh?: () => void;
+  forceRefresh?: (fileURLs: string[]) => void;
 }
 export const AntUploadMultipleFiles: React.FC<AntUploadMultipleFilesProps> = ({
   affiliateID,
@@ -111,10 +106,12 @@ export const AntUploadMultipleFiles: React.FC<AntUploadMultipleFilesProps> = ({
   acceptedFileTypes,
   forceRefresh,
 }) => {
+  const lastIndexUpdated = useRef(0);
   const maxFileCnt = newMediaDestination.length;
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  const customUploadImage = async ({ file, onSuccess }: any) => {
+  // const customUploadImage = async ({ file, onSuccess }: any) => {
+  const customUploadImage = async ({ file, onSuccess, ...all }: any) => {
     if (file.type.indexOf('image') > -1) {
       if (file.size > 10000000) {
         message.error('Image must be under 10MB');
@@ -128,24 +125,19 @@ export const AntUploadMultipleFiles: React.FC<AntUploadMultipleFilesProps> = ({
       affiliateID,
     });
 
-    const availableMemorySlot = newMediaDestination.find((item) => item.current === '');
-
-    if (!availableMemorySlot) {
-      // No available memory slots left... we just update the last one
-      newMediaDestination[newMediaDestination.length - 1].current = destination;
-    } else {
-      // Assign the new destination to the available memory slot
-      availableMemorySlot.current = destination;
-    }
+    const lastIndex = lastIndexUpdated.current;
+    // update lastIndex, or the modulo of the newMediaDestination.length
+    const newIndex = (lastIndex + 1) % maxFileCnt;
+    lastIndexUpdated.current = newIndex;
+    const refToUpdate = newMediaDestination[newIndex];
+    refToUpdate.current = destination;
 
     if (forceRefresh) {
-      forceRefresh();
+      forceRefresh(newMediaDestination.map((ref) => ref.current));
     }
     onSuccess('ok');
   };
   const handleChange: UploadProps['onChange'] = async (info: any) => {
-    console.log(info);
-
     if (info.file.status === 'done') {
       message.success(`${info.file.name} file uploaded successfully`);
     } else if (info.file.status === 'error') {
@@ -165,7 +157,6 @@ export const AntUploadMultipleFiles: React.FC<AntUploadMultipleFilesProps> = ({
       }
       return file;
     });
-    console.log(newFileList);
     setFileList(newFileList);
   };
   const props = {
@@ -185,8 +176,8 @@ export const AntUploadMultipleFiles: React.FC<AntUploadMultipleFilesProps> = ({
       <Upload
         {...props}
         fileList={fileList}
-        listType="text"
-        style={{ overflow: 'hidden' }}
+        // listType="text"
+        // style={{ overflow: 'hidden' }}
         accept={acceptedFileTypes}
         customRequest={customUploadImage}
         multiple

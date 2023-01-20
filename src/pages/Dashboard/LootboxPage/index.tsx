@@ -232,6 +232,7 @@ const LootboxPage: React.FC = () => {
           themeColor: payload.themeColor,
           isExclusiveLootbox: payload.isExclusiveLootbox,
           maxTicketsPerUser: payload.maxTicketsPerUser,
+          stampMetadata: payload.stampMetadata,
         },
       },
     });
