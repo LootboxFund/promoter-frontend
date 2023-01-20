@@ -1053,7 +1053,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       disabled: pending,
       initialValues: lootboxInfo,
       fields: [
-        ...(!isStampV2
+        ...(!isStampV2 && mode !== 'create'
           ? [
               {
                 key: 'logoImage',
