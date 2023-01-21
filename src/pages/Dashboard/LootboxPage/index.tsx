@@ -583,8 +583,11 @@ const LootboxPage: React.FC = () => {
             chainIDHex: lootbox.chainIdHex,
             runningCompletedClaims: lootbox.runningCompletedClaims,
             id: lootboxID ? (lootboxID as LootboxID) : undefined,
+            stampImage: lootbox.stampImage,
             flushed: lootboxWeb3Metadata.flushed,
             safetyFeatures: lootbox.safetyFeatures,
+            officialInviteGraphicURL: lootbox.officialInviteGraphic,
+            officialInviteLink: lootbox.officialInviteLink,
             stampMetadata: lootbox.stampMetadata
               ? {
                   logoURLs: lootbox.stampMetadata.logoURLs || [],

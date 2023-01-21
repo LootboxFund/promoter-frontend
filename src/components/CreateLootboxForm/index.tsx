@@ -23,6 +23,8 @@ import {
   Typography,
   Switch,
   Popconfirm,
+  Tabs,
+  TabsProps,
 } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AntColorPicker, AntUploadFile, AntUploadMultipleFiles } from '../AntFormBuilder';
@@ -66,6 +68,7 @@ interface LootboxBody {
   creatorAddress?: Address | null;
   chainIDHex?: ChainIDHex | null;
   runningCompletedClaims: number;
+  stampImage: string;
   id?: LootboxID;
   safetyFeatures: {
     maxTicketsPerUser?: number | null;
@@ -73,6 +76,8 @@ interface LootboxBody {
   } | null;
   // Web3 data
   flushed?: boolean;
+  officialInviteGraphicURL: string | null;
+  officialInviteLink: string | null;
   stampMetadata?: {
     logoURLs?: string[];
     playerHeadshot?: string;
@@ -169,6 +174,9 @@ const LOOTBOX_INFO: LootboxBody = {
   status: LootboxStatus.Active,
   runningCompletedClaims: 0,
   safetyFeatures: null,
+  officialInviteGraphicURL: null,
+  officialInviteLink: null,
+  stampImage: '',
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
@@ -262,6 +270,9 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         flushed: lootbox.flushed,
         safetyFeatures: lootbox.safetyFeatures,
         stampMetadata: lootbox.stampMetadata,
+        officialInviteGraphicURL: lootbox.officialInviteGraphicURL,
+        officialInviteLink: lootbox.officialInviteLink,
+        stampImage: lootbox.stampImage,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -1402,6 +1413,53 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     lootboxInfo.maxTickets !== form.getFieldValue('maxTickets') &&
     !currentAccount;
 
+  const items: TabsProps['items'] = [
+    {
+      key: '1',
+      label: `Invite Graphic`,
+      children: (
+        <div>
+          <img
+            src={lootboxInfo.officialInviteGraphicURL || ''}
+            alt="Lootbox Official Invite URL"
+            style={{ width: '100%', maxWidth: '320px' }}
+          />
+          {lootboxInfo.officialInviteGraphicURL && (
+            <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
+              <a
+                href={lootboxInfo.officialInviteGraphicURL}
+                download
+                target="_blank"
+                rel="noreferrer"
+              >
+                Download Image
+              </a>
+            </$Horizontal>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: '2',
+      label: `Lootbox Graphic`,
+      children: (
+        <div>
+          <img
+            src={lootboxInfo.stampImage}
+            alt="Lootbox Generic Graphic"
+            style={{ width: '100%', maxWidth: '320px' }}
+          />
+          ,
+          <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
+            <a href={lootboxInfo.stampImage} download target="_blank" rel="noreferrer">
+              Download Image
+            </a>
+          </$Horizontal>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <Card style={{ flex: 1 }}>
       <$Horizontal>
@@ -1705,34 +1763,35 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {viewMode ? (
           <div>
             {isStampV2 ? (
-              <SimpleTicket
-                teamName={form.getFieldValue('name') || lootboxInfo.name || 'Team Name'}
-                coverPhoto={
-                  newMediaDestinationBackground.current ||
-                  lootboxInfo.backgroundImage ||
-                  placeholderBackground
-                }
-                themeColor={
-                  newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor
-                }
-                sponsorLogos={[
-                  lootboxInfo.stampMetadata?.logoURLs?.[0] || PLACEHOLDER_LOGO,
-                  lootboxInfo.stampMetadata?.logoURLs?.[1] || PLACEHOLDER_LOGO,
-                  lootboxInfo.stampMetadata?.logoURLs?.[2] || PLACEHOLDER_LOGO,
-                  lootboxInfo.stampMetadata?.logoURLs?.[3] || PLACEHOLDER_LOGO,
-                ]}
-                playerHeadshot={
-                  newMediaDestinationPlayerHeadshot.current ||
-                  lootboxInfo.stampMetadata?.playerHeadshot ||
-                  PLACEHOLDER_HEADSHOT
-                }
-                eventName={
-                  lootboxInfo?.stampMetadata?.eventName ||
-                  lootboxInfo?.stampMetadata?.hostName ||
-                  'Your epic event'
-                }
-              />
+              <Tabs size="small" items={items}></Tabs>
             ) : (
+              // <SimpleTicket
+              //   teamName={form.getFieldValue('name') || lootboxInfo.name || 'Team Name'}
+              //   coverPhoto={
+              //     newMediaDestinationBackground.current ||
+              //     lootboxInfo.backgroundImage ||
+              //     placeholderBackground
+              //   }
+              //   themeColor={
+              //     newThemeColor.current || lootboxInfo.themeColor || lootboxInfo.themeColor
+              //   }
+              //   sponsorLogos={[
+              //     lootboxInfo.stampMetadata?.logoURLs?.[0] || PLACEHOLDER_LOGO,
+              //     lootboxInfo.stampMetadata?.logoURLs?.[1] || PLACEHOLDER_LOGO,
+              //     lootboxInfo.stampMetadata?.logoURLs?.[2] || PLACEHOLDER_LOGO,
+              //     lootboxInfo.stampMetadata?.logoURLs?.[3] || PLACEHOLDER_LOGO,
+              //   ]}
+              //   playerHeadshot={
+              //     newMediaDestinationPlayerHeadshot.current ||
+              //     lootboxInfo.stampMetadata?.playerHeadshot ||
+              //     PLACEHOLDER_HEADSHOT
+              //   }
+              //   eventName={
+              //     lootboxInfo?.stampMetadata?.eventName ||
+              //     lootboxInfo?.stampMetadata?.hostName ||
+              //     'Your epic event'
+              //   }
+              // />
               <LootboxPreview
                 name={form.getFieldValue('name') || lootboxInfo.name}
                 logoImage={
@@ -1749,11 +1808,11 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                 lootboxID={lootbox?.id}
               />
             )}
-            <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
+            {/* <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
               <a href={stampImage} download target="_blank" rel="noreferrer">
                 Download Image
               </a>
-            </$Horizontal>
+            </$Horizontal> */}
           </div>
         ) : (
           <Affix offsetTop={70} style={{ pointerEvents: 'none' }}>
