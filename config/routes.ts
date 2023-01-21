@@ -165,11 +165,11 @@ export default [
         path: '/company/payouts',
         component: './Company/PayoutsPage',
       },
-      {
-        name: 'Tiers',
-        path: '/company/tiers',
-        component: './Company/TierRankPage',
-      },
+      // {
+      //   name: 'Tiers',
+      //   path: '/company/tiers',
+      //   component: './Company/TierRankPage',
+      // },
     ],
   },
   {
