@@ -41,6 +41,7 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
   const [quantityTickets, setQuantityTickets] = useState(10);
   const [createdReferral, setCreatedReferral] = useState<CreateReferralFE | null>(null);
   const inviteLink = `${manifest.microfrontends.webflow.referral}?r=${createdReferral?.slug}`;
+  const inviteGraphic = createdReferral?.inviteGraphic;
   const [createReferral, { loading: loadingReferralCreation }] = useMutation<
     { createReferral: CreateReferralResponseFE | ResponseError },
     MutationCreateReferralArgs
@@ -180,33 +181,48 @@ const GenerateReferralModal: React.FC<GenerateReferralModalProps> = ({
   };
   const renderCopyableReferral = () => {
     return (
-      <$Horizontal>
-        <div id="qrcode" />
-        <$Vertical style={{ flex: 1, paddingTop: '5px' }}>
-          <h3>Share Tickets with Friends</h3>
-          <$InfoDescription fontSize="0.7rem" marginBottom="10px">
-            Get your FREE LOOTBOX fan ticket and earn a share of the competition prize money if your
-            favorite contestant wins!
-          </$InfoDescription>
-          <Input.Group compact>
-            <Input
-              prefix={<span>🔒 </span>}
-              style={{ maxWidth: '80%' }}
-              value={inviteLink}
-              readOnly
-            />
-            <Button
-              onClick={() => {
-                navigator.clipboard.writeText(inviteLink);
-                message.success('Invite link copied to clipboard');
-              }}
-              type="primary"
-            >
-              Copy
+      <$Vertical>
+        <$Horizontal>
+          <div id="qrcode" />
+          <$Vertical style={{ flex: 1, paddingTop: '5px' }}>
+            <h3>Share Tickets with Friends</h3>
+            <$InfoDescription fontSize="0.7rem" marginBottom="10px">
+              Get your FREE LOOTBOX fan ticket and earn a share of the competition prize money if
+              your favorite contestant wins!
+            </$InfoDescription>
+            <Input.Group compact>
+              <Input
+                prefix={<span>🔒 </span>}
+                style={{ maxWidth: '80%' }}
+                value={inviteLink}
+                readOnly
+              />
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(inviteLink);
+                  message.success('Invite link copied to clipboard');
+                }}
+                type="primary"
+              >
+                Copy
+              </Button>
+            </Input.Group>
+          </$Vertical>
+        </$Horizontal>
+        {inviteGraphic && (
+          <a
+            href={inviteGraphic}
+            download
+            target="_blank"
+            rel="noreferrer"
+            style={{ textAlign: 'end' }}
+          >
+            <Button loading={loading} type="link">
+              Download Invite Graphic
             </Button>
-          </Input.Group>
-        </$Vertical>
-      </$Horizontal>
+          </a>
+        )}
+      </$Vertical>
     );
   };
   const renderDownloadCsv = () => {

@@ -1414,34 +1414,37 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
     !currentAccount;
 
   const items: TabsProps['items'] = [
-    {
-      key: '1',
-      label: `Invite Graphic`,
-      children: (
-        <div>
-          <img
-            src={lootboxInfo.officialInviteGraphicURL || ''}
-            alt="Lootbox Official Invite URL"
-            style={{ width: '100%', maxWidth: '320px' }}
-          />
-          {lootboxInfo.officialInviteGraphicURL && (
-            <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
-              <a
-                href={lootboxInfo.officialInviteGraphicURL}
-                download
-                target="_blank"
-                rel="noreferrer"
-              >
-                Download Image
-              </a>
-            </$Horizontal>
-          )}
-        </div>
-      ),
-    },
+    ...(lootboxInfo.officialInviteGraphicURL
+      ? [
+          {
+            key: '1',
+            label: `Invite Graphic`,
+            children: (
+              <div>
+                <img
+                  src={lootboxInfo.officialInviteGraphicURL}
+                  alt="Lootbox Official Invite URL"
+                  style={{ width: '100%', maxWidth: '320px' }}
+                />
+
+                <$Horizontal justifyContent="center" style={{ width: '100%', marginTop: '5px' }}>
+                  <a
+                    href={lootboxInfo.officialInviteGraphicURL}
+                    download
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Download Image
+                  </a>
+                </$Horizontal>
+              </div>
+            ),
+          },
+        ]
+      : []),
     {
       key: '2',
-      label: `Lootbox Graphic`,
+      label: `Barebones`,
       children: (
         <div>
           <img
@@ -1763,7 +1766,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         {viewMode ? (
           <div>
             {isStampV2 ? (
-              <Tabs size="small" items={items}></Tabs>
+              <Tabs size="small" items={items} centered></Tabs>
             ) : (
               // <SimpleTicket
               //   teamName={form.getFieldValue('name') || lootboxInfo.name || 'Team Name'}
