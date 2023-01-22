@@ -714,7 +714,7 @@ const LootboxPage: React.FC = () => {
       <GenerateReferralModal
         isOpen={isReferralModalOpen}
         setIsOpen={setIsReferralModalOpen}
-        lootboxID={(lootboxID || '') as LootboxID}
+        lootboxID={(lootboxID || undefined) as LootboxID}
         tournamentID={(magicLinkParams.tournamentID || '') as TournamentID}
       />
     </div>
