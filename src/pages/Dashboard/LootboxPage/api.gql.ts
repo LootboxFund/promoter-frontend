@@ -24,6 +24,8 @@ export interface LootboxFE {
   creatorID: UserID;
   runningCompletedClaims: number;
   airdropMetadata: LootboxAirdropMetadata;
+  officialInviteGraphic: string | null;
+  officialInviteLink: string | null;
   safetyFeatures: {
     maxTicketsPerUser?: number | null;
     isExclusiveLootbox?: boolean | null;
@@ -34,9 +36,12 @@ export interface LootboxFE {
       depositEmailSentAt?: number | null;
     };
   } | null;
+
   stampMetadata: {
     logoURLs?: string[] | null;
     playerHeadshot?: string | null;
+    hostName?: string | null;
+    eventName?: string | null;
   } | null;
 }
 
@@ -93,7 +98,11 @@ export const GET_LOOTBOX = gql`
           stampMetadata {
             logoURLs
             playerHeadshot
+            hostName
+            eventName
           }
+          officialInviteGraphic
+          officialInviteLink
         }
       }
       ... on ResponseError {

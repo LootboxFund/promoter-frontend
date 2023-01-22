@@ -583,12 +583,17 @@ const LootboxPage: React.FC = () => {
             chainIDHex: lootbox.chainIdHex,
             runningCompletedClaims: lootbox.runningCompletedClaims,
             id: lootboxID ? (lootboxID as LootboxID) : undefined,
+            stampImage: lootbox.stampImage,
             flushed: lootboxWeb3Metadata.flushed,
             safetyFeatures: lootbox.safetyFeatures,
+            officialInviteGraphicURL: lootbox.officialInviteGraphic,
+            officialInviteLink: lootbox.officialInviteLink,
             stampMetadata: lootbox.stampMetadata
               ? {
                   logoURLs: lootbox.stampMetadata.logoURLs || [],
                   playerHeadshot: lootbox.stampMetadata.playerHeadshot || undefined,
+                  hostName: lootbox.stampMetadata.hostName || undefined,
+                  eventName: lootbox.stampMetadata.eventName || undefined,
                 }
               : undefined,
           }}
@@ -709,7 +714,7 @@ const LootboxPage: React.FC = () => {
       <GenerateReferralModal
         isOpen={isReferralModalOpen}
         setIsOpen={setIsReferralModalOpen}
-        lootboxID={(lootboxID || '') as LootboxID}
+        lootboxID={(lootboxID || undefined) as LootboxID}
         tournamentID={(magicLinkParams.tournamentID || '') as TournamentID}
       />
     </div>
