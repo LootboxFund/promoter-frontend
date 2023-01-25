@@ -381,6 +381,7 @@ const EventPage: React.FC = () => {
                 playbookUrl: tournament.playbookUrl || '',
                 safetyFeatures: tournament.safetyFeatures || undefined,
                 visibility: tournament.visibility,
+                inviteMetadata: tournament.inviteMetadata,
               }}
               mode="view-edit"
               affiliateID={affiliateID as AffiliateID}

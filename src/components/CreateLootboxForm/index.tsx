@@ -1519,7 +1519,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
             <Button
               type="link"
               onClick={() => setViewMode(false)}
-              style={{ alignSelf: 'flex-end', marginBottom: '-24px' }}
+              style={{ alignSelf: 'flex-end', marginBottom: '-28px' }}
             >
               Edit
             </Button>
