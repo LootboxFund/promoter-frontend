@@ -22,6 +22,7 @@ export interface LootboxFE {
   logo: string;
   creatorAddress: Address | null;
   creatorID: UserID;
+  createdOnBehalfOf: UserID;
   runningCompletedClaims: number;
   airdropMetadata: LootboxAirdropMetadata;
   officialInviteGraphic: string | null;
@@ -42,6 +43,11 @@ export interface LootboxFE {
     playerHeadshot?: string | null;
     hostName?: string | null;
     eventName?: string | null;
+  } | null;
+  creator: {
+    id: UserID;
+    username: string;
+    avatar: string;
   } | null;
 }
 
@@ -71,7 +77,13 @@ export const GET_LOOTBOX = gql`
           type
           creatorAddress
           creatorID
+          createdOnBehalfOf
           runningCompletedClaims
+          creator {
+            id
+            username
+            avatar
+          }
           tournamentSnapshot(tournamentID: $tournamentID) {
             creatorID
             timestamps {

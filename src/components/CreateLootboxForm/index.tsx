@@ -5,6 +5,7 @@ import {
   chainIdHexToName,
   LootboxID,
   TournamentID,
+  UserID,
 } from '@wormgraph/helpers';
 import FormBuilder, { Meta } from 'antd-form-builder';
 import {
@@ -25,6 +26,7 @@ import {
   Popconfirm,
   Tabs,
   TabsProps,
+  Avatar,
 } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AntColorPicker, AntUploadFile, AntUploadMultipleFiles } from '../AntFormBuilder';
@@ -44,6 +46,7 @@ import { ContractTransaction } from 'ethers';
 import InputMaxTickets, { TargetMaxTicketsWidgetProps } from './InputMaxTickets';
 import { Link } from '@umijs/max';
 import SimpleTicket from '../TicketDesigns/SimpleTicket';
+import { manifest } from '@/manifest';
 
 const PLACEHOLDER_HEADSHOT =
   'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2F2x3_Placeholder_Headshot.png?alt=media';
@@ -70,6 +73,11 @@ interface LootboxBody {
   runningCompletedClaims: number;
   stampImage: string;
   id?: LootboxID;
+  creator: {
+    id: UserID;
+    username: string;
+    avatar: string;
+  } | null;
   safetyFeatures: {
     maxTicketsPerUser?: number | null;
     isExclusiveLootbox?: boolean | null;
@@ -151,7 +159,6 @@ interface OnFlushLootboxResponse {
 
 export type CreateLootboxFormProps = {
   lootbox?: LootboxBody;
-  stampImage?: string;
   airdropMetadata?: LootboxAirdropMetadata;
   magicLinkParams?: MagicLinkParams;
   onSubmitCreate?: (payload: CreateLootboxRequest) => Promise<OnSubmitCreateResponse>;
@@ -177,10 +184,10 @@ const LOOTBOX_INFO: LootboxBody = {
   officialInviteGraphicURL: null,
   officialInviteLink: null,
   stampImage: '',
+  creator: null,
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
-  stampImage,
   magicLinkParams,
   onSubmitCreate,
   onSubmitEdit,
@@ -273,6 +280,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         officialInviteGraphicURL: lootbox.officialInviteGraphicURL,
         officialInviteLink: lootbox.officialInviteLink,
         stampImage: lootbox.stampImage,
+        creator: lootbox.creator,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -1029,6 +1037,38 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
 
     return meta;
   };
+
+  const metaCreator = () => {
+    const meta: Meta = {
+      columns: 1,
+      disabled: pending,
+      initialValues: lootboxInfo,
+      fields: [
+        {
+          key: '__creatordetails',
+          viewWidget: () => {
+            return (
+              <Card bordered={false} size="small">
+                <Card.Meta
+                  avatar={<Avatar src={lootboxInfo.creator?.avatar} />}
+                  title={lootboxInfo.creator?.username}
+                  description={
+                    <Typography.Link
+                      href={`${manifest.microfrontends.webflow.publicProfile}?uid=${lootboxInfo.creator?.id}`}
+                    >
+                      View profile
+                    </Typography.Link>
+                  }
+                />
+              </Card>
+            );
+          },
+        },
+      ],
+    };
+    return meta;
+  };
+
   const metaSafety = () => {
     const meta: Meta = {
       columns: 1,
@@ -1369,7 +1409,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
       });
     }
 
-    // if (!viewMode && mode !== 'create') {
     if (!viewMode) {
       result.steps[0].subSteps.push({
         title: 'Lootbox Design',
@@ -1390,6 +1429,15 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         },
       ],
     });
+
+    if (viewMode) {
+      result.steps[0].subSteps.push({
+        title: 'Lootbox Creator',
+        meta: metaCreator() as any,
+        key: 'creator-details',
+        notifications: [],
+      });
+    }
 
     return result;
   };
@@ -1594,6 +1642,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                         </>
                       )}
                       <FormBuilder form={form} meta={s.meta} viewMode={viewMode} />
+                      <br />
                     </fieldset>
                   );
                 })}
