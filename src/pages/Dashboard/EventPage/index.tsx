@@ -290,6 +290,8 @@ const EventPage: React.FC = () => {
           seedMaxLootboxTicketsPerUser: payload.seedMaxLootboxTicketsPerUser,
           maxTicketsPerUser: payload.maxTicketsPerUser,
           visibility: payload.visibility,
+          seedLootboxLogoURLs: payload.seedLootboxLogoURLs,
+          seedLootboxFanTicketPrize: payload.seedLootboxFanTicketPrize,
         },
       },
     });
@@ -382,6 +384,7 @@ const EventPage: React.FC = () => {
                 safetyFeatures: tournament.safetyFeatures || undefined,
                 visibility: tournament.visibility,
                 inviteMetadata: tournament.inviteMetadata,
+                stampMetadata: tournament.stampMetadata ?? undefined,
               }}
               mode="view-edit"
               affiliateID={affiliateID as AffiliateID}

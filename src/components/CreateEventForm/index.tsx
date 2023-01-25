@@ -1,8 +1,4 @@
-import {
-  AffiliateID,
-  TournamentPrivacyScope,
-  TournamentSafetyFeatures_Firestore,
-} from '@wormgraph/helpers';
+import { AffiliateID, StampMetadata, TournamentPrivacyScope } from '@wormgraph/helpers';
 import moment, { Moment } from 'moment';
 import FormBuilder from 'antd-form-builder';
 import { Button, Card, Form, Modal, Tag, Typography } from 'antd';
@@ -42,6 +38,10 @@ interface TournamentInfo {
   safetyFeatures?: TournamentSafetyFeatures;
   visibility?: TournamentVisibility;
   inviteMetadata: InviteMetadataFE | null;
+  stampMetadata?: {
+    logoURLs?: string[] | null;
+    seedLootboxFanTicketValue?: string | null;
+  } | null;
 }
 
 interface EventFormStepMeta {
@@ -67,6 +67,7 @@ const TOURNAMENT_INFO: TournamentInfo = {
   privacyScope: [] as TournamentPrivacyScope[],
   safetyFeatures: undefined,
   inviteMetadata: null,
+  stampMetadata: null,
 };
 const CreateEventForm: React.FC<CreateEventFormProps> = ({
   tournament,
@@ -76,7 +77,6 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   affiliateID,
 }) => {
   const newMediaDestination = useRef('');
-  const [previewMedias, setPreviewMedias] = useState<string[]>([]);
   const [form] = Form.useForm();
   const [viewMode, setViewMode] = useState(true);
   const [pending, setPending] = useState(false);
@@ -103,6 +103,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         safetyFeatures: tournament.safetyFeatures || undefined,
         visibility: tournament.visibility,
         inviteMetadata: tournament.inviteMetadata,
+        stampMetadata: tournament.stampMetadata,
       });
     }
   }, [tournament]);
@@ -197,6 +198,12 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
 
     if (values.visibility) {
       payload.visibility = values.visibility;
+    }
+
+    if (values.stampMetadata) {
+      if (values.stampMetadata?.seedLootboxFanTicketValue != null) {
+        payload.seedLootboxFanTicketPrize = values.stampMetadata.seedLootboxFanTicketValue;
+      }
     }
 
     setPending(true);
@@ -394,7 +401,15 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       columns: 1,
       disabled: pending,
       initialValues: tournamentInfo,
-      fields: [],
+      fields: [
+        {
+          key: 'stampMetadata.seedLootboxFanTicketValue',
+          label: 'Lootbox Max Ticket Value',
+          placeholder: 'e.g. $20 USD',
+          tooltip:
+            'The advertised max value of the Lootbox fan ticket. This value will become the default value for all player Lootboxes that get made for your event. Calculate this by taking the largest 1st place prize and divide it by the number of tickets in this Lootbox. You can change this field at any time. NOTE: Promoter Lootboxes will potentially have different values because they are seperate from the fan prize pool',
+        },
+      ],
     };
 
     if (viewMode) {
@@ -443,22 +458,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     }
 
     if (!viewMode && (mode === 'edit-only' || mode === 'view-edit')) {
-      // Editable stuff
-      inviteMeta.fields.push({
-        key: 'inviteMetadata.playerDestinationURL',
-        label: 'Player Destination URL',
-        tooltip:
-          'Players are guided to this URL after they make their Lootbox. This can be any URL where you collect sign up data and / or manage players.',
-        widget: 'input',
-      });
-      // Editable stuff
-      inviteMeta.fields.push({
-        key: 'inviteMetadata.promoterDestinationURL',
-        label: 'Promoter Destination URL',
-        tooltip:
-          'Promoters & streamers are guided to this URL after they make their Lootbox. This can be any URL where you collect sign up data, give instructions to and / or manage promoters.',
-        widget: 'input',
-      });
+      //
     }
 
     if (mode !== 'create') {

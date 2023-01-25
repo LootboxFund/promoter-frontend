@@ -107,6 +107,10 @@ export interface TournamentFE {
   isPostCosmic: boolean;
   organizerProfile: OrganizerProfileFE;
   inviteMetadata: InviteMetadataFE;
+  stampMetadata: {
+    logoURLs: string[];
+    seedLootboxFanTicketValue: string | null;
+  } | null;
 }
 
 export interface TournamentAsOrganizerResponseFE {
@@ -192,6 +196,10 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
             id
             name
             avatar
+          }
+          stampMetadata {
+            logoURLs
+            seedLootboxFanTicketValue
           }
         }
       }
