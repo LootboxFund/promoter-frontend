@@ -26,6 +26,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GenerateReferralModal from '../GenerateReferralModal';
 import styles from './index.less';
 import { $Horizontal } from '@/components/generics';
+import { convertFilenameToThumbnail } from '@/lib/storage';
 
 interface LootboxSnapshotFE {
   id: LootboxTournamentSnapshotID;
@@ -544,7 +545,15 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                   </Dropdown>
                 }
                 cover={
-                  <img alt="example" src={snapshot.stampImage || ''} className={styles.cardImage} />
+                  <img
+                    alt={snapshot.name}
+                    src={
+                      snapshot.stampImage
+                        ? convertFilenameToThumbnail(snapshot.stampImage, 'md')
+                        : ''
+                    }
+                    className={styles.cardImage}
+                  />
                 }
               >
                 <Card.Meta
