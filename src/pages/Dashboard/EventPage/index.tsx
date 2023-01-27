@@ -292,6 +292,8 @@ const EventPage: React.FC = () => {
           visibility: payload.visibility,
           seedLootboxLogoURLs: payload.seedLootboxLogoURLs,
           seedLootboxFanTicketPrize: payload.seedLootboxFanTicketPrize,
+          playerDestinationURL: payload.playerDestinationURL,
+          promoterDestinationURL: payload.promoterDestinationURL,
         },
       },
     });

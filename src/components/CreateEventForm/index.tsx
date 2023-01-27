@@ -41,6 +41,8 @@ interface TournamentInfo {
   stampMetadata?: {
     logoURLs?: string[] | null;
     seedLootboxFanTicketValue?: string | null;
+    playerDestinationURL?: string | null;
+    promoterDestinationURL?: string | null;
   } | null;
 }
 
@@ -204,6 +206,15 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       if (values.stampMetadata?.seedLootboxFanTicketValue != null) {
         payload.seedLootboxFanTicketPrize = values.stampMetadata.seedLootboxFanTicketValue;
       }
+    }
+
+    console.log('values', values);
+
+    if (values.inviteMetadata?.playerDestinationURL !== undefined) {
+      payload.playerDestinationURL = values.inviteMetadata.playerDestinationURL;
+    }
+    if (values.inviteMetadata?.promoterDestinationURL !== undefined) {
+      payload.promoterDestinationURL = values.inviteMetadata.promoterDestinationURL;
     }
 
     setPending(true);
@@ -424,13 +435,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           }
           const txt = buildPlayerInviteLinkForEvent(tournamentInfo.inviteMetadata.slug);
           return (
-            <Typography.Text
+            <Typography.Link
               copyable={{
                 text: txt,
               }}
+              href={txt}
+              target="_blank"
+              rel="noreferrer"
+              ellipsis
             >
               {txt}
-            </Typography.Text>
+            </Typography.Link>
           );
         },
       });
@@ -445,21 +460,58 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           }
           const txt = buildPromoterInviteLinkForEvent(tournamentInfo.inviteMetadata.slug);
           return (
-            <Typography.Text
+            <Typography.Link
+              href={txt}
+              target="_blank"
+              rel="noreferrer"
+              ellipsis
               copyable={{
                 text: txt,
               }}
             >
               {txt}
-            </Typography.Text>
+            </Typography.Link>
           );
         },
       });
     }
 
-    if (!viewMode && (mode === 'edit-only' || mode === 'view-edit')) {
-      //
-    }
+    inviteMeta.fields.push({
+      key: 'inviteMetadata.playerDestinationURL',
+      label: 'Player Destination URL',
+      tooltip:
+        'This is the URL that players will be redirected to after they create their Lootbox for your event with the Player Invite Link.',
+      viewWidget: () => {
+        if (!tournamentInfo?.inviteMetadata?.playerDestinationURL) {
+          return <Typography.Text>Not Set</Typography.Text>;
+        }
+        const val = tournamentInfo.inviteMetadata.playerDestinationURL;
+
+        return (
+          <Typography.Link copyable ellipsis href={val} target="_blank">
+            {val}
+          </Typography.Link>
+        );
+      },
+    });
+    inviteMeta.fields.push({
+      key: 'inviteMetadata.promoterDestinationURL',
+      label: 'Promoter Destination URL',
+      tooltip:
+        'This is the URL that promoters will be redirected to after they create their Lootbox for your event with the Promoter Invite Link.',
+      viewWidget: () => {
+        if (!tournamentInfo?.inviteMetadata?.promoterDestinationURL) {
+          return <Typography.Text>Not Set</Typography.Text>;
+        }
+        const val = tournamentInfo.inviteMetadata.promoterDestinationURL;
+
+        return (
+          <Typography.Link copyable ellipsis href={val} target="_blank">
+            {val}
+          </Typography.Link>
+        );
+      },
+    });
 
     if (mode !== 'create') {
       meta.steps.push({

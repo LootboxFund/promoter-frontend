@@ -52,8 +52,6 @@ import UploadImages from '../AntFormBuilder/UploadImages';
 
 const PLACEHOLDER_HEADSHOT =
   'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2F2x3_Placeholder_Headshot.png?alt=media';
-const PLACEHOLDER_LOGO =
-  'https://storage.googleapis.com/lootbox-constants-prod/assets/placeholder-logo.png';
 
 const DEFAULT_THEME_COLOR = '#000001';
 
