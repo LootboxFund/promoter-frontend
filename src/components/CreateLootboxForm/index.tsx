@@ -635,8 +635,6 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
           return file.url !== lootboxInfo.stampMetadata?.logoURLs?.[idx];
         });
 
-      console.log('has logos changed', logoFiles, lootboxInfo.stampMetadata?.logoURLs);
-
       if (hasLogosChanged) {
         request.payload.stampMetadata = {
           ...(request.payload?.stampMetadata || {}),

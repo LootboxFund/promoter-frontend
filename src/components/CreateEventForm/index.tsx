@@ -1,7 +1,7 @@
 import { AffiliateID, StampMetadata, TournamentPrivacyScope } from '@wormgraph/helpers';
 import moment, { Moment } from 'moment';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Form, Modal, Tag, Typography } from 'antd';
+import { Button, Card, Form, Modal, Tag, Typography, UploadFile } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CreateTournamentPayload,
@@ -15,6 +15,9 @@ import { $Horizontal } from '@/components/generics';
 import { Rule } from 'antd/lib/form';
 import { InviteMetadataFE } from '@/pages/Dashboard/EventPage/api.gql';
 import { buildPlayerInviteLinkForEvent, buildPromoterInviteLinkForEvent } from '@/lib/routes';
+import UploadImages from '../AntFormBuilder/UploadImages';
+import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
+import LogoSection from '../TicketDesigns/LogoSection';
 
 export type CreateEventFormProps = {
   tournament?: TournamentInfo;
@@ -84,6 +87,10 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   const [pending, setPending] = useState(false);
   const [tournamentInfo, setTournamentInfo] = useState(TOURNAMENT_INFO);
   const lockedToEdit = mode === 'create' || mode === 'edit-only';
+  const [logoFiles, setLogoFiles] = useState<UploadFile[]>([]);
+  const {
+    affiliateUser: { id: affiliateUserID },
+  } = useAffiliateUser();
   useEffect(() => {
     if (lockedToEdit) {
       setViewMode(false);
@@ -107,6 +114,17 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         inviteMetadata: tournament.inviteMetadata,
         stampMetadata: tournament.stampMetadata,
       });
+      if (tournament?.stampMetadata?.logoURLs) {
+        setLogoFiles(
+          tournament.stampMetadata.logoURLs.map((url, idx) => {
+            return {
+              name: `img_${idx}`,
+              uid: `img_${idx}`,
+              url,
+            };
+          }),
+        );
+      }
     }
   }, [tournament]);
   const handleFinish = useCallback(async (values) => {
@@ -154,88 +172,107 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       });
     }
   }, []);
-  const handleEdit = useCallback(async (values) => {
-    if (!onSubmitEdit) return;
+  const handleEdit = useCallback(
+    async (values) => {
+      if (!onSubmitEdit) return;
 
-    const payload = {} as EditTournamentPayload;
-    if (values.title) {
-      payload.title = values.title;
-    }
-    if (values.description) {
-      payload.description = values.description;
-    }
-    if (values.tournamentDate) {
-      payload.tournamentDate = values.tournamentDate;
-    }
-    if (values.tournamentLink) {
-      payload.tournamentLink = values.tournamentLink;
-    }
-    if (values.communityURL) {
-      payload.communityURL = values.communityURL;
-    }
-    if (values.playbookUrl) {
-      payload.playbookUrl = values.playbookUrl;
-    }
-    if (values.magicLink) {
-      payload.magicLink = values.magicLink;
-    }
-    if (newMediaDestination.current) {
-      payload.coverPhoto = newMediaDestination.current;
-    }
-    if (values.prize) {
-      payload.prize = values.prize;
-    }
-    if (values.privacyScope) {
-      payload.privacyScope = values.privacyScope;
-    }
-
-    if (values.safetyFeatures) {
-      if (values?.safetyFeatures?.maxTicketsPerUser != null) {
-        payload.maxTicketsPerUser = values.safetyFeatures.maxTicketsPerUser;
+      const payload = {} as EditTournamentPayload;
+      if (values.title) {
+        payload.title = values.title;
       }
-      if (values?.safetyFeatures?.seedMaxLootboxTicketsPerUser != null) {
-        payload.seedMaxLootboxTicketsPerUser = values.safetyFeatures.seedMaxLootboxTicketsPerUser;
+      if (values.description) {
+        payload.description = values.description;
       }
-    }
-
-    if (values.visibility) {
-      payload.visibility = values.visibility;
-    }
-
-    if (values.stampMetadata) {
-      if (values.stampMetadata?.seedLootboxFanTicketValue != null) {
-        payload.seedLootboxFanTicketPrize = values.stampMetadata.seedLootboxFanTicketValue;
+      if (values.tournamentDate) {
+        payload.tournamentDate = values.tournamentDate;
       }
-    }
-
-    console.log('values', values);
-
-    if (values.inviteMetadata?.playerDestinationURL !== undefined) {
-      payload.playerDestinationURL = values.inviteMetadata.playerDestinationURL;
-    }
-    if (values.inviteMetadata?.promoterDestinationURL !== undefined) {
-      payload.promoterDestinationURL = values.inviteMetadata.promoterDestinationURL;
-    }
-
-    setPending(true);
-    try {
-      await onSubmitEdit(payload);
-      if (!lockedToEdit) {
-        setViewMode(true);
+      if (values.tournamentLink) {
+        payload.tournamentLink = values.tournamentLink;
       }
-      Modal.success({
-        title: 'Success',
-        content: 'Event updated!',
-      });
-    } catch (e: any) {
-      Modal.error({
-        title: 'Failure',
-        content: `${e.message}`,
-      });
-    } finally {
-      setPending(false);
-    }
-  }, []);
+      if (values.communityURL) {
+        payload.communityURL = values.communityURL;
+      }
+      if (values.playbookUrl) {
+        payload.playbookUrl = values.playbookUrl;
+      }
+      if (values.magicLink) {
+        payload.magicLink = values.magicLink;
+      }
+      if (newMediaDestination.current) {
+        payload.coverPhoto = newMediaDestination.current;
+      }
+      if (values.prize) {
+        payload.prize = values.prize;
+      }
+      if (values.privacyScope) {
+        payload.privacyScope = values.privacyScope;
+      }
+
+      if (values.safetyFeatures) {
+        if (values?.safetyFeatures?.maxTicketsPerUser != null) {
+          payload.maxTicketsPerUser = values.safetyFeatures.maxTicketsPerUser;
+        }
+        if (values?.safetyFeatures?.seedMaxLootboxTicketsPerUser != null) {
+          payload.seedMaxLootboxTicketsPerUser = values.safetyFeatures.seedMaxLootboxTicketsPerUser;
+        }
+      }
+
+      if (values.visibility) {
+        payload.visibility = values.visibility;
+      }
+
+      if (values.stampMetadata) {
+        if (values.stampMetadata?.seedLootboxFanTicketValue != null) {
+          payload.seedLootboxFanTicketPrize = values.stampMetadata.seedLootboxFanTicketValue;
+        }
+      }
+
+      if (values.inviteMetadata?.playerDestinationURL !== undefined) {
+        payload.playerDestinationURL = values.inviteMetadata.playerDestinationURL;
+      }
+      if (values.inviteMetadata?.promoterDestinationURL !== undefined) {
+        payload.promoterDestinationURL = values.inviteMetadata.promoterDestinationURL;
+      }
+
+      const hasLogosChanged =
+        logoFiles.length !== tournamentInfo.stampMetadata?.logoURLs?.length ||
+        logoFiles.some((file, idx) => {
+          return file.url !== tournamentInfo.stampMetadata?.logoURLs?.[idx];
+        });
+
+      if (hasLogosChanged) {
+        payload.seedLootboxLogoURLs = logoFiles.map((a) => a.url).filter((url) => url) as string[];
+      }
+
+      setPending(true);
+      try {
+        await onSubmitEdit(payload);
+        if (!lockedToEdit) {
+          setViewMode(true);
+        }
+        Modal.success({
+          title: 'Success',
+          content: 'Event updated!',
+        });
+      } catch (e: any) {
+        Modal.error({
+          title: 'Failure',
+          content: `${e.message}`,
+        });
+      } finally {
+        setPending(false);
+      }
+    },
+    [tournamentInfo, logoFiles],
+  );
+
+  const handleLogoFilesChange = (file: UploadFile) => {
+    setLogoFiles((files) => [...files, file]);
+  };
+
+  const handleLogoFileRemoved = (file: UploadFile) => {
+    setLogoFiles((files) => files.filter((f) => f.uid !== file.uid));
+  };
 
   const getMeta = (): EventFormMeta => {
     // communityURL?: InputMaybe<Scalars['String']>;
@@ -513,10 +550,44 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       },
     });
 
+    if (mode !== 'create' && !viewMode) {
+      inviteMeta.fields.push({
+        key: 'stampMetadata.logoURLs',
+        label: 'Lootbox Logo Images',
+        widget: () => (
+          <div>
+            {logoFiles &&
+              logoFiles.length > 0 && [
+                <LogoSection
+                  key="logo-section-template"
+                  logoUrls={
+                    logoFiles
+                      .slice(0, 4)
+                      .map((f) => f.url)
+                      .filter((a) => a) as string[]
+                  }
+                />,
+                <br key="brbrb1" />,
+              ]}
+            <UploadImages
+              affiliateID={affiliateUserID as AffiliateID}
+              folderName={AffiliateStorageFolder.LOOTBOX}
+              acceptedFileTypes={'image/*'}
+              initFileList={logoFiles}
+              onFileUploaded={handleLogoFilesChange}
+              onFileRemoved={handleLogoFileRemoved}
+            />
+          </div>
+        ),
+        tooltip:
+          '4 Logo images allowed. These logos will be automatically added to all Lootboxes in your event. You can still change and customize individual Lootbox logos on the Lootbox page. Ideally landscape orientation. These will be converted to greyscale.',
+      });
+    }
+
     if (mode !== 'create') {
       meta.steps.push({
         key: 'invite-config',
-        title: 'Lootbox Invite Config',
+        title: 'Invite Config',
         meta: inviteMeta,
       });
     }
