@@ -26,6 +26,8 @@ import { useEffect, useMemo, useState } from 'react';
 import GenerateReferralModal from '../GenerateReferralModal';
 import styles from './index.less';
 import { $Horizontal } from '@/components/generics';
+import { convertFilenameToThumbnail } from '@/lib/storage';
+import LootboxTypeTag from '../LootboxTypeTag';
 
 interface LootboxSnapshotFE {
   id: LootboxTournamentSnapshotID;
@@ -63,6 +65,7 @@ interface LootboxGalleryProps {
 enum ShowLootboxType {
   All = 'All',
   Teams = 'Teams',
+  Promoters = 'Promoters',
   Airdrops = 'Airdrops',
   Web3 = 'Web3',
 }
@@ -98,10 +101,13 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
   const paginatedLootboxes: LootboxSnapshotFE[] = useMemo(() => {
     const shownLootboxSnapshots = props.lootboxTournamentSnapshots.filter((s) => {
       if (showLootboxType === ShowLootboxType.Teams)
-        return !s.type || s.type === LootboxType.Compete;
+        return !s.type || s.type === LootboxType.Compete || s.type === LootboxType.Player;
       if (showLootboxType === ShowLootboxType.Airdrops)
         return s.type && s.type === LootboxType.Airdrop;
       if (showLootboxType === ShowLootboxType.Web3) return !!s.address;
+      if (showLootboxType === ShowLootboxType.Promoters) {
+        return s.type && s.type === LootboxType.Promoter;
+      }
       return true;
     });
     if (searchString === '') {
@@ -321,6 +327,10 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                 {
                   value: ShowLootboxType.Teams,
                   label: 'Teams Only',
+                },
+                {
+                  value: ShowLootboxType.Promoters,
+                  label: 'Promoters Only',
                 },
                 {
                   value: ShowLootboxType.Airdrops,
@@ -544,7 +554,15 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                   </Dropdown>
                 }
                 cover={
-                  <img alt="example" src={snapshot.stampImage || ''} className={styles.cardImage} />
+                  <img
+                    alt={snapshot.name}
+                    src={
+                      snapshot.stampImage
+                        ? convertFilenameToThumbnail(snapshot.stampImage, 'md')
+                        : ''
+                    }
+                    className={styles.cardImage}
+                  />
                 }
               >
                 <Card.Meta
@@ -561,12 +579,7 @@ const LootboxGallery = (props: LootboxGalleryProps) => {
                           <Tag color="warning">Disabled</Tag>
                         </Tooltip>
                       )}
-
-                      {snapshot.type && snapshot.type === LootboxType.Airdrop && (
-                        <Tooltip title="Airdrop Lootboxes do NOT represent a team and are NOT publically visible. Use Airdrops to send rewards directly to a group of fans.">
-                          <Tag color="processing">Airdrop</Tag>
-                        </Tooltip>
-                      )}
+                      {snapshot.type && <LootboxTypeTag type={snapshot.type} />}
                       {snapshot.address && (
                         <Tooltip title="Lootbox has been deployed to the blockchain">
                           <Tag color="geekblue">Deployed</Tag>

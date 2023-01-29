@@ -543,7 +543,8 @@ const LootboxPage: React.FC = () => {
   }
 
   const maxWidth = '1000px';
-  const doesUserHaveEditPermission = user?.id && lootbox.creatorID === user.id;
+  const doesUserHaveEditPermission =
+    user?.id && (lootbox.creatorID === user.id || lootbox.createdOnBehalfOf === user.id);
   return (
     <div style={{ maxWidth }}>
       <BreadCrumbDynamic breadLine={breadLine} />
@@ -588,6 +589,8 @@ const LootboxPage: React.FC = () => {
             safetyFeatures: lootbox.safetyFeatures,
             officialInviteGraphicURL: lootbox.officialInviteGraphic,
             officialInviteLink: lootbox.officialInviteLink,
+            creator: lootbox.creator,
+            type: lootbox.type,
             stampMetadata: lootbox.stampMetadata
               ? {
                   logoURLs: lootbox.stampMetadata.logoURLs || [],
@@ -597,7 +600,6 @@ const LootboxPage: React.FC = () => {
                 }
               : undefined,
           }}
-          stampImage={lootbox.stampImage}
           airdropMetadata={lootbox.airdropMetadata}
           mode={doesUserHaveEditPermission ? 'view-edit' : 'view-only'}
           onSubmitEdit={editLootbox}

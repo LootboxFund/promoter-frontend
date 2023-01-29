@@ -1,6 +1,7 @@
 import {
   LootboxAirdropMetadata,
   LootboxStatus,
+  LootboxType,
   ResponseError,
 } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
@@ -22,10 +23,12 @@ export interface LootboxFE {
   logo: string;
   creatorAddress: Address | null;
   creatorID: UserID;
+  createdOnBehalfOf: UserID;
   runningCompletedClaims: number;
   airdropMetadata: LootboxAirdropMetadata;
   officialInviteGraphic: string | null;
   officialInviteLink: string | null;
+  type: LootboxType;
   safetyFeatures: {
     maxTicketsPerUser?: number | null;
     isExclusiveLootbox?: boolean | null;
@@ -42,6 +45,11 @@ export interface LootboxFE {
     playerHeadshot?: string | null;
     hostName?: string | null;
     eventName?: string | null;
+  } | null;
+  creator: {
+    id: UserID;
+    username: string;
+    avatar: string;
   } | null;
 }
 
@@ -71,7 +79,14 @@ export const GET_LOOTBOX = gql`
           type
           creatorAddress
           creatorID
+          createdOnBehalfOf
           runningCompletedClaims
+          type
+          creator {
+            id
+            username
+            avatar
+          }
           tournamentSnapshot(tournamentID: $tournamentID) {
             creatorID
             timestamps {

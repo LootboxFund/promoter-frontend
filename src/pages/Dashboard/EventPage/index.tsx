@@ -23,6 +23,7 @@ import {
   AffiliateID,
   LootboxTournamentSnapshotID,
   OfferID,
+  Placement,
   RateQuoteID,
   TournamentID,
 } from '@wormgraph/helpers';
@@ -290,6 +291,10 @@ const EventPage: React.FC = () => {
           seedMaxLootboxTicketsPerUser: payload.seedMaxLootboxTicketsPerUser,
           maxTicketsPerUser: payload.maxTicketsPerUser,
           visibility: payload.visibility,
+          seedLootboxLogoURLs: payload.seedLootboxLogoURLs,
+          seedLootboxFanTicketPrize: payload.seedLootboxFanTicketPrize,
+          playerDestinationURL: payload.playerDestinationURL,
+          promoterDestinationURL: payload.promoterDestinationURL,
         },
       },
     });
@@ -330,7 +335,6 @@ const EventPage: React.FC = () => {
   } else if (data?.viewTournamentAsOrganizer.__typename === 'ResponseError') {
     return <span>{data?.viewTournamentAsOrganizer.error?.message || ''}</span>;
   }
-
   return (
     <div>
       {loading || !tournament ? (
@@ -381,6 +385,8 @@ const EventPage: React.FC = () => {
                 playbookUrl: tournament.playbookUrl || '',
                 safetyFeatures: tournament.safetyFeatures || undefined,
                 visibility: tournament.visibility,
+                inviteMetadata: tournament.inviteMetadata,
+                stampMetadata: tournament.stampMetadata ?? undefined,
               }}
               mode="view-edit"
               affiliateID={affiliateID as AffiliateID}
@@ -632,8 +638,9 @@ const EventPage: React.FC = () => {
                                     if (adSet.ad) {
                                       setSimulatedAd({
                                         title: `Offer "${dealConfig.offerName}" - Ad Set "${adSet.name}"`,
-                                        // @ts-ignore
-                                        placement: adSet.placement,
+                                        placement: adSet.placement
+                                          ? (adSet.placement as Placement)
+                                          : undefined,
                                         creative: {
                                           themeColor: adSet.ad.themeColor,
                                           callToAction: adSet.ad.callToAction,

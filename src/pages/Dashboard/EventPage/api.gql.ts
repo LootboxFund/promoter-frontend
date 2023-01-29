@@ -15,6 +15,7 @@ import {
   AdSetInTournamentStatus,
   AffiliateID,
   AspectRatio,
+  EventInviteSlug,
   LootboxID,
   LootboxTournamentSnapshotID,
   OfferID,
@@ -71,6 +72,14 @@ export interface OrganizerProfileFE {
   avatar?: string;
 }
 
+export interface InviteMetadataFE {
+  slug: EventInviteSlug;
+  playerDestinationURL: string | null;
+  promoterDestinationURL: string | null;
+  maxPlayerLootbox: number;
+  maxPromoterLootbox: number;
+}
+
 export interface TournamentFE {
   id: TournamentID;
   title: string;
@@ -97,6 +106,11 @@ export interface TournamentFE {
   dealConfigs: DealConfigsFE[];
   isPostCosmic: boolean;
   organizerProfile: OrganizerProfileFE;
+  inviteMetadata: InviteMetadataFE;
+  stampMetadata: {
+    logoURLs: string[];
+    seedLootboxFanTicketValue: string | null;
+  } | null;
 }
 
 export interface TournamentAsOrganizerResponseFE {
@@ -128,6 +142,13 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
           privacyScope
           visibility
           playbookUrl
+          inviteMetadata {
+            slug
+            playerDestinationURL
+            promoterDestinationURL
+            maxPlayerLootbox
+            maxPromoterLootbox
+          }
           safetyFeatures {
             maxTicketsPerUser
             seedMaxLootboxTicketsPerUser
@@ -175,6 +196,10 @@ export const VIEW_TOURNAMENT_AS_ORGANIZER = gql`
             id
             name
             avatar
+          }
+          stampMetadata {
+            logoURLs
+            seedLootboxFanTicketValue
           }
         }
       }

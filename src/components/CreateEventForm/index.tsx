@@ -1,11 +1,7 @@
-import {
-  AffiliateID,
-  TournamentPrivacyScope,
-  TournamentSafetyFeatures_Firestore,
-} from '@wormgraph/helpers';
+import { AffiliateID, StampMetadata, TournamentPrivacyScope } from '@wormgraph/helpers';
 import moment, { Moment } from 'moment';
 import FormBuilder from 'antd-form-builder';
-import { Button, Card, Form, Modal, Tag } from 'antd';
+import { Button, Card, Form, Modal, Tag, Typography, UploadFile } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CreateTournamentPayload,
@@ -17,6 +13,11 @@ import { AntUploadFile, DateView } from '../AntFormBuilder';
 import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { $Horizontal } from '@/components/generics';
 import { Rule } from 'antd/lib/form';
+import { InviteMetadataFE } from '@/pages/Dashboard/EventPage/api.gql';
+import { buildPlayerInviteLinkForEvent, buildPromoterInviteLinkForEvent } from '@/lib/routes';
+import UploadImages from '../AntFormBuilder/UploadImages';
+import { useAffiliateUser } from '../AuthGuard/affiliateUserInfo';
+import LogoSection from '../TicketDesigns/LogoSection';
 
 export type CreateEventFormProps = {
   tournament?: TournamentInfo;
@@ -39,6 +40,23 @@ interface TournamentInfo {
   privacyScope?: TournamentPrivacyScope[];
   safetyFeatures?: TournamentSafetyFeatures;
   visibility?: TournamentVisibility;
+  inviteMetadata: InviteMetadataFE | null;
+  stampMetadata?: {
+    logoURLs?: string[] | null;
+    seedLootboxFanTicketValue?: string | null;
+    playerDestinationURL?: string | null;
+    promoterDestinationURL?: string | null;
+  } | null;
+}
+
+interface EventFormStepMeta {
+  title: string;
+  meta: any;
+  key: string;
+}
+
+interface EventFormMeta {
+  steps: EventFormStepMeta[];
 }
 
 const TOURNAMENT_INFO: TournamentInfo = {
@@ -53,6 +71,8 @@ const TOURNAMENT_INFO: TournamentInfo = {
   playbookUrl: '',
   privacyScope: [] as TournamentPrivacyScope[],
   safetyFeatures: undefined,
+  inviteMetadata: null,
+  stampMetadata: null,
 };
 const CreateEventForm: React.FC<CreateEventFormProps> = ({
   tournament,
@@ -62,12 +82,15 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
   affiliateID,
 }) => {
   const newMediaDestination = useRef('');
-  const [previewMedias, setPreviewMedias] = useState<string[]>([]);
   const [form] = Form.useForm();
   const [viewMode, setViewMode] = useState(true);
   const [pending, setPending] = useState(false);
   const [tournamentInfo, setTournamentInfo] = useState(TOURNAMENT_INFO);
   const lockedToEdit = mode === 'create' || mode === 'edit-only';
+  const [logoFiles, setLogoFiles] = useState<UploadFile[]>([]);
+  const {
+    affiliateUser: { id: affiliateUserID },
+  } = useAffiliateUser();
   useEffect(() => {
     if (lockedToEdit) {
       setViewMode(false);
@@ -88,7 +111,20 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         playbookUrl: tournament.playbookUrl || '',
         safetyFeatures: tournament.safetyFeatures || undefined,
         visibility: tournament.visibility,
+        inviteMetadata: tournament.inviteMetadata,
+        stampMetadata: tournament.stampMetadata,
       });
+      if (tournament?.stampMetadata?.logoURLs) {
+        setLogoFiles(
+          tournament.stampMetadata.logoURLs.map((url, idx) => {
+            return {
+              name: `img_${idx}`,
+              uid: `img_${idx}`,
+              url,
+            };
+          }),
+        );
+      }
     }
   }, [tournament]);
   const handleFinish = useCallback(async (values) => {
@@ -136,74 +172,109 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       });
     }
   }, []);
-  const handleEdit = useCallback(async (values) => {
-    if (!onSubmitEdit) return;
+  const handleEdit = useCallback(
+    async (values) => {
+      if (!onSubmitEdit) return;
 
-    const payload = {} as EditTournamentPayload;
-    if (values.title) {
-      payload.title = values.title;
-    }
-    if (values.description) {
-      payload.description = values.description;
-    }
-    if (values.tournamentDate) {
-      payload.tournamentDate = values.tournamentDate;
-    }
-    if (values.tournamentLink) {
-      payload.tournamentLink = values.tournamentLink;
-    }
-    if (values.communityURL) {
-      payload.communityURL = values.communityURL;
-    }
-    if (values.playbookUrl) {
-      payload.playbookUrl = values.playbookUrl;
-    }
-    if (values.magicLink) {
-      payload.magicLink = values.magicLink;
-    }
-    if (newMediaDestination.current) {
-      payload.coverPhoto = newMediaDestination.current;
-    }
-    if (values.prize) {
-      payload.prize = values.prize;
-    }
-    if (values.privacyScope) {
-      payload.privacyScope = values.privacyScope;
-    }
-
-    if (values.safetyFeatures) {
-      if (values?.safetyFeatures?.maxTicketsPerUser != null) {
-        payload.maxTicketsPerUser = values.safetyFeatures.maxTicketsPerUser;
+      const payload = {} as EditTournamentPayload;
+      if (values.title) {
+        payload.title = values.title;
       }
-      if (values?.safetyFeatures?.seedMaxLootboxTicketsPerUser != null) {
-        payload.seedMaxLootboxTicketsPerUser = values.safetyFeatures.seedMaxLootboxTicketsPerUser;
+      if (values.description) {
+        payload.description = values.description;
       }
-    }
-
-    if (values.visibility) {
-      payload.visibility = values.visibility;
-    }
-
-    setPending(true);
-    try {
-      await onSubmitEdit(payload);
-      if (!lockedToEdit) {
-        setViewMode(true);
+      if (values.tournamentDate) {
+        payload.tournamentDate = values.tournamentDate;
       }
-      Modal.success({
-        title: 'Success',
-        content: 'Event updated!',
-      });
-    } catch (e: any) {
-      Modal.error({
-        title: 'Failure',
-        content: `${e.message}`,
-      });
-    } finally {
-      setPending(false);
-    }
-  }, []);
-  const getMeta = () => {
+      if (values.tournamentLink) {
+        payload.tournamentLink = values.tournamentLink;
+      }
+      if (values.communityURL) {
+        payload.communityURL = values.communityURL;
+      }
+      if (values.playbookUrl) {
+        payload.playbookUrl = values.playbookUrl;
+      }
+      if (values.magicLink) {
+        payload.magicLink = values.magicLink;
+      }
+      if (newMediaDestination.current) {
+        payload.coverPhoto = newMediaDestination.current;
+      }
+      if (values.prize) {
+        payload.prize = values.prize;
+      }
+      if (values.privacyScope) {
+        payload.privacyScope = values.privacyScope;
+      }
+
+      if (values.safetyFeatures) {
+        if (values?.safetyFeatures?.maxTicketsPerUser != null) {
+          payload.maxTicketsPerUser = values.safetyFeatures.maxTicketsPerUser;
+        }
+        if (values?.safetyFeatures?.seedMaxLootboxTicketsPerUser != null) {
+          payload.seedMaxLootboxTicketsPerUser = values.safetyFeatures.seedMaxLootboxTicketsPerUser;
+        }
+      }
+
+      if (values.visibility) {
+        payload.visibility = values.visibility;
+      }
+
+      if (values.stampMetadata) {
+        if (values.stampMetadata?.seedLootboxFanTicketValue != null) {
+          payload.seedLootboxFanTicketPrize = values.stampMetadata.seedLootboxFanTicketValue;
+        }
+      }
+
+      if (values.inviteMetadata?.playerDestinationURL !== undefined) {
+        payload.playerDestinationURL = values.inviteMetadata.playerDestinationURL;
+      }
+      if (values.inviteMetadata?.promoterDestinationURL !== undefined) {
+        payload.promoterDestinationURL = values.inviteMetadata.promoterDestinationURL;
+      }
+
+      const hasLogosChanged =
+        logoFiles.length !== tournamentInfo.stampMetadata?.logoURLs?.length ||
+        logoFiles.some((file, idx) => {
+          return file.url !== tournamentInfo.stampMetadata?.logoURLs?.[idx];
+        });
+
+      if (hasLogosChanged) {
+        payload.seedLootboxLogoURLs = logoFiles.map((a) => a.url).filter((url) => url) as string[];
+      }
+
+      setPending(true);
+      try {
+        await onSubmitEdit(payload);
+        if (!lockedToEdit) {
+          setViewMode(true);
+        }
+        Modal.success({
+          title: 'Success',
+          content: 'Event updated!',
+        });
+      } catch (e: any) {
+        Modal.error({
+          title: 'Failure',
+          content: `${e.message}`,
+        });
+      } finally {
+        setPending(false);
+      }
+    },
+    [tournamentInfo, logoFiles],
+  );
+
+  const handleLogoFilesChange = (file: UploadFile) => {
+    setLogoFiles((files) => [...files, file]);
+  };
+
+  const handleLogoFileRemoved = (file: UploadFile) => {
+    setLogoFiles((files) => files.filter((f) => f.uid !== file.uid));
+  };
+
+  const getMeta = (): EventFormMeta => {
     // communityURL?: InputMaybe<Scalars['String']>;
     // coverPhoto?: InputMaybe<Scalars['String']>;
     // description: Scalars['String'];
@@ -213,7 +284,11 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
     // title: Scalars['String'];
     // tournamentDate: Scalars['Timestamp'];
     // tournamentLink?: InputMaybe<Scalars['String']>;
-    const meta: any = {
+    const meta: EventFormMeta = {
+      steps: [],
+    };
+
+    const publicMeta: any = {
       columns: 1,
       disabled: pending,
       initialValues: tournamentInfo,
@@ -232,10 +307,76 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         },
       ],
     };
+
     if (mode !== 'create') {
-      meta.fields.push({
+      publicMeta.fields.push({
+        key: 'prize',
+        label: 'Prize',
+        tooltip:
+          'The total prize pool for fan ticket holders, shown publically on marketing materials',
+      });
+
+      publicMeta.fields.push({
+        key: 'description',
+        label: 'Description',
+        widget: 'textarea',
+        tooltip: 'Additional information shown publically on your Lootbox event page',
+      });
+
+      publicMeta.fields.push({
+        key: 'tournamentDate',
+        label: 'Estimated Date',
+        widget: 'date-picker',
+        viewWidget: DateView,
+        tooltip: 'Shown publically as the last date that tickets can be claimed',
+      });
+
+      publicMeta.fields.push({
+        key: 'communityURL',
+        label: 'Link to Community',
+        rules: [{ type: 'url' } as Rule],
+        tooltip:
+          'Link to where you want to funnel audience members. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
+        viewWidget: () => (
+          <a href={tournamentInfo.communityURL} target="_blank" rel="noreferrer">
+            {tournamentInfo.communityURL && `${tournamentInfo.communityURL.slice(0, 25)}...`}
+          </a>
+        ),
+      });
+      publicMeta.fields.push({
+        key: 'playbookUrl',
+        label: 'Event Playbook',
+        rules: [{ type: 'url' } as Rule],
+        tooltip:
+          'Your checklist for running a successful event. This could be a Google Doc, Notion, or other document.',
+        viewWidget: () => {
+          if (!tournamentInfo.playbookUrl) return null;
+          return (
+            <Typography.Link
+              copyable
+              href={tournamentInfo.playbookUrl}
+              target="_blank"
+              rel="noreferrer"
+              ellipsis
+            >
+              {tournamentInfo.playbookUrl}
+            </Typography.Link>
+          );
+        },
+      });
+
+      publicMeta.fields.push({
+        key: 'safetyFeatures.maxTicketsPerUser',
+        label: 'Max Tickets Per User',
+        tooltip: 'The maximum number of tickets a user can claim for this event.',
+        rules: [],
+        initialValue: tournamentInfo?.safetyFeatures?.maxTicketsPerUser || 100,
+        widget: 'number',
+      });
+
+      publicMeta.fields.push({
         key: 'visibility',
-        label: 'Visibility',
+        label: 'Discoverability',
         tooltip: 'Determines if your event is shown in the marketplace.',
         widget: 'radio-group',
         options: [
@@ -254,74 +395,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         },
       });
 
-      meta.fields.push({
-        key: 'description',
-        label: 'Description',
-        widget: 'textarea',
-        tooltip: 'Additional information shown publically on your Lootbox event page',
-      });
-
-      meta.fields.push({
-        key: 'tournamentDate',
-        label: 'Estimated Date',
-        widget: 'date-picker',
-        viewWidget: DateView,
-        tooltip: 'Shown publically as the last date that tickets can be claimed',
-      });
-
-      meta.fields.push({
-        key: 'communityURL',
-        label: 'Link to Community',
-        rules: [{ type: 'url' } as Rule],
-        tooltip:
-          'Link to where you want to funnel audience members. This could be to grow your social media accounts, Discord community, YouTube channel or email mailing list.',
-        viewWidget: () => (
-          <a href={tournamentInfo.communityURL} target="_blank" rel="noreferrer">
-            {tournamentInfo.communityURL && `${tournamentInfo.communityURL.slice(0, 25)}...`}
-          </a>
-        ),
-      });
-      meta.fields.push({
-        key: 'playbookUrl',
-        label: 'Event Playbook',
-        rules: [{ type: 'url' } as Rule],
-        tooltip:
-          'Your checklist for running a successful event. This could be a Google Doc, Notion, or other document.',
-        viewWidget: () => (
-          <a href={tournamentInfo.playbookUrl} target="_blank" rel="noreferrer">
-            {tournamentInfo.playbookUrl && `${tournamentInfo.playbookUrl.slice(0, 25)}...`}
-          </a>
-        ),
-      });
-
-      meta.fields.push({
-        key: 'prize',
-        label: 'Prize',
-        tooltip:
-          'The total prize pool for fan ticket holders, shown publically on marketing materials',
-      });
-
-      // meta.fields.push({
-      //   key: 'safetyFeatures.seedMaxLootboxTicketsPerUser',
-      //   label: 'Allowed Tickets Per Team',
-      //   tooltip: 'The maximum number of tickets a user can claim for each Lootbox in this event.',
-      //   rules: [],
-      //   // @ts-ignore
-      //   initialValue: tournamentInfo?.safetyFeatures?.seedMaxLootboxTicketsPerUser || 5,
-      //   // @ts-ignore
-      //   widget: 'number',
-      // });
-
-      meta.fields.push({
-        key: 'safetyFeatures.maxTicketsPerUser',
-        label: 'Max Tickets Per User',
-        tooltip: 'The maximum number of tickets a user can claim for this event.',
-        rules: [],
-        initialValue: tournamentInfo?.safetyFeatures?.maxTicketsPerUser || 100,
-        widget: 'number',
-      });
-
-      meta.fields.push({
+      publicMeta.fields.push({
         key: 'privacyScope',
         label: 'Privacy Scope',
         tooltip:
@@ -343,7 +417,7 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
       });
 
       if (!viewMode) {
-        meta.fields.push({
+        publicMeta.fields.push({
           key: 'coverPhoto',
           label: 'Cover Photo',
           // rules: [
@@ -373,13 +447,173 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         });
       }
     }
+
+    meta.steps.push({
+      key: 'public-details',
+      title: 'Public Details',
+      meta: publicMeta,
+    });
+
+    const inviteMeta: any = {
+      columns: 1,
+      disabled: pending,
+      initialValues: tournamentInfo,
+      fields: [
+        {
+          key: 'stampMetadata.seedLootboxFanTicketValue',
+          label: 'Lootbox Max Ticket Value',
+          placeholder: 'e.g. $20 USD',
+          tooltip:
+            'The advertised max value of the Lootbox fan ticket. This value will become the default value for all player Lootboxes that get made for your event. Calculate this by taking the largest 1st place prize and divide it by the number of tickets in this Lootbox. You can change this field at any time. NOTE: Promoter Lootboxes will potentially have different values because they are seperate from the fan prize pool',
+        },
+      ],
+    };
+
+    if (viewMode) {
+      inviteMeta.fields.push({
+        key: '__player_invite',
+        label: 'Player Invite Link',
+        tooltip:
+          'Share this link with players to invite them to your event. They will make a Lootbox and it will appear here. These Lootboxes are subject to the event limits and have a low default max ticket value.',
+        viewWidget: () => {
+          if (!tournamentInfo?.inviteMetadata?.slug) {
+            return <Typography.Text>Not Set</Typography.Text>;
+          }
+          const txt = buildPlayerInviteLinkForEvent(tournamentInfo.inviteMetadata.slug);
+          return (
+            <Typography.Link
+              copyable={{
+                text: txt,
+              }}
+              href={txt}
+              target="_blank"
+              rel="noreferrer"
+              ellipsis
+            >
+              {txt}
+            </Typography.Link>
+          );
+        },
+      });
+      inviteMeta.fields.push({
+        key: '__promoter_invite',
+        label: 'Promoter Invite Link',
+        tooltip:
+          'Share this link with promoters and streamers to invite them to your event. They will make a Lootbox and it will appear here. These Lootboxes are NOT subject to the event limits and have a high default max ticket value to increase sharing.',
+        viewWidget: () => {
+          if (!tournamentInfo?.inviteMetadata?.slug) {
+            return <Typography.Text>Not Set</Typography.Text>;
+          }
+          const txt = buildPromoterInviteLinkForEvent(tournamentInfo.inviteMetadata.slug);
+          return (
+            <Typography.Link
+              href={txt}
+              target="_blank"
+              rel="noreferrer"
+              ellipsis
+              copyable={{
+                text: txt,
+              }}
+            >
+              {txt}
+            </Typography.Link>
+          );
+        },
+      });
+    }
+
+    inviteMeta.fields.push({
+      key: 'inviteMetadata.playerDestinationURL',
+      label: 'Player Destination URL',
+      tooltip:
+        'This is the URL that players will be redirected to after they create their Lootbox for your event with the Player Invite Link.',
+      viewWidget: () => {
+        if (!tournamentInfo?.inviteMetadata?.playerDestinationURL) {
+          return <Typography.Text>Not Set</Typography.Text>;
+        }
+        const val = tournamentInfo.inviteMetadata.playerDestinationURL;
+
+        return (
+          <Typography.Link copyable ellipsis href={val} target="_blank">
+            {val}
+          </Typography.Link>
+        );
+      },
+    });
+    inviteMeta.fields.push({
+      key: 'inviteMetadata.promoterDestinationURL',
+      label: 'Promoter Destination URL',
+      tooltip:
+        'This is the URL that promoters will be redirected to after they create their Lootbox for your event with the Promoter Invite Link.',
+      viewWidget: () => {
+        if (!tournamentInfo?.inviteMetadata?.promoterDestinationURL) {
+          return <Typography.Text>Not Set</Typography.Text>;
+        }
+        const val = tournamentInfo.inviteMetadata.promoterDestinationURL;
+
+        return (
+          <Typography.Link copyable ellipsis href={val} target="_blank">
+            {val}
+          </Typography.Link>
+        );
+      },
+    });
+
+    if (mode !== 'create' && !viewMode) {
+      inviteMeta.fields.push({
+        key: 'stampMetadata.logoURLs',
+        label: 'Lootbox Logo Images',
+        widget: () => (
+          <div>
+            {logoFiles &&
+              logoFiles.length > 0 && [
+                <LogoSection
+                  key="logo-section-template"
+                  logoUrls={
+                    logoFiles
+                      .slice(0, 4)
+                      .map((f) => f.url)
+                      .filter((a) => a) as string[]
+                  }
+                />,
+                <br key="brbrb1" />,
+              ]}
+            <UploadImages
+              affiliateID={affiliateUserID as AffiliateID}
+              folderName={AffiliateStorageFolder.LOOTBOX}
+              acceptedFileTypes={'image/*'}
+              initFileList={logoFiles}
+              onFileUploaded={handleLogoFilesChange}
+              onFileRemoved={handleLogoFileRemoved}
+            />
+          </div>
+        ),
+        tooltip:
+          '4 Logo images allowed. These logos will be automatically added to all Lootboxes in your event. You can still change and customize individual Lootbox logos on the Lootbox page. Ideally landscape orientation. These will be converted to greyscale.',
+      });
+    }
+
+    if (mode !== 'create') {
+      meta.steps.push({
+        key: 'invite-config',
+        title: 'Invite Config',
+        meta: inviteMeta,
+      });
+    }
     return meta;
   };
+
+  const meta = getMeta();
+
   return (
     <Card style={{ flex: 1 }}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {viewMode && mode !== 'view-only' && !lockedToEdit && (
-          <Button type="link" onClick={() => setViewMode(false)} style={{ alignSelf: 'flex-end' }}>
+          <Button
+            type="link"
+            onClick={() => setViewMode(false)}
+            style={{ alignSelf: 'flex-end', marginBottom: '-28px' }}
+          >
             Edit
           </Button>
         )}
@@ -388,7 +622,15 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
           form={form}
           onFinish={mode === 'create' ? handleFinish : handleEdit}
         >
-          <FormBuilder form={form} meta={getMeta()} viewMode={viewMode} />
+          {meta.steps.map((m: EventFormStepMeta) => {
+            return (
+              <fieldset key={m.key}>
+                <legend>{m.title}</legend>
+                <FormBuilder form={form} meta={m.meta} viewMode={viewMode} />
+                <br />
+              </fieldset>
+            );
+          })}
           {!viewMode && (
             <$Horizontal justifyContent="flex-end" style={{ width: '100%' }}>
               <Form.Item className="form-footer">
