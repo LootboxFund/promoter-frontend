@@ -23,6 +23,7 @@ import {
   AffiliateID,
   LootboxTournamentSnapshotID,
   OfferID,
+  Placement,
   RateQuoteID,
   TournamentID,
 } from '@wormgraph/helpers';
@@ -334,7 +335,6 @@ const EventPage: React.FC = () => {
   } else if (data?.viewTournamentAsOrganizer.__typename === 'ResponseError') {
     return <span>{data?.viewTournamentAsOrganizer.error?.message || ''}</span>;
   }
-
   return (
     <div>
       {loading || !tournament ? (
@@ -638,8 +638,9 @@ const EventPage: React.FC = () => {
                                     if (adSet.ad) {
                                       setSimulatedAd({
                                         title: `Offer "${dealConfig.offerName}" - Ad Set "${adSet.name}"`,
-                                        // @ts-ignore
-                                        placement: adSet.placement,
+                                        placement: adSet.placement
+                                          ? (adSet.placement as Placement)
+                                          : undefined,
                                         creative: {
                                           themeColor: adSet.ad.themeColor,
                                           callToAction: adSet.ad.callToAction,

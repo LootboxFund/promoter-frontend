@@ -1,6 +1,7 @@
 import {
   LootboxAirdropMetadata,
   LootboxStatus,
+  LootboxType,
   ResponseError,
 } from '@/api/graphql/generated/types';
 import { gql } from '@apollo/client';
@@ -27,6 +28,7 @@ export interface LootboxFE {
   airdropMetadata: LootboxAirdropMetadata;
   officialInviteGraphic: string | null;
   officialInviteLink: string | null;
+  type: LootboxType;
   safetyFeatures: {
     maxTicketsPerUser?: number | null;
     isExclusiveLootbox?: boolean | null;
@@ -79,6 +81,7 @@ export const GET_LOOTBOX = gql`
           creatorID
           createdOnBehalfOf
           runningCompletedClaims
+          type
           creator {
             id
             username

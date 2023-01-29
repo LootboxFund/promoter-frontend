@@ -349,11 +349,20 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({
         rules: [{ type: 'url' } as Rule],
         tooltip:
           'Your checklist for running a successful event. This could be a Google Doc, Notion, or other document.',
-        viewWidget: () => (
-          <a href={tournamentInfo.playbookUrl} target="_blank" rel="noreferrer">
-            {tournamentInfo.playbookUrl && `${tournamentInfo.playbookUrl.slice(0, 25)}...`}
-          </a>
-        ),
+        viewWidget: () => {
+          if (!tournamentInfo.playbookUrl) return null;
+          return (
+            <Typography.Link
+              copyable
+              href={tournamentInfo.playbookUrl}
+              target="_blank"
+              rel="noreferrer"
+              ellipsis
+            >
+              {tournamentInfo.playbookUrl}
+            </Typography.Link>
+          );
+        },
       });
 
       publicMeta.fields.push({

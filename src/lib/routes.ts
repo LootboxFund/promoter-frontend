@@ -1,9 +1,10 @@
 import { EventInviteSlug, EventInviteType } from '@wormgraph/helpers';
+import { manifest } from '../manifest';
 
 export const buildPlayerInviteLinkForEvent = (slug: EventInviteSlug) => {
-  return `${'http://localhost:3000/join'}?code=${slug}&type=${EventInviteType.PLAYER}`;
+  return `${manifest.microfrontends.dashboard.playerOnboard}?code=${slug}&type=${EventInviteType.PLAYER}`;
 };
 
 export const buildPromoterInviteLinkForEvent = (slug: EventInviteSlug) => {
-  return `${'http://localhost:3000/join'}?code=${slug}&type=${EventInviteType.PROMOTER}`;
+  return `${manifest.microfrontends.dashboard.playerOnboard}?code=${slug}&type=${EventInviteType.PROMOTER}`;
 };

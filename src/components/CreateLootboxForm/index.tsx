@@ -40,7 +40,7 @@ import { AffiliateStorageFolder } from '@/api/firebase/storage';
 import { useWeb3 } from '@/hooks/useWeb3';
 import LootboxPreview from '../LootboxPreview';
 import { chainIdToHex, getBlockExplorerUrl } from '@/lib/chain';
-import { LootboxAirdropMetadata, LootboxStatus } from '@/api/graphql/generated/types';
+import { LootboxAirdropMetadata, LootboxStatus, LootboxType } from '@/api/graphql/generated/types';
 import { shortenAddress } from '@/lib/address';
 import { CheckCircleOutlined, InfoCircleTwoTone } from '@ant-design/icons';
 import { ContractTransaction } from 'ethers';
@@ -49,6 +49,7 @@ import { Link } from '@umijs/max';
 import SimpleTicket from '../TicketDesigns/SimpleTicket';
 import { manifest } from '@/manifest';
 import UploadImages from '../AntFormBuilder/UploadImages';
+import LootboxTypeTag from '../LootboxTypeTag';
 
 const PLACEHOLDER_HEADSHOT =
   'https://firebasestorage.googleapis.com/v0/b/lootbox-fund-staging.appspot.com/o/shared-company-assets%2F2x3_Placeholder_Headshot.png?alt=media';
@@ -72,6 +73,7 @@ interface LootboxBody {
   chainIDHex?: ChainIDHex | null;
   runningCompletedClaims: number;
   stampImage: string;
+  type: LootboxType;
   id?: LootboxID;
   creator: {
     id: UserID;
@@ -185,6 +187,7 @@ const LOOTBOX_INFO: LootboxBody = {
   officialInviteLink: null,
   stampImage: '',
   creator: null,
+  type: LootboxType.Player,
 };
 const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
   lootbox,
@@ -276,6 +279,7 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
         officialInviteLink: lootbox.officialInviteLink,
         stampImage: lootbox.stampImage,
         creator: lootbox.creator,
+        type: lootbox.type,
       });
       newMediaDestinationLogo.current = lootbox.logoImage;
       newMediaDestinationBackground.current = lootbox.backgroundImage;
@@ -952,6 +956,21 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                       )}
                     </$Horizontal>
                   );
+                },
+              },
+              {
+                key: 'status',
+                label: 'Status',
+                widget: 'select',
+                // options: Object.values(LootboxStatus).map((statusOption) => ({
+                //   name: _.lowerCase,
+                //   value: statusOption,
+                // })),
+                options: Object.values(LootboxStatus),
+                tooltip:
+                  "The Lootbox's current status. Sold out Lootboxes still appear on the Viral Onboarding loop, but cannot be claimed. Disbaled Lootboxes will not be visible.",
+                viewWidget: () => {
+                  return <LootboxTypeTag type={lootboxInfo.type} />;
                 },
               },
             ]

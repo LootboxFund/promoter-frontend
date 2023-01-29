@@ -590,6 +590,7 @@ const LootboxPage: React.FC = () => {
             officialInviteGraphicURL: lootbox.officialInviteGraphic,
             officialInviteLink: lootbox.officialInviteLink,
             creator: lootbox.creator,
+            type: lootbox.type,
             stampMetadata: lootbox.stampMetadata
               ? {
                   logoURLs: lootbox.stampMetadata.logoURLs || [],
