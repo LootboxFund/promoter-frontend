@@ -16,7 +16,8 @@ const Settings: LayoutSettings & {
   colorWeak: false,
   title: 'LOOTBOX',
   pwa: false,
-  logo: 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/apple/118/wrapped-present_1f381.png',
+  // logo: 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/apple/118/wrapped-present_1f381.png',
+  logo: 'https://storage.googleapis.com/frontend-promoter-dashboard/favicon.ico',
   iconfontUrl: '',
 };
 
