@@ -958,17 +958,15 @@ const CreateLootboxForm: React.FC<CreateLootboxFormProps> = ({
                   );
                 },
               },
+            ]
+          : []),
+        ...(viewMode
+          ? [
               {
-                key: 'status',
-                label: 'Status',
-                widget: 'select',
-                // options: Object.values(LootboxStatus).map((statusOption) => ({
-                //   name: _.lowerCase,
-                //   value: statusOption,
-                // })),
-                options: Object.values(LootboxStatus),
+                key: 'type',
+                label: 'Lootbox Type',
                 tooltip:
-                  "The Lootbox's current status. Sold out Lootboxes still appear on the Viral Onboarding loop, but cannot be claimed. Disbaled Lootboxes will not be visible.",
+                  "The Lootbox's type, options are: 'Player', 'Promoter' & 'Airdrop'. Player Lootboxes are for for players in your event. If the player wins your event, their fan claims should pay out a portion of the fan prize pool. Promoter Lootboxes do not have that constraint and are generally limitless. Airdrop Lootboxes are special Lootboxes you can make to reward certain groups of fans. ",
                 viewWidget: () => {
                   return <LootboxTypeTag type={lootboxInfo.type} />;
                 },
