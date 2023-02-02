@@ -19,6 +19,10 @@ export interface BaseEventClaimStatsFE {
   airdropCompletionRate: number;
   totalMaxTickets: number;
   participationFans: number;
+  completedPlayerClaimCount: number;
+  completedPromoterClaimCount: number;
+  totalPlayerMaxTickets: number;
+  totalPromoterMaxTickets: number;
 }
 
 export interface BaseEventClaimStatsResponseFE {
@@ -51,6 +55,10 @@ export const BASE_EVENT_CLAIM_STATS = gql`
           airdropCompletionRate
           totalMaxTickets
           participationFans
+          completedPlayerClaimCount
+          completedPromoterClaimCount
+          totalPlayerMaxTickets
+          totalPromoterMaxTickets
         }
       }
       ... on ResponseError {

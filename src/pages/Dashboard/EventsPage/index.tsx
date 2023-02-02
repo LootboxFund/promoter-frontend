@@ -32,7 +32,6 @@ const EventsPage: React.FC = () => {
         'ViewMyTournamentsAsOrganizerResponseSuccess'
       ) {
         const tournaments = data.viewMyTournamentsAsOrganizer.tournaments;
-        console.log(tournaments);
         setTournaments(tournaments);
       }
     },

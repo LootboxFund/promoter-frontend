@@ -50,7 +50,6 @@ const AdSetToTournamentModal: React.FC<AdSetToTournamentModalProps> = ({
         'ViewMyTournamentsAsOrganizerResponseSuccess'
       ) {
         const tournaments = data.viewMyTournamentsAsOrganizer.tournaments;
-        console.log(tournaments);
         setTournaments(tournaments);
       }
     },
