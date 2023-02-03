@@ -1,6 +1,6 @@
 import { QueryLootboxCompletedClaimsForTournamentArgs } from '@/api/graphql/generated/types';
 import { $InfoDescription } from '@/components/generics';
-import { convertFilenameToThumbnail } from '@/lib/storage';
+import { convertFilenameToThumbnail } from '@wormgraph/helpers';
 import { Bar, BarConfig } from '@ant-design/plots';
 import { useQuery } from '@apollo/client';
 import { TournamentID } from '@wormgraph/helpers';
