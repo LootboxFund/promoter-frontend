@@ -85,6 +85,7 @@ import EventActivationFunnel from '@/components/OfferAnalytics/components/EventA
 import EventCSVDownloader from '@/components/EventCSVDownloader';
 import OfferEventClaimsCSVDownloader from '@/components/EventOfferClaimsCSVDownloader';
 import moment from 'moment';
+import { buildPlayerInviteLinkForEvent, buildPromoterInviteLinkForEvent } from '@/lib/routes';
 
 const GALLERY_PAGE_SIZE = 12;
 
@@ -482,15 +483,38 @@ const EventPage: React.FC = () => {
             <h2 id="lootbox-gallery">Lootbox Gallery</h2>
             <Space>
               <Popconfirm
-                title={`Coming soon - Inviting a team means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it.`}
+                title={`Inviting a promoter means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it. Their Lootboxes have a higher Max Ticket count & are not considered to be a part of the fan prize pool for your event.`}
                 onConfirm={() => {
-                  message.info('Feature coming soon.');
-                  // navigator.clipboard.writeText('magic_link');
-                  // message.success('Copied Lootbox Invite Link to clipboard');
+                  try {
+                    navigator.clipboard.writeText(
+                      buildPromoterInviteLinkForEvent(tournament.inviteMetadata.slug),
+                    );
+                    message.success('Copied Lootbox Invite Link to clipboard');
+                  } catch (err) {
+                    message.error('Failed to copy link to clipboard');
+                  }
                 }}
-                okText="Copy Invite Link - Coming Soon"
+                okText="Copy Invite Link"
                 cancelText={'Cancel'}
-                style={{ maxWidth: '500px' }}
+                overlayStyle={{ maxWidth: '500px' }}
+              >
+                <Button style={{ marginRight: '5px' }}>Invite Promoter</Button>
+              </Popconfirm>
+              <Popconfirm
+                title={`Inviting a team means letting them customize their own Lootbox design. Copy the invite link and send it to them. Their Lootbox will appear here once they've created it.`}
+                onConfirm={() => {
+                  try {
+                    navigator.clipboard.writeText(
+                      buildPlayerInviteLinkForEvent(tournament.inviteMetadata.slug),
+                    );
+                    message.success('Copied Lootbox Invite Link to clipboard');
+                  } catch (err) {
+                    message.error('Failed to copy link to clipboard');
+                  }
+                }}
+                okText="Copy Invite Link"
+                cancelText={'Cancel'}
+                overlayStyle={{ maxWidth: '500px' }}
               >
                 <Button style={{ marginRight: '5px' }}>Invite Team</Button>
               </Popconfirm>
