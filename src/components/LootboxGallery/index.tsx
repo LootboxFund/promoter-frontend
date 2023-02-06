@@ -26,7 +26,7 @@ import { useEffect, useMemo, useState } from 'react';
 import GenerateReferralModal from '../GenerateReferralModal';
 import styles from './index.less';
 import { $Horizontal } from '@/components/generics';
-import { convertFilenameToThumbnail } from '@/lib/storage';
+import { convertFilenameToThumbnail } from '@wormgraph/helpers';
 import LootboxTypeTag from '../LootboxTypeTag';
 
 interface LootboxSnapshotFE {

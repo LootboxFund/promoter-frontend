@@ -103,11 +103,16 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     const viralityCoef =
       stats?.viralFans && stats?.originalFans > 0 ? stats.viralFans / stats.originalFans + 1 : 0;
 
+    // const distributionProgress =
+    //   stats?.completedClaimCount && stats?.totalMaxTickets > 0
+    //     ? // ? Math.round((10000 * stats.completedClaimCount) / stats.totalMaxTickets) / 100
+    //       stats.completedClaimCount / stats.totalMaxTickets
+    //     : 0;
     const distributionProgress =
-      stats?.completedClaimCount && stats?.totalMaxTickets > 0
-        ? // ? Math.round((10000 * stats.completedClaimCount) / stats.totalMaxTickets) / 100
-          stats.completedClaimCount / stats.totalMaxTickets
+      stats?.completedPlayerClaimCount && stats?.totalPlayerMaxTickets > 0
+        ? stats.completedPlayerClaimCount / stats.totalPlayerMaxTickets
         : 0;
+
     return {
       parsedClaimData,
       parsedUserData,
@@ -356,7 +361,9 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
     },
   };
 
-  const remainingTix = (stats?.totalMaxTickets || 0) - (stats?.completedClaimCount || 0);
+  // const remainingTix = (stats?.totalMaxTickets || 0) - (stats?.completedClaimCount || 0);
+  const remainingTix =
+    (stats?.totalPlayerMaxTickets || 0) - (stats?.completedPlayerClaimCount || 0);
 
   if (error || data?.baseClaimStatsForTournament?.__typename === 'ResponseError') {
     return (
@@ -382,9 +389,11 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
           placement="top"
           title={`${
             Math.round(10000 * distributionProgress) / 100
-          }% Percentage of how many tickets have been distributed for your event. Calculated as ${
-            stats?.completedClaimCount || 0
-          } completed claims divided by ${stats?.totalMaxTickets || 0} total max tickets.`}
+          }% Percentage of how many Player Lootbox tickets have been distributed for your event. Calculated as ${
+            stats?.completedPlayerClaimCount || 0
+          } completed claims divided by ${
+            stats?.totalPlayerMaxTickets || 0
+          } total max tickets. This does not include claims from Promoter or Airdrop Lootboxes.`}
         >
           <Col sm={24} md={4}>
             <Liquid {...liquidConfig} />
@@ -403,9 +412,13 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
         >
           <Tooltip
             placement="top"
-            title={`Percentage of how many tickets have been distributed for your event. Calculated as ${
-              stats?.completedClaimCount || 0
-            } completed claims divided by ${stats?.totalMaxTickets || 0} total max tickets.`}
+            title={`${
+              Math.round(10000 * distributionProgress) / 100
+            }% Percentage of how many Player Lootbox tickets have been distributed for your event. Calculated as ${
+              stats?.completedPlayerClaimCount || 0
+            } completed claims divided by ${
+              stats?.totalPlayerMaxTickets || 0
+            } total max tickets. This does not include claims from Promoter or Airdrop Lootboxes.`}
           >
             <Statistic
               title="Distribution Progress"
@@ -471,7 +484,10 @@ const SummaryStatistics: React.FC<EventSummaryStatisticsProps> = (props) => {
             width: '100%',
           }}
         >
-          <Tooltip placement="top" title="The number of unclaimed tickets left for your event.">
+          <Tooltip
+            placement="top"
+            title="The number of unclaimed Player tickets left for your event. Calculated as the sum of all max tickets for your player lootboxes, minus the number of claims they have received. This does not include Promoter Lootboxes or Airdrops."
+          >
             <Statistic
               title="# Tickets Remaining"
               loading={loading}
